@@ -1,0 +1,17 @@
+[package]
+name = "rogue-tiny"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+bevy = "~0.6"
+bevy_roguelike_plugin = {path = "bevy_roguelike_plugin"}
+# TODO: should be in debug only
+bevy-inspector-egui = "~0.8"
+
+[workspace]
+members = [
+    "bevy_roguelike_plugin"
+]
