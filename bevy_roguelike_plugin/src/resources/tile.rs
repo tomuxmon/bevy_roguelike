@@ -1,3 +1,4 @@
+use std::fmt::*;
 // TODO: only in debug
 use colored::Colorize;
 
@@ -22,5 +23,11 @@ impl Tile {
                 Tile::Floor => ".".bright_green(),
             }
         )
+    }
+}
+
+impl Display for Tile {
+    fn fmt(&self, f: &mut Formatter<'_>) -> Result {
+        write!(f, "{:?}", self)
     }
 }

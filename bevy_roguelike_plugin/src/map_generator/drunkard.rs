@@ -54,7 +54,7 @@ fn walk(from: Vector2D, max_step: usize, rng: &mut StdRng, map: &mut Map) -> Vec
         let tile = &mut map[pt];
         *tile = Tile::Floor;
 
-        if rng.gen_range(0..max_step) < max_step / 20 {
+        if rng.gen_range(0..max_step) < max_step / 3 {
             last_valid_pt = pt.clone();
         }
 

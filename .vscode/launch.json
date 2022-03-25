@@ -38,6 +38,9 @@
                     "kind": "bin"
                 }
             },
+            "env": {
+                "CARGO_MANIFEST_DIR": "${workspaceFolder}"
+            },
             "args": [],
             "cwd": "${workspaceFolder}"
         },

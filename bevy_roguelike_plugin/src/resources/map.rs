@@ -7,6 +7,7 @@ use std::slice::Iter;
 /// Flat tile map of tiles
 #[derive(Debug, Clone)]
 pub struct Map {
+    // pub size: IVec2,
     pub size: Vector2D,
     tiles: Vec<Tile>,
 }
@@ -46,6 +47,13 @@ impl Map {
     pub fn iter(&self) -> Iter<Tile> {
         self.tiles.iter()
     }
+    /// enumerates tiles and positions of each tile
+    pub fn enumerate(&self) -> impl Iterator<Item = (Vector2D, &Tile)> {
+        self.tiles
+            .iter()
+            .enumerate()
+            .map(move |(idx, t)| (self.get_point(idx), t))
+    }
 
     pub fn get_edge(&self) -> Vec<Vector2D> {
         let mut v = Vec::new();
@@ -66,9 +74,16 @@ impl Map {
         let end = start + self.size.x() as usize;
         &self.tiles[start..end]
     }
+
     /// zero based indexing
     fn get_index(&self, pt: Vector2D) -> usize {
         (pt.y() * (self.size.x()) + pt.x()) as usize
+    }
+    fn get_point(&self, idx: usize) -> Vector2D {
+        Vector2D::new(
+            (idx % self.size.x() as usize) as i32,
+            (idx / self.size.x() as usize) as i32,
+        )
     }
 
     // TODO: only in debug : #[cfg(feature = "debug")]

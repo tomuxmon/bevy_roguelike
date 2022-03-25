@@ -1,11 +1,13 @@
-use bevy::prelude::Component;
+use bevy::prelude::*;
+use serde::{Deserialize, Serialize};
 use std::fmt::{self, Display, Formatter};
 use std::ops::Add;
 
 /// Vector of 2 Dimensions.
-#[derive(Debug, Copy, Clone, Eq, PartialEq, Hash, Component)]
-// NOTE: only in debug
-#[derive(bevy_inspector_egui::Inspectable)]
+#[derive(
+    Default, Debug, Copy, Clone, Eq, PartialEq, Hash, Component, Deserialize, Serialize, Reflect,
+)]
+#[reflect(Component)]
 pub struct Vector2D {
     x: i32,
     y: i32,

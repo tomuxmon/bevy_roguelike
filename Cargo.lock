@@ -645,6 +645,7 @@ dependencies = [
  "bevy-inspector-egui",
  "colored",
  "rand",
+ "serde",
 ]
 
 [[package]]

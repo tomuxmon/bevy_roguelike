@@ -1,5 +1,5 @@
 use bevy::prelude::*;
-use bevy_roguelike_plugin::RoguelikePlugin;
+use bevy_roguelike_plugin::{components::Vector2D, resources::MapOptions, RoguelikePlugin};
 // TODO: only in debug
 use bevy_inspector_egui::WorldInspectorPlugin;
 
@@ -7,8 +7,12 @@ fn main() {
     let mut app = App::new();
     app.insert_resource(WindowDescriptor {
         title: "yeah right...!".to_string(),
-        width: 700.,
+        width: 1400.,
         height: 800.,
+        ..Default::default()
+    })
+    .insert_resource(MapOptions {
+        map_size: Vector2D::new(110, 70),
         ..Default::default()
     })
     .add_plugins(DefaultPlugins)
