@@ -118,13 +118,6 @@ impl Map {
             Vector2D::new(0, -1),
         ]
     }
-
-    // pub fn safe_square_at(&self, coordinates: Coordinates) -> impl Iterator<Item = Coordinates> {
-    //     SQUARE_COORDINATES
-    //         .iter()
-    //         .copied()
-    //         .map(move |tuple| coordinates + tuple)
-    // }
 }
 
 impl Index<Vector2D> for Map {
