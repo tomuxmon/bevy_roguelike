@@ -3,7 +3,7 @@ use std::fmt::{self, Display, Formatter};
 use std::ops::Add;
 
 /// Vector of 2 Dimensions.
-#[derive(Debug, Copy, Clone, Eq, PartialEq, Component)]
+#[derive(Debug, Copy, Clone, Eq, PartialEq, Hash, Component)]
 // NOTE: only in debug
 #[derive(bevy_inspector_egui::Inspectable)]
 pub struct Vector2D {
