@@ -9,5 +9,5 @@ edition = "2021"
 bevy = "~0.6"
 rand = "~0.8"
 # TODO: should be in debug only
-bevy-inspector-egui = "~0.8"
+bevy-inspector-egui = "~0.9"
 colored = "~2.0"

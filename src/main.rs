@@ -6,7 +6,7 @@ use bevy_inspector_egui::WorldInspectorPlugin;
 fn main() {
     let mut app = App::new();
     app.insert_resource(WindowDescriptor {
-        title: "Mine Sweeper!".to_string(),
+        title: "yeah right...!".to_string(),
         width: 700.,
         height: 800.,
         ..Default::default()
