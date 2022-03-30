@@ -37,7 +37,7 @@ pub struct RandomMapGenerator {}
 impl MapGenerator for RandomMapGenerator {
     fn gen(&self, rng: &mut StdRng, size: Vector2D) -> (Map, MapInfo) {
         let generator: Box<dyn MapGenerator> = match rng.gen_range(0..3) {
-            0 => Box::new(AutomataGenerator {}),
+            0 => Box::new(AutomataGenerator::default()),
             1 => Box::new(DrunkardGenerator::default()),
             2 => Box::new(RoomsGenerator::default()),
             _ => Box::new(EmptyGenerator {}),

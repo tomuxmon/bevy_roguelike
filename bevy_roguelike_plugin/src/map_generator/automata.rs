@@ -1,12 +1,24 @@
 use super::prelude::*;
 
-pub struct AutomataGenerator {}
+const DEFAULT_ITER_COUNT: usize = 9;
+
+pub struct AutomataGenerator {
+    iter_count: usize,
+}
+
+impl Default for AutomataGenerator {
+    fn default() -> Self {
+        Self {
+            iter_count: DEFAULT_ITER_COUNT,
+        }
+    }
+}
 
 impl MapGenerator for AutomataGenerator {
     fn gen(&self, rng: &mut StdRng, size: Vector2D) -> (Map, MapInfo) {
         let mut map = Map::random_noise(size, rng);
 
-        for _ in 0..9 {
+        for _ in 0..self.iter_count {
             iteration(&mut map);
         }
         let floor = iteration(&mut map);
