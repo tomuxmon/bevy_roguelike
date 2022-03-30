@@ -7,12 +7,12 @@ fn main() {
     let mut app = App::new();
     app.insert_resource(WindowDescriptor {
         title: "yeah right...!".to_string(),
-        width: 1400.,
-        height: 800.,
+        width: 1200.,
+        height: 900.,
         ..Default::default()
     })
     .insert_resource(MapOptions {
-        map_size: Vector2D::new(110, 70),
+        map_size: Vector2D::new(120, 90),
         ..Default::default()
     })
     .add_plugins(DefaultPlugins)
