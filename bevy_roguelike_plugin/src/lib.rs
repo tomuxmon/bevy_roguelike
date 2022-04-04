@@ -1,11 +1,12 @@
 pub mod components;
+pub mod events;
 pub mod map_generator;
 pub mod resources;
+pub mod systems;
 
-use crate::components::Floor;
-use crate::components::Vector2D;
-use crate::components::Wall;
-use crate::resources::MapPosition;
+use crate::components::*;
+use crate::systems::input;
+use crate::systems::moves;
 use bevy::log;
 use bevy::prelude::*;
 use map_generator::{MapGenerator, RandomMapGenerator};
@@ -13,13 +14,14 @@ use rand::prelude::*;
 use resources::map::Map;
 use resources::tile::Tile;
 use resources::MapOptions;
-use resources::TileSize;
 
 pub struct RoguelikePlugin;
 
 impl Plugin for RoguelikePlugin {
     fn build(&self, app: &mut App) {
         app.add_startup_system(Self::create_map);
+        app.add_system(input::player_input);
+        app.add_system(moves::moves);
         app.register_type::<Vector2D>();
         app.register_type::<Floor>();
         app.register_type::<Wall>();
@@ -31,7 +33,7 @@ impl RoguelikePlugin {
     pub fn create_map(
         mut commands: Commands,
         map_options: Option<Res<MapOptions>>,
-        window: Res<WindowDescriptor>,
+        // window: Res<WindowDescriptor>,
         asset_server: Res<AssetServer>,
     ) {
         let font: Handle<Font> = asset_server.load("fonts/pixeled.ttf");
@@ -50,12 +52,11 @@ impl RoguelikePlugin {
         let (map, info) = map_generator.gen(&mut rng, options.map_size);
         log::info!("{}", map.to_colorized_string());
         log::info!("{}", info.to_colorized_string());
+        commands.insert_resource(map.clone());
+        commands.insert_resource(info.clone());
 
         // We define the size of our tiles in world space
-        let tile_size = match options.tile_size {
-            TileSize::Fixed(v) => v,
-            TileSize::Adaptive { min, max } => adaptative_tile_size(window, min, max, map.size),
-        };
+        let tile_size = options.tile_size;
 
         // We deduce the size of the complete board
         let map_size = Vec2::new(
@@ -63,40 +64,57 @@ impl RoguelikePlugin {
             map.size.y() as f32 * tile_size,
         );
         log::info!("map size: {}", map_size);
-        // We define the board anchor position (bottom left)
-        let map_position = match options.position {
-            MapPosition::Centered { offset } => {
-                Vec3::new(-(map_size.x / 2.), -(map_size.y / 2.), 0.) + offset
-            }
-            MapPosition::Custom(p) => p,
-        };
 
         commands
             .spawn()
             .insert(Name::new("RogueMap"))
-            .insert(Transform::from_translation(map_position))
+            .insert(Transform::default())
             .insert(GlobalTransform::default())
-            .with_children(|parent| {
+            .with_children(|rogue_map| {
                 // We spawn the board background sprite at the center of the board, since the sprite pivot is centered
-                parent
+                rogue_map
                     .spawn_bundle(SpriteBundle {
                         sprite: Sprite {
                             color: Color::BLACK,
                             custom_size: Some(map_size),
                             ..Default::default()
                         },
-                        transform: Transform::from_xyz(map_size.x / 2., map_size.y / 2., 0.),
+                        transform: Transform::default(),
                         ..Default::default()
                     })
                     .insert(Name::new("Background")); // We probably do not need that...
             })
-            .with_children(|parent| {
-                spawn_tiles(parent, &map, tile_size, Color::DARK_GRAY, font);
+            .with_children(|rogue_map| {
+                spawn_tiles(rogue_map, &map, tile_size, Color::DARK_GRAY, font.clone());
+            });
+
+        let x_offset = map.size.x() as f32 * tile_size / -2.;
+        let y_offset = map.size.y() as f32 * tile_size / -2.;
+
+        commands
+            .spawn()
+            .insert(Name::new("Player"))
+            .insert(Player {})
+            .insert(info.player_start)
+            .insert(Transform::from_xyz(
+                (info.player_start.x() as f32 * tile_size) + (tile_size / 2.) + x_offset,
+                (info.player_start.y() as f32 * tile_size) + (tile_size / 2.) + y_offset,
+                2.,
+            ))
+            .insert(GlobalTransform::default())
+            .with_children(|player| {
+                player
+                    .spawn()
+                    .insert(Name::new("Player looks"))
+                    .insert_bundle(get_player_bundle(font.clone(), tile_size));
             });
     }
 }
 
 fn spawn_tiles(parent: &mut ChildBuilder, map: &Map, size: f32, color: Color, font: Handle<Font>) {
+    let x_offset = map.size.x() as f32 * size / -2.0;
+    let y_offset = map.size.y() as f32 * size / -2.0;
+
     for (pt, tile) in map.enumerate() {
         let mut cmd = parent.spawn();
         cmd.insert_bundle(SpriteBundle {
@@ -106,8 +124,8 @@ fn spawn_tiles(parent: &mut ChildBuilder, map: &Map, size: f32, color: Color, fo
                 ..Default::default()
             },
             transform: Transform::from_xyz(
-                (pt.x() as f32 * size) + (size / 2.),
-                (pt.y() as f32 * size) + (size / 2.),
+                (pt.x() as f32 * size) + (size / 2.) + x_offset,
+                (pt.y() as f32 * size) + (size / 2.) + y_offset,
                 1.,
             ),
             ..Default::default()
@@ -126,18 +144,27 @@ fn spawn_tiles(parent: &mut ChildBuilder, map: &Map, size: f32, color: Color, fo
         cmd.with_children(|parent| {
             parent.spawn_bundle(get_tile_bundle(*tile, font.clone(), size));
         });
+    }
+}
 
-        // cmd.with_children(|parent| {
-        //     parent.spawn_bundle(SpriteBundle {
-        //         sprite: Sprite {
-        //             custom_size: Some(Vec2::splat(size)),
-        //             ..Default::default()
-        //         },
-        //         transform: Transform::from_xyz(0., 0., 1.),
-        //         // texture: bomb_image.clone(),
-        //         ..Default::default()
-        //     });
-        // });
+fn get_player_bundle(font: Handle<Font>, size: f32) -> Text2dBundle {
+    Text2dBundle {
+        text: Text {
+            sections: vec![TextSection {
+                value: "P".to_string(),
+                style: TextStyle {
+                    color: Color::RED,
+                    font,
+                    font_size: size,
+                },
+            }],
+            alignment: TextAlignment {
+                vertical: VerticalAlign::Center,
+                horizontal: HorizontalAlign::Center,
+            },
+        },
+        transform: Transform::from_xyz(0., 0., 3.),
+        ..Default::default()
     }
 }
 
@@ -166,16 +193,4 @@ fn get_tile_bundle(tile: Tile, font: Handle<Font>, size: f32) -> Text2dBundle {
         transform: Transform::from_xyz(0., 0., 1.),
         ..Default::default()
     }
-}
-
-/// Computes a tile size that matches the window according to the tile map size
-fn adaptative_tile_size(
-    window: Res<WindowDescriptor>,
-    min: f32,       // Tile size constraint
-    max: f32,       // Tile size constraint
-    size: Vector2D, // Tile map dimensions
-) -> f32 {
-    let max_width = window.width / size.x() as f32;
-    let max_heigth = window.height / size.y() as f32;
-    max_width.min(max_heigth).clamp(min, max)
 }
