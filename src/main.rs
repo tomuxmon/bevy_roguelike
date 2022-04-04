@@ -69,7 +69,7 @@ fn rogue_setup(
     });
     cmd.insert_resource(PlayerAssets {
         body: asset_server.load("sprites/player/human_male.png"),
-        decals: vec![
+        wear: vec![
             asset_server.load("sprites/player/jacket_2.png"),
             asset_server.load("sprites/player/pants_black.png"),
         ],

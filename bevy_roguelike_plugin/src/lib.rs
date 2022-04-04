@@ -133,8 +133,9 @@ impl<T> RoguelikePlugin<T> {
             .with_children(|player| {
                 player
                     .spawn()
-                    .insert(Name::new("Player looks"))
-                    .insert_bundle(get_player_bundle(&player_assets, tile_size));
+                    .insert(Name::new("player body"))
+                    .insert_bundle(get_player_bundle(&player_assets, tile_size))
+                    .with_children(|body_cb| spawn_player_wear(body_cb, &player_assets, tile_size));
             });
 
         cmd.insert_resource(MapId { id: map_id });
@@ -195,25 +196,20 @@ fn get_player_bundle(player_assets: &PlayerAssets, size: f32) -> impl Bundle {
         transform: Transform::from_xyz(0., 0., 3.),
         ..Default::default()
     }
-
-    // Text2dBundle {
-    //     text: Text {
-    //         sections: vec![TextSection {
-    //             value: "P".to_string(),
-    //             style: TextStyle {
-    //                 color: Color::RED,
-    //                 font,
-    //                 font_size: size,
-    //             },
-    //         }],
-    //         alignment: TextAlignment {
-    //             vertical: VerticalAlign::Center,
-    //             horizontal: HorizontalAlign::Center,
-    //         },
-    //     },
-    //     transform: Transform::from_xyz(0., 0., 3.),
-    //     ..Default::default()
-    // }
+}
+fn spawn_player_wear(cb: &mut ChildBuilder, player_assets: &PlayerAssets, size: f32) {
+    for i in 0..player_assets.wear.len() {
+        cb.spawn_bundle(SpriteBundle {
+            sprite: Sprite {
+                color: Color::WHITE,
+                custom_size: Some(Vec2::splat(size)),
+                ..Default::default()
+            },
+            texture: player_assets.wear[i].clone(),
+            transform: Transform::from_xyz(0., 0., 4.),
+            ..Default::default()
+        });
+    }
 }
 
 fn get_tile_bundle(tile: Tile, map_assets: &MapAssets, rng: &mut StdRng, size: f32) -> impl Bundle {
@@ -231,29 +227,4 @@ fn get_tile_bundle(tile: Tile, map_assets: &MapAssets, rng: &mut StdRng, size: f
         transform: Transform::from_xyz(0., 0., 1.),
         ..Default::default()
     }
-
-    // Text2dBundle {
-    //     text: Text {
-    //         sections: vec![TextSection {
-    //             value: match tile {
-    //                 Tile::Wall => "#".to_string(),
-    //                 Tile::Floor => ".".to_string(),
-    //             },
-    //             style: TextStyle {
-    //                 color: match tile {
-    //                     Tile::Wall => Color::GOLD,
-    //                     Tile::Floor => Color::GREEN,
-    //                 },
-    //                 font,
-    //                 font_size: size,
-    //             },
-    //         }],
-    //         alignment: TextAlignment {
-    //             vertical: VerticalAlign::Center,
-    //             horizontal: HorizontalAlign::Center,
-    //         },
-    //     },
-    //     transform: Transform::from_xyz(0., 0., 1.),
-    //     ..Default::default()
-    // }
 }
