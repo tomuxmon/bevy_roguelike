@@ -13,13 +13,7 @@ pub fn moves(
     mut move_reader: EventReader<MoveEvent>,
 ) {
     for m in move_reader.iter() {
-        log::info!("id: {:?}, destination: {:?}", m.id, m.destination);
         if let Ok((mut world_pos, map_pos)) = movers.get_mut(m.id) {
-            log::info!(
-                "world position : {:?}, map position: {:?}",
-                world_pos,
-                map_pos
-            );
             if map.is_in_bounds(m.destination) && map[m.destination] == Tile::Floor {
                 let new_pos = to_world_position(m.destination, map.size, map_options.tile_size);
                 world_pos.translation = new_pos;

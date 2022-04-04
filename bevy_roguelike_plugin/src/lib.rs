@@ -5,39 +5,60 @@ pub mod resources;
 pub mod systems;
 
 use crate::components::*;
-use crate::systems::input;
-use crate::systems::moves;
+use crate::events::MoveEvent;
+use bevy::ecs::schedule::StateData;
 use bevy::log;
 use bevy::prelude::*;
 use map_generator::{MapGenerator, RandomMapGenerator};
 use rand::prelude::*;
 use resources::map::Map;
+use resources::map_assets::MapAssets;
+use resources::player_assets::PlayerAssets;
 use resources::tile::Tile;
 use resources::MapOptions;
 
-pub struct RoguelikePlugin;
+pub struct RoguelikePlugin<T> {
+    pub running_state: T,
+}
 
-impl Plugin for RoguelikePlugin {
+impl<T: StateData> Plugin for RoguelikePlugin<T> {
     fn build(&self, app: &mut App) {
-        app.add_startup_system(Self::create_map);
-        app.add_system(input::player_input);
-        app.add_system(moves::moves);
-        app.register_type::<Vector2D>();
-        app.register_type::<Floor>();
-        app.register_type::<Wall>();
+        app.add_system_set(
+            SystemSet::on_enter(self.running_state.clone()).with_system(Self::create_map),
+        )
+        .add_system_set(
+            SystemSet::on_update(self.running_state.clone())
+                .with_system(systems::input::player_input)
+                .with_system(systems::moves::moves),
+        )
+        .add_system_set(
+            SystemSet::on_exit(self.running_state.clone()).with_system(Self::cleanup_map),
+        )
+        .register_type::<Vector2D>()
+        .register_type::<Floor>()
+        .register_type::<Wall>()
+        .add_event::<MoveEvent>();
         log::info!("Loaded Roguelike Plugin");
     }
 }
 
-impl RoguelikePlugin {
-    pub fn create_map(
-        mut commands: Commands,
-        map_options: Option<Res<MapOptions>>,
-        // window: Res<WindowDescriptor>,
-        asset_server: Res<AssetServer>,
-    ) {
-        let font: Handle<Font> = asset_server.load("fonts/pixeled.ttf");
+#[derive(Debug)]
+pub struct MapId {
+    id: Entity,
+}
 
+impl<T> RoguelikePlugin<T> {
+    fn cleanup_map(map_id: Res<MapId>, mut cmd: Commands) {
+        cmd.entity(map_id.id).despawn_recursive();
+        cmd.remove_resource::<MapId>();
+    }
+
+    pub fn create_map(
+        mut cmd: Commands,
+        map_options: Option<Res<MapOptions>>,
+        map_assets: Res<MapAssets>,
+        player_assets: Res<PlayerAssets>,
+    ) {
         let options = match map_options {
             None => MapOptions::default(), // If no options is set we use the default one
             Some(o) => o.clone(),
@@ -52,8 +73,8 @@ impl RoguelikePlugin {
         let (map, info) = map_generator.gen(&mut rng, options.map_size);
         log::info!("{}", map.to_colorized_string());
         log::info!("{}", info.to_colorized_string());
-        commands.insert_resource(map.clone());
-        commands.insert_resource(info.clone());
+        cmd.insert_resource(map.clone());
+        cmd.insert_resource(info.clone());
 
         // We define the size of our tiles in world space
         let tile_size = options.tile_size;
@@ -65,34 +86,41 @@ impl RoguelikePlugin {
         );
         log::info!("map size: {}", map_size);
 
-        commands
+        let map_id = cmd
             .spawn()
             .insert(Name::new("RogueMap"))
             .insert(Transform::default())
             .insert(GlobalTransform::default())
-            .with_children(|rogue_map| {
+            .with_children(|cb| {
                 // We spawn the board background sprite at the center of the board, since the sprite pivot is centered
-                rogue_map
-                    .spawn_bundle(SpriteBundle {
-                        sprite: Sprite {
-                            color: Color::BLACK,
-                            custom_size: Some(map_size),
-                            ..Default::default()
-                        },
-                        transform: Transform::default(),
+                cb.spawn_bundle(SpriteBundle {
+                    sprite: Sprite {
+                        color: Color::BLACK,
+                        custom_size: Some(map_size),
                         ..Default::default()
-                    })
-                    .insert(Name::new("Background")); // We probably do not need that...
+                    },
+                    transform: Transform::default(),
+                    ..Default::default()
+                })
+                .insert(Name::new("Background")); // We probably do not need that...
             })
-            .with_children(|rogue_map| {
-                spawn_tiles(rogue_map, &map, tile_size, Color::DARK_GRAY, font.clone());
-            });
+            .with_children(|cb| {
+                spawn_tiles(
+                    cb,
+                    &map_assets,
+                    &map,
+                    &mut rng,
+                    tile_size,
+                    Color::DARK_GRAY,
+                    // font.clone(),
+                );
+            })
+            .id();
 
         let x_offset = map.size.x() as f32 * tile_size / -2.;
         let y_offset = map.size.y() as f32 * tile_size / -2.;
 
-        commands
-            .spawn()
+        cmd.spawn()
             .insert(Name::new("Player"))
             .insert(Player {})
             .insert(info.player_start)
@@ -106,17 +134,26 @@ impl RoguelikePlugin {
                 player
                     .spawn()
                     .insert(Name::new("Player looks"))
-                    .insert_bundle(get_player_bundle(font.clone(), tile_size));
+                    .insert_bundle(get_player_bundle(&player_assets, tile_size));
             });
+
+        cmd.insert_resource(MapId { id: map_id });
     }
 }
 
-fn spawn_tiles(parent: &mut ChildBuilder, map: &Map, size: f32, color: Color, font: Handle<Font>) {
+fn spawn_tiles(
+    cb: &mut ChildBuilder,
+    map_assets: &MapAssets,
+    map: &Map,
+    rng: &mut StdRng,
+    size: f32,
+    color: Color,
+) {
     let x_offset = map.size.x() as f32 * size / -2.0;
     let y_offset = map.size.y() as f32 * size / -2.0;
 
     for (pt, tile) in map.enumerate() {
-        let mut cmd = parent.spawn();
+        let mut cmd = cb.spawn();
         cmd.insert_bundle(SpriteBundle {
             sprite: Sprite {
                 color,
@@ -141,56 +178,82 @@ fn spawn_tiles(parent: &mut ChildBuilder, map: &Map, size: f32, color: Color, fo
                 cmd.insert(Floor {});
             }
         }
-        cmd.with_children(|parent| {
-            parent.spawn_bundle(get_tile_bundle(*tile, font.clone(), size));
+        cmd.with_children(|tile_cb| {
+            tile_cb.spawn_bundle(get_tile_bundle(*tile, map_assets, rng, size));
         });
     }
 }
 
-fn get_player_bundle(font: Handle<Font>, size: f32) -> Text2dBundle {
-    Text2dBundle {
-        text: Text {
-            sections: vec![TextSection {
-                value: "P".to_string(),
-                style: TextStyle {
-                    color: Color::RED,
-                    font,
-                    font_size: size,
-                },
-            }],
-            alignment: TextAlignment {
-                vertical: VerticalAlign::Center,
-                horizontal: HorizontalAlign::Center,
-            },
+fn get_player_bundle(player_assets: &PlayerAssets, size: f32) -> impl Bundle {
+    SpriteBundle {
+        sprite: Sprite {
+            color: Color::WHITE,
+            custom_size: Some(Vec2::splat(size)),
+            ..Default::default()
         },
+        texture: player_assets.body.clone(),
         transform: Transform::from_xyz(0., 0., 3.),
         ..Default::default()
     }
+
+    // Text2dBundle {
+    //     text: Text {
+    //         sections: vec![TextSection {
+    //             value: "P".to_string(),
+    //             style: TextStyle {
+    //                 color: Color::RED,
+    //                 font,
+    //                 font_size: size,
+    //             },
+    //         }],
+    //         alignment: TextAlignment {
+    //             vertical: VerticalAlign::Center,
+    //             horizontal: HorizontalAlign::Center,
+    //         },
+    //     },
+    //     transform: Transform::from_xyz(0., 0., 3.),
+    //     ..Default::default()
+    // }
 }
 
-fn get_tile_bundle(tile: Tile, font: Handle<Font>, size: f32) -> Text2dBundle {
-    Text2dBundle {
-        text: Text {
-            sections: vec![TextSection {
-                value: match tile {
-                    Tile::Wall => "#".to_string(),
-                    Tile::Floor => ".".to_string(),
-                },
-                style: TextStyle {
-                    color: match tile {
-                        Tile::Wall => Color::GOLD,
-                        Tile::Floor => Color::GREEN,
-                    },
-                    font,
-                    font_size: size,
-                },
-            }],
-            alignment: TextAlignment {
-                vertical: VerticalAlign::Center,
-                horizontal: HorizontalAlign::Center,
-            },
+fn get_tile_bundle(tile: Tile, map_assets: &MapAssets, rng: &mut StdRng, size: f32) -> impl Bundle {
+    let texture = match tile {
+        Tile::Wall => map_assets.wall[rng.gen_range(0..map_assets.wall.len())].clone(),
+        Tile::Floor => map_assets.floor[rng.gen_range(0..map_assets.floor.len())].clone(),
+    };
+    SpriteBundle {
+        sprite: Sprite {
+            color: Color::WHITE,
+            custom_size: Some(Vec2::splat(size)),
+            ..Default::default()
         },
+        texture,
         transform: Transform::from_xyz(0., 0., 1.),
         ..Default::default()
     }
+
+    // Text2dBundle {
+    //     text: Text {
+    //         sections: vec![TextSection {
+    //             value: match tile {
+    //                 Tile::Wall => "#".to_string(),
+    //                 Tile::Floor => ".".to_string(),
+    //             },
+    //             style: TextStyle {
+    //                 color: match tile {
+    //                     Tile::Wall => Color::GOLD,
+    //                     Tile::Floor => Color::GREEN,
+    //                 },
+    //                 font,
+    //                 font_size: size,
+    //             },
+    //         }],
+    //         alignment: TextAlignment {
+    //             vertical: VerticalAlign::Center,
+    //             horizontal: HorizontalAlign::Center,
+    //         },
+    //     },
+    //     transform: Transform::from_xyz(0., 0., 1.),
+    //     ..Default::default()
+    // }
 }
