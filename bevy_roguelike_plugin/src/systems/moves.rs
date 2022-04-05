@@ -15,8 +15,9 @@ pub fn moves(
     for m in move_reader.iter() {
         if let Ok((mut world_pos, map_pos)) = movers.get_mut(m.id) {
             if map.is_in_bounds(m.destination) && map[m.destination] == Tile::Floor {
-                let new_pos = to_world_position(m.destination, map.size, map_options.tile_size);
-                world_pos.translation = new_pos;
+                let old_pos = world_pos.translation;
+                let new_pos = map_options.to_world_position(m.destination);
+                world_pos.translation = new_pos.extend(old_pos.z);
                 *map_pos.into_inner() = m.destination;
             }
         } else {
@@ -24,14 +25,4 @@ pub fn moves(
             log::info!("no positions found");
         }
     }
-}
-
-pub fn to_world_position(map_pos: Vector2D, map_size: Vector2D, tile_size: f32) -> Vec3 {
-    let x_offset = map_size.x() as f32 * tile_size / -2.;
-    let y_offset = map_size.y() as f32 * tile_size / -2.;
-    Vec3::new(
-        (map_pos.x() as f32 * tile_size) + (tile_size / 2.) + x_offset,
-        (map_pos.y() as f32 * tile_size) + (tile_size / 2.) + y_offset,
-        0.,
-    )
 }

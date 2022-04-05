@@ -36,10 +36,10 @@ impl MapGenerator for DrunkardGenerator {
             }
         }
 
-        let info = MapInfo {
-            player_start: room_centers[rng.gen_range(0..room_centers.len())],
+        let info = MapInfo::new(
+            room_centers[rng.gen_range(0..room_centers.len())],
             room_centers,
-        };
+        );
 
         (map, info)
     }

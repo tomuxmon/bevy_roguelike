@@ -29,7 +29,9 @@ impl<T: StateData> Plugin for RoguelikePlugin<T> {
         .add_system_set(
             SystemSet::on_update(self.running_state.clone())
                 .with_system(systems::input::player_input)
-                .with_system(systems::moves::moves),
+                .with_system(systems::moves::moves)
+                .with_system(systems::camera::camera_set_focus_player)
+                .with_system(systems::camera::camera_focus_immediate),
         )
         .add_system_set(
             SystemSet::on_exit(self.running_state.clone()).with_system(Self::cleanup_map),
@@ -76,66 +78,47 @@ impl<T> RoguelikePlugin<T> {
         cmd.insert_resource(map.clone());
         cmd.insert_resource(info.clone());
 
-        // We define the size of our tiles in world space
-        let tile_size = options.tile_size;
-
-        // We deduce the size of the complete board
-        let map_size = Vec2::new(
-            map.size.x() as f32 * tile_size,
-            map.size.y() as f32 * tile_size,
-        );
-        log::info!("map size: {}", map_size);
-
         let map_id = cmd
             .spawn()
             .insert(Name::new("RogueMap"))
             .insert(Transform::default())
             .insert(GlobalTransform::default())
             .with_children(|cb| {
-                // We spawn the board background sprite at the center of the board, since the sprite pivot is centered
                 cb.spawn_bundle(SpriteBundle {
                     sprite: Sprite {
                         color: Color::BLACK,
-                        custom_size: Some(map_size),
+                        custom_size: Some(Vec2::new(
+                            map.size.x() as f32 * options.tile_size,
+                            map.size.y() as f32 * options.tile_size,
+                        )),
                         ..Default::default()
                     },
                     transform: Transform::default(),
                     ..Default::default()
                 })
-                .insert(Name::new("Background")); // We probably do not need that...
+                .insert(Name::new("Background"));
             })
             .with_children(|cb| {
-                spawn_tiles(
-                    cb,
-                    &map_assets,
-                    &map,
-                    &mut rng,
-                    tile_size,
-                    Color::DARK_GRAY,
-                    // font.clone(),
-                );
+                spawn_tiles(cb, &map_assets, &options, &map, &mut rng, Color::DARK_GRAY);
             })
             .id();
-
-        let x_offset = map.size.x() as f32 * tile_size / -2.;
-        let y_offset = map.size.y() as f32 * tile_size / -2.;
 
         cmd.spawn()
             .insert(Name::new("Player"))
             .insert(Player {})
             .insert(info.player_start)
-            .insert(Transform::from_xyz(
-                (info.player_start.x() as f32 * tile_size) + (tile_size / 2.) + x_offset,
-                (info.player_start.y() as f32 * tile_size) + (tile_size / 2.) + y_offset,
-                2.,
+            .insert(Transform::from_translation(
+                options.to_world_position(info.player_start).extend(2.),
             ))
             .insert(GlobalTransform::default())
             .with_children(|player| {
                 player
                     .spawn()
                     .insert(Name::new("player body"))
-                    .insert_bundle(get_player_bundle(&player_assets, tile_size))
-                    .with_children(|body_cb| spawn_player_wear(body_cb, &player_assets, tile_size));
+                    .insert_bundle(get_player_bundle(&player_assets, options.tile_size))
+                    .with_children(|body_cb| {
+                        spawn_player_wear(body_cb, &player_assets, options.tile_size)
+                    });
             });
 
         cmd.insert_resource(MapId { id: map_id });
@@ -145,27 +128,20 @@ impl<T> RoguelikePlugin<T> {
 fn spawn_tiles(
     cb: &mut ChildBuilder,
     map_assets: &MapAssets,
+    map_options: &MapOptions,
     map: &Map,
     rng: &mut StdRng,
-    size: f32,
     color: Color,
 ) {
-    let x_offset = map.size.x() as f32 * size / -2.0;
-    let y_offset = map.size.y() as f32 * size / -2.0;
-
     for (pt, tile) in map.enumerate() {
         let mut cmd = cb.spawn();
         cmd.insert_bundle(SpriteBundle {
             sprite: Sprite {
                 color,
-                custom_size: Some(Vec2::splat(size)),
+                custom_size: Some(Vec2::splat(map_options.tile_size)),
                 ..Default::default()
             },
-            transform: Transform::from_xyz(
-                (pt.x() as f32 * size) + (size / 2.) + x_offset,
-                (pt.y() as f32 * size) + (size / 2.) + y_offset,
-                1.,
-            ),
+            transform: Transform::from_translation(map_options.to_world_position(pt).extend(1.)),
             ..Default::default()
         })
         .insert(Name::new(format!("Tile {}", pt)))
@@ -180,7 +156,12 @@ fn spawn_tiles(
             }
         }
         cmd.with_children(|tile_cb| {
-            tile_cb.spawn_bundle(get_tile_bundle(*tile, map_assets, rng, size));
+            tile_cb.spawn_bundle(get_tile_bundle(
+                *tile,
+                map_assets,
+                rng,
+                map_options.tile_size,
+            ));
         });
     }
 }

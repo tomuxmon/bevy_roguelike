@@ -16,6 +16,7 @@ pub struct Map {
 pub struct MapInfo {
     pub player_start: Vector2D,
     pub room_centers: Vec<Vector2D>,
+    pub camera_focus: Vector2D,
 }
 
 impl Map {
@@ -152,6 +153,14 @@ impl IndexMut<Vector2D> for Map {
 }
 
 impl MapInfo {
+    pub fn new(player_start: Vector2D, room_centers: Vec<Vector2D>) -> Self {
+        Self {
+            player_start,
+            room_centers,
+            camera_focus: player_start,
+        }
+    }
+
     pub fn to_colorized_string(&self) -> String {
         format!(
             "room count: {}, player star: {}",

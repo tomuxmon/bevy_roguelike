@@ -41,7 +41,7 @@ fn rogue_setup(
     mut state: ResMut<State<AppState>>,
 ) {
     cmd.insert_resource(MapOptions {
-        map_size: Vector2D::new(28, 28),
+        map_size: Vector2D::new(70, 70),
         tile_size: 32.0,
     });
     cmd.insert_resource(MapAssets {
