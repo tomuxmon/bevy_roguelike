@@ -30,7 +30,7 @@ impl<T: StateData> Plugin for RoguelikePlugin<T> {
             SystemSet::on_update(self.running_state.clone())
                 .with_system(systems::input::player_input)
                 .with_system(systems::moves::moves)
-                .with_system(systems::camera::camera_set_focus_player)
+                // .with_system(systems::camera::camera_set_focus_player)
                 .with_system(systems::camera::camera_focus_immediate),
         )
         .add_system_set(
