@@ -16,9 +16,10 @@ pub fn move_random(
         Vector2D::new(1, 0),
         Vector2D::zero(),
     ];
-    let delta = deltas[rng.gen_range(0..deltas.len())]; // rng..
-    if delta != Vector2D::zero() {
-        for (id, pt) in randomers.iter_mut() {
+
+    for (id, pt) in randomers.iter_mut() {
+        let delta = deltas[rng.gen_range(0..deltas.len())];
+        if delta != Vector2D::zero() {
             move_writer.send(MoveEvent::new(id, *pt + delta));
         }
     }
