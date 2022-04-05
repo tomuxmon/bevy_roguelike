@@ -5,7 +5,7 @@ use bevy::prelude::*;
 
 pub fn player_input_read(
     keys: Res<Input<KeyCode>>,
-    mut player: Query<(Entity, &Vector2D), With<Player>>,
+    mut player: Query<(Entity, &Vector2D, &mut ActionPoints), With<Player>>,
     mut move_writer: EventWriter<MoveEvent>,
     mut map_info: ResMut<MapInfo>,
 ) {
@@ -24,10 +24,13 @@ pub fn player_input_read(
     // TODO: implement key mappings
 
     if delta != Vector2D::zero() {
-        for (id, pt) in player.iter_mut() {
-            move_writer.send(MoveEvent::new(id, *pt + delta));
-            // NOTE: immediately setting camera focus so it does update on the same frame
-            map_info.camera_focus = *pt + delta;
+        for (id, pt, mut ap) in player.iter_mut() {
+            if ap.current >= 300 {
+                ap.current -= 300;
+                move_writer.send(MoveEvent::new(id, *pt + delta));
+                // NOTE: immediately setting camera focus so it does update on the same frame
+                map_info.camera_focus = *pt + delta;
+            }
         }
     }
 

@@ -31,6 +31,7 @@ impl<T: StateData> Plugin for RoguelikePlugin<T> {
             SystemSet::on_update(self.running_state.clone())
                 .with_system(systems::input::player_input_read)
                 .with_system(systems::moving::move_movers)
+                .with_system(systems::moving::increment_action_points)
                 .with_system(systems::input_random::move_random)
                 // .with_system(systems::camera::camera_set_focus_player)
                 .with_system(systems::camera::camera_focus_immediate),
@@ -41,6 +42,8 @@ impl<T: StateData> Plugin for RoguelikePlugin<T> {
         .register_type::<Vector2D>()
         .register_type::<Floor>()
         .register_type::<Wall>()
+        .register_type::<MovingRandom>()
+        .register_type::<ActionPoints>()
         .add_event::<MoveEvent>();
         log::info!("Loaded Roguelike Plugin");
     }
@@ -110,6 +113,11 @@ impl<T> RoguelikePlugin<T> {
         cmd.spawn()
             .insert(Name::new("Player"))
             .insert(Player {})
+            .insert(ActionPoints {
+                max: 1000,
+                increment: 1000,
+                current: 0,
+            })
             .insert(info.player_start)
             .insert(Transform::from_translation(
                 options.to_world_position(info.player_start).extend(2.),
@@ -131,6 +139,11 @@ impl<T> RoguelikePlugin<T> {
             cmd.spawn()
                 .insert(Name::new("Enemy"))
                 .insert(Enemy {})
+                .insert(ActionPoints {
+                    max: 1000,
+                    increment: 1000,
+                    current: 0,
+                })
                 .insert(MovingRandom {})
                 .insert(mpt)
                 .insert(Transform::from_translation(

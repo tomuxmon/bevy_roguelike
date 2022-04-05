@@ -5,7 +5,7 @@ use rand::prelude::StdRng;
 use rand::Rng;
 
 pub fn move_random(
-    mut randomers: Query<(Entity, &Vector2D), With<MovingRandom>>,
+    mut randomers: Query<(Entity, &Vector2D, &mut ActionPoints), With<MovingRandom>>,
     mut move_writer: EventWriter<MoveEvent>,
     mut rng: ResMut<StdRng>,
 ) {
@@ -17,10 +17,13 @@ pub fn move_random(
         Vector2D::zero(),
     ];
 
-    for (id, pt) in randomers.iter_mut() {
-        let delta = deltas[rng.gen_range(0..deltas.len())];
-        if delta != Vector2D::zero() {
-            move_writer.send(MoveEvent::new(id, *pt + delta));
+    for (id, pt, mut ap) in randomers.iter_mut() {
+        if ap.current >= 300 {
+            let delta = deltas[rng.gen_range(0..deltas.len())];
+            if delta != Vector2D::zero() {
+                ap.current -= 300;
+                move_writer.send(MoveEvent::new(id, *pt + delta));
+            }
         }
     }
 }

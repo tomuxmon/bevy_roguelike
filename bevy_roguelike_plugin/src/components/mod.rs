@@ -1,5 +1,6 @@
 pub use enemy::Enemy;
 pub use floor::Floor;
+pub use moving::ActionPoints;
 pub use moving::MovingRandom;
 pub use player::Player;
 pub use vector2d::Vector2D;

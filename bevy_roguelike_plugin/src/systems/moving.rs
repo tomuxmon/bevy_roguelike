@@ -6,6 +6,13 @@ use crate::resources::MapOptions;
 use bevy::log;
 use bevy::prelude::*;
 
+pub fn increment_action_points(time: Res<Time>, mut actioners: Query<&mut ActionPoints>) {
+    for mut a in actioners.iter_mut() {
+        let breath = (a.increment as f32 * time.delta_seconds()) as u32;
+        a.current = std::cmp::min(a.current + breath, a.max);
+    }
+}
+
 pub fn move_movers(
     map: Res<Map>,
     map_options: Res<MapOptions>,
