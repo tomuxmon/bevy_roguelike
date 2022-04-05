@@ -3,7 +3,7 @@ use crate::events::MoveEvent;
 use crate::resources::map::MapInfo;
 use bevy::prelude::*;
 
-pub fn player_input(
+pub fn player_input_read(
     keys: Res<Input<KeyCode>>,
     mut player: Query<(Entity, &Vector2D), With<Player>>,
     mut move_writer: EventWriter<MoveEvent>,

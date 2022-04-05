@@ -29,7 +29,8 @@ impl MapGenerator for AutomataGenerator {
         }
 
         let player_start = floor[rng.gen_range(0..floor.len())];
-        let info = MapInfo::new(player_start, Vec::new());
+        // TODO: populate room centers
+        let info = MapInfo::new(player_start, &Vec::new());
 
         (map, info)
     }

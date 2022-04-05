@@ -9,6 +9,7 @@ use std::ops::{Add, Mul};
 )]
 #[reflect(Component)]
 pub struct Vector2D {
+    // TODO: consider using bevy::prelude::IVec2 internally instead of implementin all from scratch.
     x: i32,
     y: i32,
 }

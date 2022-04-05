@@ -36,7 +36,7 @@ impl MapGenerator for RoomsGenerator {
         let room_centers: Vec<Vector2D> = rooms.iter().map(|r| r.get_center()).collect();
         let info = MapInfo::new(
             room_centers[rng.gen_range(0..room_centers.len())],
-            room_centers,
+            &room_centers,
         );
 
         (map, info)

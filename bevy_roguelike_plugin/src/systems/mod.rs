@@ -1,3 +1,4 @@
 pub mod camera;
 pub mod input;
-pub mod moves;
+pub mod input_random;
+pub mod moving;

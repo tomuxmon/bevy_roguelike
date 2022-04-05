@@ -17,6 +17,7 @@ pub struct MapInfo {
     pub player_start: Vector2D,
     pub room_centers: Vec<Vector2D>,
     pub camera_focus: Vector2D,
+    pub monster_spawns: Vec<Vector2D>,
 }
 
 impl Map {
@@ -153,11 +154,12 @@ impl IndexMut<Vector2D> for Map {
 }
 
 impl MapInfo {
-    pub fn new(player_start: Vector2D, room_centers: Vec<Vector2D>) -> Self {
+    pub fn new(player_start: Vector2D, room_centers: &Vec<Vector2D>) -> Self {
         Self {
             player_start,
-            room_centers,
+            room_centers: room_centers.clone(),
             camera_focus: player_start,
+            monster_spawns: room_centers.clone(),
         }
     }
 

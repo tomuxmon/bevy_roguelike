@@ -1,7 +1,9 @@
 use bevy::prelude::*;
 use bevy_roguelike_plugin::{
     components::*,
-    resources::{map_assets::MapAssets, player_assets::PlayerAssets, MapOptions},
+    resources::{
+        enemy_assets::EnemyAssets, map_assets::MapAssets, player_assets::PlayerAssets, MapOptions,
+    },
     RoguelikePlugin,
 };
 // TODO: only in debug
@@ -41,7 +43,7 @@ fn rogue_setup(
     mut state: ResMut<State<AppState>>,
 ) {
     cmd.insert_resource(MapOptions {
-        map_size: Vector2D::new(70, 70),
+        map_size: Vector2D::new(49, 32),
         tile_size: 32.0,
     });
     cmd.insert_resource(MapAssets {
@@ -74,6 +76,20 @@ fn rogue_setup(
             asset_server.load("sprites/player/pants_black.png"),
         ],
     });
+    cmd.insert_resource(EnemyAssets {
+        skins: vec![
+            asset_server.load("sprites/enemy/cyclops.png"),
+            asset_server.load("sprites/enemy/ettin.png"),
+            asset_server.load("sprites/enemy/frost_giant.png"),
+            asset_server.load("sprites/enemy/gnoll.png"),
+            asset_server.load("sprites/enemy/goblin.png"),
+            asset_server.load("sprites/enemy/hobgoblin.png"),
+            asset_server.load("sprites/enemy/kobold.png"),
+            asset_server.load("sprites/enemy/orc.png"),
+            asset_server.load("sprites/enemy/stone_giant.png"),
+        ],
+    });
+
     state.set(AppState::InGame).unwrap();
 }
 

@@ -6,7 +6,7 @@ use crate::resources::MapOptions;
 use bevy::log;
 use bevy::prelude::*;
 
-pub fn moves(
+pub fn move_movers(
     map: Res<Map>,
     map_options: Res<MapOptions>,
     mut movers: Query<(&mut Transform, &mut Vector2D)>,
@@ -14,6 +14,7 @@ pub fn moves(
 ) {
     for m in move_reader.iter() {
         if let Ok((mut world_pos, map_pos)) = movers.get_mut(m.id) {
+            // TODO: also check if no other entity is here
             if map.is_in_bounds(m.destination) && map[m.destination] == Tile::Floor {
                 let old_pos = world_pos.translation;
                 let new_pos = map_options.to_world_position(m.destination);

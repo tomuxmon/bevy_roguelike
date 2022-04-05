@@ -8,7 +8,7 @@ impl MapGenerator for EmptyGenerator {
             Map::filled_with(size, Tile::Floor),
             MapInfo::new(
                 Vector2D::new(rng.gen_range(0..size.x()), rng.gen_range(0..size.y())),
-                vec![Vector2D::new(size.x() / 2, size.y() / 2)],
+                &vec![Vector2D::new(size.x() / 2, size.y() / 2)],
             ),
         )
     }
