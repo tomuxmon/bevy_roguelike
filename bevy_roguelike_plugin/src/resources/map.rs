@@ -1,5 +1,5 @@
 use crate::components::Vector2D;
-use crate::resources::tile::Tile;
+use crate::resources::Tile;
 use rand::prelude::*;
 use std::ops::{Index, IndexMut};
 use std::slice::Iter;

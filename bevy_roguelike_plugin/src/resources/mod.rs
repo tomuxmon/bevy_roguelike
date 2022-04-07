@@ -1,8 +1,13 @@
-pub mod enemy_assets;
-pub(crate) mod map;
-pub mod map_assets;
-mod map_options;
-pub mod player_assets;
-pub(crate) mod tile;
-
+pub use enemy_assets::EnemyAssets;
+pub use map::*;
+pub use map_assets::MapAssets;
 pub use map_options::*;
+pub use player_assets::PlayerAssets;
+pub use tile::Tile;
+
+mod enemy_assets;
+mod map;
+mod map_assets;
+mod map_options;
+mod player_assets;
+mod tile;

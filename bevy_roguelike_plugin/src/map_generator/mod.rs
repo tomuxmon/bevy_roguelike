@@ -8,21 +8,20 @@ mod prelude {
     pub use super::rect::Rect;
     pub use super::MapGenerator;
     pub use crate::components::Vector2D;
-    pub use crate::resources::map::{Map, MapInfo};
-    pub use crate::resources::tile::Tile;
+    pub use crate::resources::{Map, MapInfo, Tile};
     pub use bevy::log;
     pub use rand::prelude::*;
 }
 
 use crate::{
     components::Vector2D,
-    resources::map::{Map, MapInfo},
+    resources::{Map, MapInfo},
 };
-use automata::AutomataGenerator;
-use drunkard::DrunkardGenerator;
+pub use automata::AutomataGenerator;
+pub use drunkard::DrunkardGenerator;
 use empty::EmptyGenerator;
 use rand::prelude::*;
-use rooms::RoomsGenerator;
+pub use rooms::RoomsGenerator;
 
 pub trait MapGenerator {
     fn gen(&self, rng: &mut StdRng, size: Vector2D) -> (Map, MapInfo);

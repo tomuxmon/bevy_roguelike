@@ -7,11 +7,11 @@ edition = "2021"
 
 [dependencies]
 bevy = "~0.6"
-bevy_roguelike_plugin = {path = "bevy_roguelike_plugin"}
+rand = "~0.8"
+bevy_roguelike_plugin = { path = "bevy_roguelike_plugin" }
 # TODO: should be in debug only
 bevy-inspector-egui = "~0.9"
 
+
 [workspace]
-members = [
-    "bevy_roguelike_plugin"
-]
+members = ["bevy_roguelike_plugin"]

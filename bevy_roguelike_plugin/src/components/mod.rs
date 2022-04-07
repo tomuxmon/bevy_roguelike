@@ -1,14 +1,14 @@
-pub use enemy::Enemy;
-pub use floor::Floor;
+pub use actors::Enemy;
+pub use actors::Player;
+pub use environment::Floor;
+pub use environment::Wall;
 pub use moving::ActionPoints;
 pub use moving::MovingRandom;
-pub use player::Player;
+pub use moving::OcupiesTile;
+pub use moving::TurnState;
 pub use vector2d::Vector2D;
-pub use wall::Wall;
 
-mod enemy;
-mod floor;
+mod actors;
+mod environment;
 mod moving;
-mod player;
 mod vector2d;
-mod wall;

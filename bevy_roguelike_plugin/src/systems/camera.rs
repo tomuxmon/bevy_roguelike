@@ -1,6 +1,5 @@
 use crate::components::*;
-use crate::resources::map::MapInfo;
-use crate::resources::MapOptions;
+use crate::resources::*;
 use bevy::prelude::*;
 
 pub fn camera_set_focus_player(

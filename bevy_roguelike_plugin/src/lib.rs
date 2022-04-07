@@ -1,22 +1,15 @@
 pub mod components;
-pub mod events;
 pub mod map_generator;
 pub mod resources;
 pub mod systems;
 
 use crate::components::*;
-use crate::events::MoveEvent;
 use bevy::ecs::schedule::StateData;
 use bevy::log;
 use bevy::prelude::*;
 use map_generator::{MapGenerator, RandomMapGenerator};
 use rand::prelude::*;
-use resources::enemy_assets::EnemyAssets;
-use resources::map::Map;
-use resources::map_assets::MapAssets;
-use resources::player_assets::PlayerAssets;
-use resources::tile::Tile;
-use resources::MapOptions;
+use resources::*;
 
 pub struct RoguelikePlugin<T> {
     pub running_state: T,
@@ -29,11 +22,9 @@ impl<T: StateData> Plugin for RoguelikePlugin<T> {
         )
         .add_system_set(
             SystemSet::on_update(self.running_state.clone())
-                .with_system(systems::input::player_input_read)
-                .with_system(systems::moving::move_movers)
-                .with_system(systems::moving::increment_action_points)
-                .with_system(systems::input_random::move_random)
-                // .with_system(systems::camera::camera_set_focus_player)
+                .with_system(systems::turns::gather_action_points)
+                .with_system(systems::turns::turn_end_now_gather_ap)
+                .with_system(systems::camera::camera_set_focus_player)
                 .with_system(systems::camera::camera_focus_immediate),
         )
         .add_system_set(
@@ -44,7 +35,7 @@ impl<T: StateData> Plugin for RoguelikePlugin<T> {
         .register_type::<Wall>()
         .register_type::<MovingRandom>()
         .register_type::<ActionPoints>()
-        .add_event::<MoveEvent>();
+        .register_type::<OcupiesTile>();
         log::info!("Loaded Roguelike Plugin");
     }
 }
@@ -110,14 +101,14 @@ impl<T> RoguelikePlugin<T> {
             })
             .id();
 
+        let increment_default = 200;
+
         cmd.spawn()
             .insert(Name::new("Player"))
             .insert(Player {})
-            .insert(ActionPoints {
-                max: 1000,
-                increment: 1000,
-                current: 0,
-            })
+            .insert(OcupiesTile {})
+            .insert(TurnState::default())
+            .insert(ActionPoints::new(increment_default + rng.gen_range(0..256)))
             .insert(info.player_start)
             .insert(Transform::from_translation(
                 options.to_world_position(info.player_start).extend(2.),
@@ -135,32 +126,31 @@ impl<T> RoguelikePlugin<T> {
 
         // TODO: spawn enemies
 
-        for mpt in info.monster_spawns {
-            cmd.spawn()
-                .insert(Name::new("Enemy"))
-                .insert(Enemy {})
-                .insert(ActionPoints {
-                    max: 1000,
-                    increment: 1000,
-                    current: 0,
-                })
-                .insert(MovingRandom {})
-                .insert(mpt)
-                .insert(Transform::from_translation(
-                    options.to_world_position(mpt).extend(2.),
-                ))
-                .insert(GlobalTransform::default())
-                .with_children(|enemy| {
-                    enemy
-                        .spawn()
-                        .insert(Name::new("enemy body"))
-                        .insert_bundle(get_enemy_bundle(
-                            &enemy_assets,
-                            &mut rng,
-                            options.tile_size,
-                        ));
-                });
-        }
+        cmd.spawn()
+            .insert(Name::new("Enemies"))
+            .insert(Transform::default())
+            .insert(GlobalTransform::default())
+            .with_children(|enms| {
+                for mpt in info.monster_spawns {
+                    enms.spawn()
+                        .insert(Name::new("Enemy"))
+                        .insert(Enemy {})
+                        .insert(OcupiesTile {})
+                        .insert(TurnState::default())
+                        .insert(ActionPoints::new(increment_default + rng.gen_range(0..256)))
+                        .insert(MovingRandom {})
+                        .insert(mpt)
+                        .insert(Transform::from_translation(
+                            options.to_world_position(mpt).extend(2.),
+                        ))
+                        .insert(GlobalTransform::default())
+                        .with_children(|enemy| {
+                            enemy.spawn().insert(Name::new("enemy body")).insert_bundle(
+                                get_enemy_bundle(&enemy_assets, &mut rng, options.tile_size),
+                            );
+                        });
+                }
+            });
 
         cmd.insert_resource(MapId { id: map_id });
     }

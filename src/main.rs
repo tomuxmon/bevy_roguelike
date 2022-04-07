@@ -1,11 +1,7 @@
 use bevy::prelude::*;
-use bevy_roguelike_plugin::{
-    components::*,
-    resources::{
-        enemy_assets::EnemyAssets, map_assets::MapAssets, player_assets::PlayerAssets, MapOptions,
-    },
-    RoguelikePlugin,
-};
+use bevy_roguelike_plugin::{components::*, resources::*, RoguelikePlugin};
+use rand::prelude::*;
+
 // TODO: only in debug
 use bevy_inspector_egui::WorldInspectorPlugin;
 
@@ -15,6 +11,96 @@ pub enum AppState {
     Reseting,
     Pause,
     Out,
+}
+
+pub fn input_player(
+    keys: Res<Input<KeyCode>>,
+    mut players: Query<
+        (
+            &mut Transform,
+            &mut Vector2D,
+            &mut ActionPoints,
+            &mut TurnState,
+        ),
+        With<Player>,
+    >,
+    mut map_info: ResMut<MapInfo>,
+    map_options: Res<MapOptions>,
+    map: Res<Map>,
+) {
+    for (mut tr, mut pt, mut ap, mut ts) in players
+        .iter_mut()
+        .filter(|(_, _, _, ts)| **ts == TurnState::Act)
+    {
+        let delta = if keys.just_pressed(KeyCode::Up) {
+            Vector2D::new(0, 1)
+        } else if keys.just_pressed(KeyCode::Down) {
+            Vector2D::new(0, -1)
+        } else if keys.just_pressed(KeyCode::Left) {
+            Vector2D::new(-1, 0)
+        } else if keys.just_pressed(KeyCode::Right) {
+            Vector2D::new(1, 0)
+        } else {
+            Vector2D::zero()
+        };
+        if delta != Vector2D::zero() {
+            let cost = 900;
+            let dest = *pt + delta;
+            // NOTE: immediately setting camera focus so it does update on the same frame
+            map_info.camera_focus = dest;
+
+            if map.is_in_bounds(dest) && map[dest] == Tile::Floor {
+                let old_pos = tr.translation;
+                let new_pos = map_options.to_world_position(dest);
+                tr.translation = new_pos.extend(old_pos.z);
+                *pt = dest;
+                *ts = TurnState::End;
+                ap.current_minus(cost);
+            }
+        }
+    }
+}
+
+pub fn input_random(
+    mut rng: ResMut<StdRng>,
+    mut randomers: Query<
+        (
+            &mut Transform,
+            &mut Vector2D,
+            &mut ActionPoints,
+            &mut TurnState,
+        ),
+        With<MovingRandom>,
+    >,
+    map_options: Res<MapOptions>,
+    map: Res<Map>,
+) {
+    for (mut tr, mut pt, mut ap, mut ts) in randomers
+        .iter_mut()
+        .filter(|(_, _, _, ts)| **ts == TurnState::Act)
+    {
+        let deltas = vec![
+            Vector2D::new(0, 1),
+            Vector2D::new(0, -1),
+            Vector2D::new(-1, 0),
+            Vector2D::new(1, 0),
+            Vector2D::zero(),
+        ];
+        let delta = deltas[rng.gen_range(0..deltas.len())];
+        if delta != Vector2D::zero() {
+            let cost = 900;
+            let dest = *pt + delta;
+
+            if map.is_in_bounds(dest) && map[dest] == Tile::Floor {
+                let old_pos = tr.translation;
+                let new_pos = map_options.to_world_position(dest);
+                tr.translation = new_pos.extend(old_pos.z);
+                *pt = dest;
+                *ts = TurnState::End;
+                ap.current_minus(cost);
+            }
+        }
+    }
 }
 
 fn main() {
@@ -30,9 +116,16 @@ fn main() {
         .add_plugin(RoguelikePlugin {
             running_state: AppState::InGame,
         })
+        .add_system_set(
+            SystemSet::on_update(AppState::InGame)
+                .with_system(input_player)
+                .with_system(input_random),
+        )
         .add_plugin(WorldInspectorPlugin::new())
         .add_startup_system(rogue_setup)
         .add_startup_system(camera_setup);
+
+    // TODO: add local systems..
 
     app.run();
 }
