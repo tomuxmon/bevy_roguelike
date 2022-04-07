@@ -46,10 +46,10 @@ pub fn input_player(
         if delta != Vector2D::zero() {
             let cost = 900;
             let dest = *pt + delta;
-            // NOTE: immediately setting camera focus so it does update on the same frame
-            map_info.camera_focus = dest;
-
             if map.is_in_bounds(dest) && map[dest] == Tile::Floor {
+                // NOTE: immediately setting camera focus so it does update on the same frame
+                map_info.camera_focus = dest;
+
                 let old_pos = tr.translation;
                 let new_pos = map_options.to_world_position(dest);
                 tr.translation = new_pos.extend(old_pos.z);
