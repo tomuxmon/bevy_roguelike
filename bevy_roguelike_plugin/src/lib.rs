@@ -33,9 +33,11 @@ impl<T: StateData> Plugin for RoguelikePlugin<T> {
         .register_type::<Vector2D>()
         .register_type::<Floor>()
         .register_type::<Wall>()
-        .register_type::<MovingRandom>()
+        .register_type::<Behaviour>()
         .register_type::<ActionPoints>()
-        .register_type::<OcupiesTile>();
+        .register_type::<TurnState>()
+        .register_type::<Team>();
+
         log::info!("Loaded Roguelike Plugin");
     }
 }
@@ -106,7 +108,8 @@ impl<T> RoguelikePlugin<T> {
         cmd.spawn()
             .insert(Name::new("Player"))
             .insert(Player {})
-            .insert(OcupiesTile {})
+            .insert(Behaviour::InputControlled)
+            .insert(Team::new(1))
             .insert(TurnState::default())
             .insert(ActionPoints::new(increment_default + rng.gen_range(0..256)))
             .insert(info.player_start)
@@ -135,10 +138,10 @@ impl<T> RoguelikePlugin<T> {
                     enms.spawn()
                         .insert(Name::new("Enemy"))
                         .insert(Enemy {})
-                        .insert(OcupiesTile {})
+                        .insert(Team::new(2))
                         .insert(TurnState::default())
                         .insert(ActionPoints::new(increment_default + rng.gen_range(0..256)))
-                        .insert(MovingRandom {})
+                        .insert(Behaviour::RandomMove)
                         .insert(mpt)
                         .insert(Transform::from_translation(
                             options.to_world_position(mpt).extend(2.),

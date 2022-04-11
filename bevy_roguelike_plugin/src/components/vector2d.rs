@@ -15,6 +15,12 @@ pub struct Vector2D {
 }
 
 impl Vector2D {
+    pub fn minmin() -> Self {
+        Self {
+            x: i32::MIN,
+            y: i32::MIN,
+        }
+    }
     pub fn zero() -> Self {
         Self { x: 0, y: 0 }
     }

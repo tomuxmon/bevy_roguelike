@@ -2,10 +2,6 @@ use bevy::prelude::*;
 
 #[derive(Default, Debug, Copy, Clone, Ord, PartialOrd, Eq, PartialEq, Hash, Component, Reflect)]
 #[reflect(Component)]
-pub struct MovingRandom;
-
-#[derive(Default, Debug, Copy, Clone, Ord, PartialOrd, Eq, PartialEq, Hash, Component, Reflect)]
-#[reflect(Component)]
 pub struct ActionPoints {
     turn_ready_ap: u32,
     current: u32,
@@ -55,7 +51,3 @@ impl Default for TurnState {
         TurnState::Collect
     }
 }
-
-#[derive(Default, Debug, Copy, Clone, Ord, PartialOrd, Eq, PartialEq, Hash, Component, Reflect)]
-#[reflect(Component)]
-pub struct OcupiesTile;
