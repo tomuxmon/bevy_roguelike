@@ -108,7 +108,7 @@ impl<T> RoguelikePlugin<T> {
             })
             .id();
 
-        let increment_default = 200;
+        let increment_default = 100;
 
         cmd.spawn()
             .insert(Name::new("Player"))
@@ -116,9 +116,9 @@ impl<T> RoguelikePlugin<T> {
             .insert(Behaviour::InputControlled)
             .insert(Team::new(1))
             .insert(TurnState::default())
-            .insert(ActionPoints::new(increment_default + rng.gen_range(0..256)))
+            .insert(ActionPoints::new(increment_default + rng.gen_range(0..128)))
             .insert(HitPoints::new(
-                HitPoints::DEFAULT_MAX + rng.gen_range(0..256),
+                HitPoints::DEFAULT_MAX + rng.gen_range(0..128),
             ))
             .insert(info.player_start)
             .insert(Transform::from_translation(
@@ -146,11 +146,11 @@ impl<T> RoguelikePlugin<T> {
                     enms.spawn()
                         .insert(Name::new("Enemy"))
                         .insert(Enemy {})
-                        .insert(Team::new(2))
+                        .insert(Team::new(1 + rng.gen_range(1..4)))
                         .insert(TurnState::default())
-                        .insert(ActionPoints::new(increment_default + rng.gen_range(0..256)))
+                        .insert(ActionPoints::new(increment_default + rng.gen_range(0..128)))
                         .insert(HitPoints::new(
-                            HitPoints::DEFAULT_MAX + rng.gen_range(0..256),
+                            HitPoints::DEFAULT_MAX + rng.gen_range(0..128),
                         ))
                         .insert(Behaviour::RandomMove)
                         .insert(mpt)
