@@ -22,10 +22,17 @@ pub fn gather_action_points(mut actors: Query<(&mut ActionPoints, &mut TurnState
         };
     }
 }
-pub fn turn_end_now_gather_ap(mut actors: Query<&mut TurnState>) {
-    if actors.iter().all(|ts| *ts == TurnState::End) {
-        actors.for_each_mut(|mut ts| {
-            *ts = TurnState::Collect;
+pub fn turn_end_now_gather_or_die(
+    mut cmd: Commands,
+    mut actors: Query<(Entity, &mut TurnState, &HitPoints)>,
+) {
+    if actors.iter().all(|(_, ts, _)| *ts == TurnState::End) {
+        actors.for_each_mut(|(e, mut ts, hp)| {
+            if hp.current() > 0 {
+                *ts = TurnState::Collect;
+            } else {
+                cmd.entity(e).despawn_recursive();
+            }
         });
     }
 }

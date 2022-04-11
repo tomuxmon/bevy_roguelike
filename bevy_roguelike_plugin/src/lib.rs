@@ -26,7 +26,7 @@ impl<T: StateData> Plugin for RoguelikePlugin<T> {
             SystemSet::on_update(self.running_state.clone())
                 .with_system(systems::turns::apply_hp_modify)
                 .with_system(systems::turns::gather_action_points)
-                .with_system(systems::turns::turn_end_now_gather_ap)
+                .with_system(systems::turns::turn_end_now_gather_or_die)
                 .with_system(systems::camera::camera_set_focus_player)
                 .with_system(systems::camera::camera_focus_immediate),
         )

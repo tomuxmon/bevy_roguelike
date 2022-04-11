@@ -54,6 +54,9 @@ impl HitPoints {
         self.current = i32::min(self.current + amount, self.max);
         self.current
     }
+    pub fn current(&self) -> i32 {
+        self.current
+    }
 }
 impl Default for HitPoints {
     fn default() -> Self {
