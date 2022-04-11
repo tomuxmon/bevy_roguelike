@@ -1,6 +1,13 @@
-use crate::components::*;
+use crate::{components::*, events::*};
 use bevy::prelude::*;
 
+pub fn apply_hp_modify(mut actors: Query<&mut HitPoints>, mut dmg_rdr: EventReader<ModifyHPEvent>) {
+    for e in dmg_rdr.iter() {
+        if let Ok(mut hp) = actors.get_mut(e.id) {
+            hp.apply(e.amount);
+        }
+    }
+}
 pub fn gather_action_points(mut actors: Query<(&mut ActionPoints, &mut TurnState)>) {
     for (mut ap, mut ts) in actors
         .iter_mut()

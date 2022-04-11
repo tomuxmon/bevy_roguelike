@@ -41,6 +41,31 @@ impl ActionPoints {
 
 #[derive(Debug, Copy, Clone, Ord, PartialOrd, Eq, PartialEq, Hash, Component, Reflect)]
 #[reflect(Component)]
+pub struct HitPoints {
+    max: i32,
+    current: i32,
+}
+impl HitPoints {
+    pub const DEFAULT_MAX: i32 = 1000;
+    pub fn new(max: i32) -> Self {
+        Self { max, current: max }
+    }
+    pub fn apply(&mut self, amount: i32) -> i32 {
+        self.current = i32::min(self.current + amount, self.max);
+        self.current
+    }
+}
+impl Default for HitPoints {
+    fn default() -> Self {
+        Self {
+            max: HitPoints::DEFAULT_MAX,
+            current: HitPoints::DEFAULT_MAX,
+        }
+    }
+}
+
+#[derive(Debug, Copy, Clone, Ord, PartialOrd, Eq, PartialEq, Hash, Component, Reflect)]
+#[reflect(Component)]
 pub enum TurnState {
     Collect,
     Act,

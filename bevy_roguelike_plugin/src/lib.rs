@@ -1,9 +1,11 @@
 pub mod components;
+pub mod events;
 pub mod map_generator;
 pub mod resources;
 pub mod systems;
 
 use crate::components::*;
+use crate::events::*;
 use bevy::ecs::schedule::StateData;
 use bevy::log;
 use bevy::prelude::*;
@@ -22,6 +24,7 @@ impl<T: StateData> Plugin for RoguelikePlugin<T> {
         )
         .add_system_set(
             SystemSet::on_update(self.running_state.clone())
+                .with_system(systems::turns::apply_hp_modify)
                 .with_system(systems::turns::gather_action_points)
                 .with_system(systems::turns::turn_end_now_gather_ap)
                 .with_system(systems::camera::camera_set_focus_player)
@@ -35,8 +38,10 @@ impl<T: StateData> Plugin for RoguelikePlugin<T> {
         .register_type::<Wall>()
         .register_type::<Behaviour>()
         .register_type::<ActionPoints>()
+        .register_type::<HitPoints>()
         .register_type::<TurnState>()
-        .register_type::<Team>();
+        .register_type::<Team>()
+        .add_event::<ModifyHPEvent>();
 
         log::info!("Loaded Roguelike Plugin");
     }
@@ -112,6 +117,9 @@ impl<T> RoguelikePlugin<T> {
             .insert(Team::new(1))
             .insert(TurnState::default())
             .insert(ActionPoints::new(increment_default + rng.gen_range(0..256)))
+            .insert(HitPoints::new(
+                HitPoints::DEFAULT_MAX + rng.gen_range(0..256),
+            ))
             .insert(info.player_start)
             .insert(Transform::from_translation(
                 options.to_world_position(info.player_start).extend(2.),
@@ -141,6 +149,9 @@ impl<T> RoguelikePlugin<T> {
                         .insert(Team::new(2))
                         .insert(TurnState::default())
                         .insert(ActionPoints::new(increment_default + rng.gen_range(0..256)))
+                        .insert(HitPoints::new(
+                            HitPoints::DEFAULT_MAX + rng.gen_range(0..256),
+                        ))
                         .insert(Behaviour::RandomMove)
                         .insert(mpt)
                         .insert(Transform::from_translation(

@@ -1,5 +1,5 @@
 use bevy::{prelude::*, utils::HashMap};
-use bevy_roguelike_plugin::{components::*, resources::*, RoguelikePlugin};
+use bevy_roguelike_plugin::{components::*, events::ModifyHPEvent, resources::*, RoguelikePlugin};
 use rand::prelude::*;
 
 // TODO: only in debug
@@ -25,7 +25,7 @@ pub fn input_all(
         &mut Vector2D,
         &mut Transform,
     )>,
-    mut map_info: ResMut<MapInfo>,
+    mut dmg_wr: EventWriter<ModifyHPEvent>,
     map_options: Res<MapOptions>,
     map: Res<Map>,
 ) {
@@ -76,29 +76,23 @@ pub fn input_all(
                 continue;
             }
             let other = ocupied.get(&dest);
-            // can not move into a tile ocupied by a team mate
+            // NOTE: can not move into a tile ocupied by a team mate
             if other.is_some() && other.unwrap().1 == *team && delta != Vector2D::new(0, 0) {
                 continue;
             }
             // TODO: instead of 'delta != ..' check on is_same_id
             if other.is_some() && delta != Vector2D::new(0, 0) {
-                // todo: damage
-                // TODO: attach damage component to an entity
+                dmg_wr.send(ModifyHPEvent::new(other.unwrap().0, -100));
             } else {
                 if delta != Vector2D::new(0, 0) {
-                    // NOTE: should be in single player mode only
-                    if *b == Behaviour::InputControlled {
-                        // NOTE: immediately setting camera focus so it does update on the same frame
-                        map_info.camera_focus = dest;
-                    }
                     let old_pos = tr.translation;
                     let new_pos = map_options.to_world_position(dest);
                     tr.translation = new_pos.extend(old_pos.z);
                     *pt = dest;
                 }
-                *ts = TurnState::End;
-                ap.current_minus(cost);
             }
+            *ts = TurnState::End;
+            ap.current_minus(cost);
         }
     }
 }
@@ -132,7 +126,7 @@ fn rogue_setup(
     mut state: ResMut<State<AppState>>,
 ) {
     cmd.insert_resource(MapOptions {
-        map_size: Vector2D::new(49, 32),
+        map_size: Vector2D::new(25, 15),
         tile_size: 32.0,
     });
     cmd.insert_resource(MapAssets {
