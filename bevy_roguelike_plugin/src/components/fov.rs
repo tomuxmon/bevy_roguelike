@@ -9,7 +9,8 @@ pub struct VisibilityFOV;
 #[reflect(Component)]
 pub struct FieldOfView {
     pub radius: i32,
-    pub visible_tiles: HashSet<Vector2D>,
+    pub tiles_visible: HashSet<Vector2D>,
+    pub tiles_revealed: HashSet<Vector2D>,
     pub is_dirty: bool,
 }
 
@@ -17,7 +18,8 @@ impl FieldOfView {
     pub fn new(radius: i32) -> Self {
         Self {
             radius,
-            visible_tiles: HashSet::default(),
+            tiles_visible: HashSet::default(),
+            tiles_revealed: HashSet::default(),
             is_dirty: true,
         }
     }
