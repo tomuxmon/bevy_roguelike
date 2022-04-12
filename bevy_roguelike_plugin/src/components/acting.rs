@@ -4,7 +4,7 @@ use bevy::prelude::*;
 #[derive(Default, Debug, Copy, Clone, Ord, PartialOrd, Eq, PartialEq, Hash, Component, Reflect)]
 #[reflect(Component)]
 pub struct Capability {
-    // ActionPoints
+    // NOTE: ActionPoints
     ap_turn_ready: u32,
     ap_current: u32,
     ap_increment: u32,
