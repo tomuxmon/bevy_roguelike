@@ -1,13 +1,20 @@
 use crate::{components::*, events::*};
+use bevy::log;
 use bevy::prelude::*;
 
 pub fn apply_hp_modify(
+    mut cmd: Commands,
     mut actors: Query<&mut Capability>,
     mut dmg_rdr: EventReader<ModifyHPEvent>,
 ) {
     for e in dmg_rdr.iter() {
         if let Ok(mut cp) = actors.get_mut(e.id) {
             cp.hp_apply(e.amount);
+            if cp.hp_current() <= 0 {
+                // TODO: animated death
+                log::info!("death to {:?}!", e.id);
+                cmd.entity(e.id).despawn_recursive();
+            }
         }
     }
 }
@@ -25,18 +32,10 @@ pub fn gather_action_points(mut actors: Query<(&mut Capability, &mut TurnState)>
         };
     }
 }
-pub fn turn_end_now_gather_or_die(
-    mut cmd: Commands,
-    mut actors: Query<(Entity, &mut TurnState, &Capability)>,
-) {
-    if actors.iter().all(|(_, ts, _)| *ts == TurnState::End) {
-        actors.for_each_mut(|(e, mut ts, cp)| {
-            if cp.hp_current() > 0 {
-                *ts = TurnState::Collect;
-            } else {
-                // TODO: animated death
-                cmd.entity(e).despawn_recursive();
-            }
+pub fn turn_end_now_gather(mut actors: Query<&mut TurnState>) {
+    if actors.iter().all(|ts| *ts == TurnState::End) {
+        actors.for_each_mut(|mut ts| {
+            *ts = TurnState::Collect;
         });
     }
 }
