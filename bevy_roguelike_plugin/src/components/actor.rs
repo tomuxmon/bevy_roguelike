@@ -1,10 +1,5 @@
-use std::ops::{Deref, DerefMut};
-
 use bevy::{prelude::*, utils::HashMap};
-
-#[derive(Default, Debug, Copy, Clone, Ord, PartialOrd, Eq, PartialEq, Hash, Component, Reflect)]
-#[reflect(Component)]
-pub struct Enemy;
+use std::ops::{Deref, DerefMut};
 
 #[derive(Default, Debug, Copy, Clone, Ord, PartialOrd, Eq, PartialEq, Hash, Component, Reflect)]
 #[reflect(Component)]

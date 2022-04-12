@@ -147,7 +147,6 @@ impl<T> RoguelikePlugin<T> {
 
                     enms.spawn()
                         .insert(Name::new("Enemy"))
-                        .insert(Enemy {})
                         .insert(Behaviour::RandomMove)
                         .insert(Team::new(1 + rng.gen_range(1..4)))
                         .insert(TurnState::default())

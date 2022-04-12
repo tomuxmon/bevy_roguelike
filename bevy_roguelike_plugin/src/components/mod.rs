@@ -2,7 +2,6 @@ pub use acting::Capability;
 pub use acting::TurnState;
 pub use actor::Attributes;
 pub use actor::Behaviour;
-pub use actor::Enemy;
 pub use actor::Player;
 pub use actor::Team;
 pub use environment::MapTile;
