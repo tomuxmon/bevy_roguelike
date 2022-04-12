@@ -124,8 +124,6 @@ impl<T> RoguelikePlugin<T> {
                 spawn_player_body_wear(player, &player_assets, options.tile_size)
             });
 
-        // TODO: spawn enemies
-
         cmd.spawn()
             .insert(Name::new("Enemies"))
             .insert(Transform::default())

@@ -90,7 +90,6 @@ impl Map {
 
     // TODO: only in debug : #[cfg(feature = "debug")]
     pub(crate) fn to_colorized_string(&self) -> String {
-        // TODO: validate and manually test me
         let mut buffer = format!("Map (w: {}, h: {})\n", self.size.x(), self.size.y());
         let line: String = (0..(self.size.x() + 2)).into_iter().map(|_| '-').collect();
         buffer = format!("{}{}\n", buffer, line);
@@ -111,8 +110,7 @@ impl Map {
     /// |(-1, 1)|(0, 1)|(1, 1)|
     /// |(-1, 0)|tile|(1, 0)|
     /// |(-1, -1)|(0, -1)|(1, -1)|
-    pub fn get_neighbor_deltas() -> [Vector2D; 8] {
-        // TODO: should also include cost of moving there
+    pub fn get_neighbor_deltas() -> [Vector2D; 8] {        
         // TODO: should be static or const (not fn) but still be vectors :\
         [
             Vector2D::new(-1, 1),

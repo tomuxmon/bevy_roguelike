@@ -118,7 +118,7 @@ fn main() {
         .add_startup_system(rogue_setup)
         .add_startup_system(camera_setup);
 
-    // TODO: add local systems..
+
 
     app.run();
 }

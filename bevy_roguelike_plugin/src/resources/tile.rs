@@ -5,8 +5,6 @@ use colored::Colorize;
 /// Enum describing a map tile
 #[derive(Debug, Copy, Clone, Eq, PartialEq)]
 pub enum Tile {
-    // TODO: should also describe the kind of wall (what sides are open)
-    // could be read from environment?
     Wall,
     Floor,
 }

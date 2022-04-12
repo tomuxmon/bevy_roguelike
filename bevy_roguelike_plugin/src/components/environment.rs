@@ -4,4 +4,7 @@ use bevy::prelude::*;
 #[reflect(Component)]
 pub struct MapTile {
     pub is_passable: bool,
+    // TODO: include cost of moving into a tile
+
+    // TODO: should also describe the kind of tile (what sides are open)
 }
