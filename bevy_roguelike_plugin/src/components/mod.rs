@@ -6,7 +6,7 @@ pub use actor::Player;
 pub use actor::Team;
 pub use environment::MapTile;
 pub use fov::FieldOfView;
-pub use fov::VisibilityFOV;
+pub use fov::VisibilityToggle;
 pub use vector2d::Vector2D;
 
 mod acting;

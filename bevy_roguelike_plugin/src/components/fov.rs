@@ -3,7 +3,7 @@ use bevy::{prelude::*, utils::HashSet};
 
 #[derive(Default, Debug, Clone, Eq, PartialEq, Component, Reflect)]
 #[reflect(Component)]
-pub struct VisibilityFOV;
+pub struct VisibilityToggle;
 
 #[derive(Default, Debug, Clone, Eq, PartialEq, Component, Reflect)]
 #[reflect(Component)]

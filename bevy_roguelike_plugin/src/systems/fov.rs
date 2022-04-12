@@ -7,7 +7,7 @@ use line_drawing::{BresenhamCircle, WalkGrid};
 
 pub fn field_of_view_set_visibility(
     fovs: Query<&FieldOfView, With<Player>>,
-    visibles: Query<(&Vector2D, &Children, Option<&Behaviour>), With<VisibilityFOV>>,
+    visibles: Query<(&Vector2D, &Children, Option<&Behaviour>), With<VisibilityToggle>>,
     mut visible_children: Query<(&mut Sprite, &mut Visibility)>,
 ) {
     for fov in fovs.iter() {
