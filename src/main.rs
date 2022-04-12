@@ -22,6 +22,7 @@ pub fn input_all(
         &Behaviour,
         &mut TurnState,
         &mut ActionPoints,
+        &mut FieldOfView,
         &mut Vector2D,
         &mut Transform,
     )>,
@@ -29,11 +30,11 @@ pub fn input_all(
     map_options: Res<MapOptions>,
     map: Res<Map>,
 ) {
-    let ocupied = HashMap::from_iter(actors.iter().map(|(e, t, _, _, _, p, _)| (*p, (e, *t))));
+    let ocupied = HashMap::from_iter(actors.iter().map(|(e, t, _, _, _, _, p, _)| (*p, (e, *t))));
 
-    for (_, team, b, mut ts, mut ap, mut pt, mut tr) in actors
+    for (_, team, b, mut ts, mut ap, mut fov, mut pt, mut tr) in actors
         .iter_mut()
-        .filter(|(_, _, _, ts, _, _, _)| **ts == TurnState::Act)
+        .filter(|(_, _, _, ts, _, _, _, _)| **ts == TurnState::Act)
     {
         let deltas = vec![
             Vector2D::new(0, 1),
@@ -89,6 +90,7 @@ pub fn input_all(
                     let new_pos = map_options.to_world_position(dest);
                     tr.translation = new_pos.extend(old_pos.z);
                     *pt = dest;
+                    fov.is_dirty = true;
                 }
             }
             *ts = TurnState::End;
@@ -100,6 +102,7 @@ pub fn input_all(
 fn main() {
     let mut app = App::new();
     app.add_state(AppState::Out)
+        .insert_resource(ClearColor(Color::BLACK))
         .insert_resource(WindowDescriptor {
             title: "rogue bevy".to_string(),
             width: 1200.,

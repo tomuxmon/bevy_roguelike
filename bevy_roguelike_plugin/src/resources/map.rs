@@ -38,7 +38,7 @@ impl Map {
     }
 
     pub fn is_in_bounds(&self, pt: Vector2D) -> bool {
-        self.size.x() - 1 >= pt.x() && self.size.y() - 1 >= pt.y()
+        self.size.x() - 1 >= pt.x() && self.size.y() - 1 >= pt.y() && pt.x() >= 0 && pt.y() >= 0
     }
 
     pub fn is_edge(&self, pt: Vector2D) -> bool {

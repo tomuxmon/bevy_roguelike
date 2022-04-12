@@ -23,11 +23,18 @@ impl Default for MapOptions {
 
 impl MapOptions {
     pub fn to_world_position(&self, pt: Vector2D) -> Vec2 {
-        let x_offset = self.map_size.x() as f32 * self.tile_size / -2.;
-        let y_offset = self.map_size.y() as f32 * self.tile_size / -2.;
+        // NOTE: When camera focus is in play we no longer need offset.
+        // let x_offset = self.map_size.x() as f32 * self.tile_size / -2.;
+        // let y_offset = self.map_size.y() as f32 * self.tile_size / -2.;
         Vec2::new(
-            (pt.x() as f32 * self.tile_size) + (self.tile_size / 2.) + x_offset,
-            (pt.y() as f32 * self.tile_size) + (self.tile_size / 2.) + y_offset,
+            (pt.x() as f32 * self.tile_size) + (self.tile_size / 2.),
+            (pt.y() as f32 * self.tile_size) + (self.tile_size / 2.),
+        )
+    }
+    pub fn to_closest_map_position(&self, translation: Vec3) -> Vector2D {
+        Vector2D::new(
+            ((translation.x - self.tile_size / 2.) / self.tile_size) as i32,
+            ((translation.y - self.tile_size / 2.) / self.tile_size) as i32,
         )
     }
 }
