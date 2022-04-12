@@ -29,8 +29,6 @@ pub fn field_of_view_set_visibility(
 }
 
 pub fn field_of_view_recompute(mut actors: Query<(&Vector2D, &mut FieldOfView)>, map: Res<Map>) {
-    // TODO: also include immediate environment (vec![Vector2D; 8] )
-
     actors
         .iter_mut()
         .filter(|(_, fov)| fov.is_dirty)
