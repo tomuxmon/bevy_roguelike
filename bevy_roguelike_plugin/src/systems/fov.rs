@@ -20,7 +20,7 @@ pub fn field_of_view_set_visibility(
                     s.color = if is_visible && is_revealed {
                         Color::WHITE
                     } else {
-                        Color::DARK_GRAY
+                        Color::GRAY
                     };
                 }
             }
