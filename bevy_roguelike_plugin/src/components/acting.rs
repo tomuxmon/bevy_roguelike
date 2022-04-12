@@ -1,3 +1,4 @@
+use super::Attributes;
 use bevy::prelude::*;
 
 #[derive(Default, Debug, Copy, Clone, Ord, PartialOrd, Eq, PartialEq, Hash, Component, Reflect)]
@@ -9,8 +10,12 @@ pub struct ActionPoints {
 }
 impl ActionPoints {
     pub const DEFAULT_TURN_READY_AP: u32 = 1000;
+    pub const DEFAULT_MIN_INCREMENT: u32 = 100;
 
-    pub fn new(increment: u32) -> Self {
+    pub fn new(attributes: Attributes) -> Self {
+        let will = *attributes.get("willpower").unwrap_or(&5);
+        let dex = *attributes.get("dexterity").unwrap_or(&5);
+        let increment = ActionPoints::DEFAULT_MIN_INCREMENT + (dex * 5 + will * 3) as u32;
         Self {
             turn_ready_ap: ActionPoints::DEFAULT_TURN_READY_AP,
             increment,
@@ -46,8 +51,13 @@ pub struct HitPoints {
     current: i32,
 }
 impl HitPoints {
-    pub const DEFAULT_MAX: i32 = 1000;
-    pub fn new(max: i32) -> Self {
+    pub const DEFAULT_MIN: i32 = 500;
+    pub fn new(attributes: Attributes) -> Self {
+        let str = *attributes.get("strength").unwrap_or(&5);
+        let tou = *attributes.get("toughness").unwrap_or(&5);
+        let will = *attributes.get("willpower").unwrap_or(&5);
+        let dex = *attributes.get("dexterity").unwrap_or(&5);
+        let max = HitPoints::DEFAULT_MIN + tou * 10 + str * 3 + will * 2 + dex;
         Self { max, current: max }
     }
     pub fn apply(&mut self, amount: i32) -> i32 {
@@ -61,8 +71,8 @@ impl HitPoints {
 impl Default for HitPoints {
     fn default() -> Self {
         Self {
-            max: HitPoints::DEFAULT_MAX,
-            current: HitPoints::DEFAULT_MAX,
+            max: HitPoints::DEFAULT_MIN,
+            current: HitPoints::DEFAULT_MIN,
         }
     }
 }

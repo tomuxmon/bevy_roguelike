@@ -43,6 +43,7 @@ impl<T: StateData> Plugin for RoguelikePlugin<T> {
         .register_type::<TurnState>()
         .register_type::<Team>()
         .register_type::<FieldOfView>()
+        .register_type::<Attributes>()
         .add_event::<ModifyHPEvent>();
 
         log::info!("Loaded Roguelike Plugin");
@@ -95,7 +96,13 @@ impl<T> RoguelikePlugin<T> {
             })
             .id();
 
-        let increment_default = 100;
+        let player_attributes = Attributes::new(vec![
+            ("strength".to_string(), 10),
+            ("toughness".to_string(), 10),
+            ("dexterity".to_string(), 10),
+            ("willpower".to_string(), 10),
+            ("perception".to_string(), 10),
+        ]);
 
         cmd.spawn()
             .insert(Name::new("Player"))
@@ -103,10 +110,9 @@ impl<T> RoguelikePlugin<T> {
             .insert(Behaviour::InputControlled)
             .insert(Team::new(1))
             .insert(TurnState::default())
-            .insert(ActionPoints::new(increment_default + rng.gen_range(0..128)))
-            .insert(HitPoints::new(
-                HitPoints::DEFAULT_MAX + rng.gen_range(0..128),
-            ))
+            .insert(player_attributes.clone())
+            .insert(ActionPoints::new(player_attributes.clone()))
+            .insert(HitPoints::new(player_attributes.clone()))
             .insert(FieldOfView::new(5))
             .insert(VisibilityFOV {})
             .insert(info.player_start)
@@ -130,16 +136,23 @@ impl<T> RoguelikePlugin<T> {
             .insert(GlobalTransform::default())
             .with_children(|enms| {
                 for mpt in info.monster_spawns {
+                    let monster_attributes = Attributes::new(vec![
+                        ("strength".to_string(), 6 + rng.gen_range(0..6)),
+                        ("toughness".to_string(), 6 + rng.gen_range(0..6)),
+                        ("dexterity".to_string(), 6 + rng.gen_range(0..6)),
+                        ("willpower".to_string(), 6 + rng.gen_range(0..6)),
+                        ("perception".to_string(), 6 + rng.gen_range(0..6)),
+                    ]);
+
                     enms.spawn()
                         .insert(Name::new("Enemy"))
                         .insert(Enemy {})
                         .insert(Behaviour::RandomMove)
                         .insert(Team::new(1 + rng.gen_range(1..4)))
                         .insert(TurnState::default())
-                        .insert(ActionPoints::new(increment_default + rng.gen_range(0..128)))
-                        .insert(HitPoints::new(
-                            HitPoints::DEFAULT_MAX + rng.gen_range(0..128),
-                        ))
+                        .insert(monster_attributes.clone())
+                        .insert(ActionPoints::new(monster_attributes.clone()))
+                        .insert(HitPoints::new(monster_attributes.clone()))
                         .insert(FieldOfView::new(3))
                         .insert(VisibilityFOV {})
                         .insert(mpt)
