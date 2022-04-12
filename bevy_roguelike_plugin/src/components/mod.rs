@@ -1,5 +1,4 @@
-pub use acting::ActionPoints;
-pub use acting::HitPoints;
+pub use acting::Capability;
 pub use acting::TurnState;
 pub use actor::Attributes;
 pub use actor::Behaviour;

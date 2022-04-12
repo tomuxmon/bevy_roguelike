@@ -21,7 +21,7 @@ pub fn input_all(
         &Team,
         &Behaviour,
         &mut TurnState,
-        &mut ActionPoints,
+        &mut Capability,
         &mut FieldOfView,
         &mut Vector2D,
         &mut Transform,
@@ -32,7 +32,7 @@ pub fn input_all(
 ) {
     let ocupied = HashMap::from_iter(actors.iter().map(|(e, t, _, _, _, _, p, _)| (*p, (e, *t))));
 
-    for (_, team, b, mut ts, mut ap, mut fov, mut pt, mut tr) in actors
+    for (_, team, b, mut ts, mut cp, mut fov, mut pt, mut tr) in actors
         .iter_mut()
         .filter(|(_, _, _, ts, _, _, _, _)| **ts == TurnState::Act)
     {
@@ -48,7 +48,7 @@ pub fn input_all(
             (Vector2D::new(0, -1), 900),
             (Vector2D::new(-1, 0), 900),
             (Vector2D::new(1, 0), 900),
-            (Vector2D::new(0, 0), 500), // stay put - skip turn
+            (Vector2D::new(0, 0), 451), // stay put - skip turn
         ]);
 
         let delta = match b {
@@ -71,7 +71,7 @@ pub fn input_all(
         };
 
         if delta != Vector2D::minmin() {
-            let cost = delta_costs[&delta];
+            let mut cost = delta_costs[&delta];
             let dest = *pt + delta;
             if !map.is_in_bounds(dest) || map[dest] != Tile::Floor {
                 continue;
@@ -83,7 +83,8 @@ pub fn input_all(
             }
             // TODO: instead of 'delta != ..' check on is_same_id
             if other.is_some() && delta != Vector2D::new(0, 0) {
-                dmg_wr.send(ModifyHPEvent::new(other.unwrap().0, -100));
+                cost = cp.attack_cost();
+                dmg_wr.send(ModifyHPEvent::new(other.unwrap().0, -cp.attack_damage()));
             } else {
                 if delta != Vector2D::new(0, 0) {
                     let old_pos = tr.translation;
@@ -94,7 +95,7 @@ pub fn input_all(
                 }
             }
             *ts = TurnState::End;
-            ap.current_minus(cost);
+            cp.ap_current_minus(cost);
         }
     }
 }
@@ -117,8 +118,6 @@ fn main() {
         .add_plugin(WorldInspectorPlugin::new())
         .add_startup_system(rogue_setup)
         .add_startup_system(camera_setup);
-
-
 
     app.run();
 }

@@ -38,8 +38,7 @@ impl<T: StateData> Plugin for RoguelikePlugin<T> {
         .register_type::<Vector2D>()
         .register_type::<MapTile>()
         .register_type::<Behaviour>()
-        .register_type::<ActionPoints>()
-        .register_type::<HitPoints>()
+        .register_type::<Capability>()
         .register_type::<TurnState>()
         .register_type::<Team>()
         .register_type::<FieldOfView>()
@@ -51,14 +50,16 @@ impl<T: StateData> Plugin for RoguelikePlugin<T> {
 }
 
 #[derive(Debug)]
-pub struct MapId {
-    id: Entity,
+pub struct MapEntities {
+    map_id: Entity,
+    enemies_id: Entity,
 }
 
 impl<T> RoguelikePlugin<T> {
-    fn cleanup_map(map_id: Res<MapId>, mut cmd: Commands) {
-        cmd.entity(map_id.id).despawn_recursive();
-        cmd.remove_resource::<MapId>();
+    fn cleanup_map(map_id: Res<MapEntities>, mut cmd: Commands) {
+        cmd.entity(map_id.map_id).despawn_recursive();
+        cmd.entity(map_id.enemies_id).despawn_recursive();
+        cmd.remove_resource::<MapEntities>();
     }
 
     pub fn create_map(
@@ -111,8 +112,7 @@ impl<T> RoguelikePlugin<T> {
             .insert(Team::new(1))
             .insert(TurnState::default())
             .insert(player_attributes.clone())
-            .insert(ActionPoints::new(player_attributes.clone()))
-            .insert(HitPoints::new(player_attributes.clone()))
+            .insert(Capability::new(player_attributes.clone()))
             .insert(FieldOfView::new(5))
             .insert(VisibilityFOV {})
             .insert(info.player_start)
@@ -130,7 +130,8 @@ impl<T> RoguelikePlugin<T> {
                 spawn_player_body_wear(player, &player_assets, options.tile_size)
             });
 
-        cmd.spawn()
+        let enemies_id = cmd
+            .spawn()
             .insert(Name::new("Enemies"))
             .insert(Transform::default())
             .insert(GlobalTransform::default())
@@ -151,8 +152,7 @@ impl<T> RoguelikePlugin<T> {
                         .insert(Team::new(1 + rng.gen_range(1..4)))
                         .insert(TurnState::default())
                         .insert(monster_attributes.clone())
-                        .insert(ActionPoints::new(monster_attributes.clone()))
-                        .insert(HitPoints::new(monster_attributes.clone()))
+                        .insert(Capability::new(monster_attributes.clone()))
                         .insert(FieldOfView::new(3))
                         .insert(VisibilityFOV {})
                         .insert(mpt)
@@ -166,8 +166,10 @@ impl<T> RoguelikePlugin<T> {
                             );
                         });
                 }
-            });
-        cmd.insert_resource(MapId { id: map_id });
+            })
+            .id();
+
+        cmd.insert_resource(MapEntities { map_id, enemies_id });
     }
 }
 
