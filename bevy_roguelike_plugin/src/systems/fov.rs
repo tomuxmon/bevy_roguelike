@@ -3,7 +3,7 @@ use crate::{
     resources::{Map, Tile},
 };
 use bevy::{prelude::*, utils::HashSet};
-use line_drawing::{BresenhamCircle, WalkGrid};
+use line_drawing::{BresenhamCircle, Supercover};
 
 pub fn field_of_view_set_visibility(
     fovs: Query<&FieldOfView, With<Player>>,
@@ -45,7 +45,7 @@ pub fn field_of_view_recompute(mut actors: Query<(&Vector2D, &mut FieldOfView)>,
 fn compute_fov(pt: Vector2D, radius: i32, map: &Map) -> HashSet<Vector2D> {
     let mut fov = HashSet::default();
     for (xo, yo) in BresenhamCircle::new(pt.x(), pt.y(), radius) {
-        for vpt in WalkGrid::new((pt.x(), pt.y()), (xo, yo))
+        for vpt in Supercover::new((pt.x(), pt.y()), (xo, yo))
             .map(|(x, y)| Vector2D::new(x, y))
             .filter(|p| map.is_in_bounds(*p))
         {
