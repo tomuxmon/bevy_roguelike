@@ -110,14 +110,13 @@ fn main() {
             height: 700.,
             ..Default::default()
         })
-        .add_plugins(DefaultPlugins)
+        .add_plugins(DefaultPlugins {})
         .add_plugin(RoguelikePlugin {
             running_state: AppState::InGame,
         })
         .add_system_set(SystemSet::on_update(AppState::InGame).with_system(input_all))
         .add_plugin(WorldInspectorPlugin::new())
-        .add_startup_system(rogue_setup)
-        .add_startup_system(camera_setup);
+        .add_startup_system(rogue_setup);
 
     app.run();
 }
@@ -176,8 +175,4 @@ fn rogue_setup(
     });
 
     state.set(AppState::InGame).unwrap();
-}
-
-fn camera_setup(mut cmd: Commands) {
-    cmd.spawn_bundle(OrthographicCameraBundle::new_2d());
 }

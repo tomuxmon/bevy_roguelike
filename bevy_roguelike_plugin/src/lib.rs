@@ -20,33 +20,34 @@ pub struct RoguelikePlugin<T> {
 
 impl<T: StateData> Plugin for RoguelikePlugin<T> {
     fn build(&self, app: &mut App) {
-        app.add_plugin(EasingsPlugin {});
-        app.add_system_set(
-            SystemSet::on_enter(self.running_state.clone()).with_system(Self::create_map),
-        )
-        .add_system_set(
-            SystemSet::on_update(self.running_state.clone())
-                .with_system(systems::turns::apply_hp_modify)
-                .with_system(systems::turns::gather_action_points)
-                .with_system(systems::turns::turn_end_now_gather)
-                .with_system(systems::camera::camera_set_focus_player)
-                .with_system(systems::camera::camera_focus_smooth)
-                .with_system(systems::fov::field_of_view_recompute)
-                .with_system(systems::fov::field_of_view_set_visibility),
-        )
-        .add_system_set(
-            SystemSet::on_exit(self.running_state.clone()).with_system(Self::cleanup_map),
-        )
-        .register_type::<Vector2D>()
-        .register_type::<MapTile>()
-        .register_type::<Behaviour>()
-        .register_type::<Capability>()
-        .register_type::<TurnState>()
-        .register_type::<Team>()
-        .register_type::<FieldOfView>()
-        .register_type::<Attributes>()
-        .add_event::<ModifyHPEvent>()
-        .add_event::<CameraFocusEvent>();
+        app.add_plugin(EasingsPlugin {})
+            .add_startup_system(camera_setup)
+            .add_system_set(
+                SystemSet::on_enter(self.running_state.clone()).with_system(Self::create_map),
+            )
+            .add_system_set(
+                SystemSet::on_update(self.running_state.clone())
+                    .with_system(systems::turns::apply_hp_modify)
+                    .with_system(systems::turns::gather_action_points)
+                    .with_system(systems::turns::turn_end_now_gather)
+                    .with_system(systems::camera::camera_set_focus_player)
+                    .with_system(systems::camera::camera_focus_smooth)
+                    .with_system(systems::fov::field_of_view_recompute)
+                    .with_system(systems::fov::field_of_view_set_visibility),
+            )
+            .add_system_set(
+                SystemSet::on_exit(self.running_state.clone()).with_system(Self::cleanup_map),
+            )
+            .register_type::<Vector2D>()
+            .register_type::<MapTile>()
+            .register_type::<Behaviour>()
+            .register_type::<Capability>()
+            .register_type::<TurnState>()
+            .register_type::<Team>()
+            .register_type::<FieldOfView>()
+            .register_type::<Attributes>()
+            .add_event::<ModifyHPEvent>()
+            .add_event::<CameraFocusEvent>();
 
         log::info!("Loaded Roguelike Plugin");
     }
@@ -71,6 +72,7 @@ impl<T> RoguelikePlugin<T> {
         map_assets: Res<MapAssets>,
         player_assets: Res<PlayerAssets>,
         enemy_assets: Res<EnemyAssets>,
+        mut cameras: Query<&mut Transform, With<Camera>>,
     ) {
         let options = match map_options {
             None => MapOptions::default(), // If no options is set we use the default one
@@ -89,6 +91,12 @@ impl<T> RoguelikePlugin<T> {
         cmd.insert_resource(map.clone());
         cmd.insert_resource(info.clone());
         cmd.insert_resource(rng.clone());
+
+        for mut c in cameras.iter_mut() {
+            let z = c.translation.z;
+            let new_pos = options.to_world_position(info.camera_focus).extend(z);
+            c.translation = new_pos;
+        }
 
         let map_id = cmd
             .spawn()
@@ -254,4 +262,8 @@ fn get_enemy_body_bundle(enemy_assets: &EnemyAssets, rng: &mut StdRng, size: f32
         transform: Transform::from_xyz(0., 0., 3.),
         ..Default::default()
     }
+}
+
+fn camera_setup(mut cmd: Commands) {
+    cmd.spawn_bundle(OrthographicCameraBundle::new_2d());
 }

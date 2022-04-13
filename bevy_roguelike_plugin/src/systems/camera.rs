@@ -24,9 +24,11 @@ pub fn camera_focus_immediate(
     map_options: Res<MapOptions>,
 ) {
     for mut c in camera.iter_mut() {
-        let old_pos = c.translation;
-        let new_pos = map_options.to_world_position(map_info.camera_focus);
-        c.translation = new_pos.extend(old_pos.z);
+        let z = c.translation.z;
+        let new_pos = map_options
+            .to_world_position(map_info.camera_focus)
+            .extend(z);
+        c.translation = new_pos;
     }
 }
 pub fn camera_focus_smooth(
