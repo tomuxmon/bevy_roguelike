@@ -6,7 +6,6 @@ edition = "2021"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-bevy = "~0.6"
 bevy_easings = "~0.6"
 line_drawing = "~1.0"
 rand = "~0.8"
@@ -14,3 +13,8 @@ serde = "~1.0"
 # TODO: should be in debug only
 bevy-inspector-egui = "~0.9"
 colored = "~2.0"
+
+[dependencies.bevy]
+version = "~0.6"
+default-features = false
+features = ["render", "bevy_winit", "png"]
