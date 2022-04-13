@@ -49,8 +49,8 @@ impl MapGenerator for AutomataGenerator {
 fn iteration(map: &mut Map) -> Vec<Vector2D> {
     let mut pts = Vec::new();
     let map_clone = map.clone();
-    for y in 1..map_clone.size.y() - 1 {
-        for x in 1..map_clone.size.x() - 1 {
+    for y in 1..map_clone.size().y() - 1 {
+        for x in 1..map_clone.size().x() - 1 {
             let pt = Vector2D::new(x, y);
             let neighbors = count_neighbors(&map_clone, pt);
             let tile = if neighbors > 4 || neighbors == 0 {

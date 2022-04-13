@@ -7,12 +7,10 @@ use std::slice::Iter;
 /// Flat tile map of tiles
 #[derive(Debug, Clone)]
 pub struct Map {
-    // pub size: IVec2,
-    pub size: Vector2D,
+    size: Vector2D,
     tiles: Vec<Tile>,
 }
 
-// TODO: merge MapInfo into Map
 #[derive(Debug, Clone)]
 pub struct MapInfo {
     pub player_start: Vector2D,
@@ -133,6 +131,9 @@ impl Map {
             Vector2D::new(1, 0),
             Vector2D::new(0, -1),
         ]
+    }
+    pub fn size(&self) -> Vector2D {
+        self.size
     }
 }
 

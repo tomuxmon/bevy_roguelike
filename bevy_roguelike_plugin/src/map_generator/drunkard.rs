@@ -26,8 +26,8 @@ impl MapGenerator for DrunkardGenerator {
 
         while map.iter().filter(|t| **t == Tile::Floor).count() < desired_floor {
             let mut from = Vector2D::new(
-                rng.gen_range(1..map.size.x() - 1),
-                rng.gen_range(1..map.size.y() - 1),
+                rng.gen_range(1..map.size().x() - 1),
+                rng.gen_range(1..map.size().y() - 1),
             );
             room_centers.push(from);
             let stagger_count = usize::max(walk_steps / 10, 5);

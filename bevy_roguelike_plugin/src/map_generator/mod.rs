@@ -27,9 +27,11 @@ pub trait MapGenerator {
     fn gen(&self, rng: &mut StdRng, size: Vector2D) -> (Map, MapInfo);
 }
 
-// TODO: implement possibility to do map generation composition
-// (mix multiple generators)
+// TODO: implement possibility to do map generation composition (mix multiple generators)
 // TODO: implement space straversal and room detector
+// TODO: dijkstra plotting to determine distinct not connected rooms
+// TODO: dijkstra plotting to place enemies, players at positions relative to wall sides
+// TODO: dijkstra plotting to identify 1 tile wide tunnels
 
 pub struct RandomMapGenerator {}
 
