@@ -45,7 +45,8 @@ impl<T: StateData> Plugin for RoguelikePlugin<T> {
         .register_type::<Team>()
         .register_type::<FieldOfView>()
         .register_type::<Attributes>()
-        .add_event::<ModifyHPEvent>();
+        .add_event::<ModifyHPEvent>()
+        .add_event::<CameraFocusEvent>();
 
         log::info!("Loaded Roguelike Plugin");
     }

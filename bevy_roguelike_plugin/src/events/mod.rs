@@ -1,3 +1,4 @@
+use crate::components::Vector2D;
 use bevy::prelude::*;
 
 #[derive(Debug, Copy, Clone)]
@@ -9,5 +10,15 @@ pub struct ModifyHPEvent {
 impl ModifyHPEvent {
     pub fn new(id: Entity, amount: i32) -> Self {
         Self { id, amount }
+    }
+}
+
+#[derive(Debug, Copy, Clone)]
+pub struct CameraFocusEvent {
+    pub position: Vector2D,
+}
+impl CameraFocusEvent {
+    pub fn new(position: Vector2D) -> Self {
+        Self { position }
     }
 }
