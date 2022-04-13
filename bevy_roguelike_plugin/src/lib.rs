@@ -33,7 +33,8 @@ impl<T: StateData> Plugin for RoguelikePlugin<T> {
                     .with_system(systems::camera::camera_set_focus_player)
                     .with_system(systems::camera::camera_focus_smooth)
                     .with_system(systems::fov::field_of_view_recompute)
-                    .with_system(systems::fov::field_of_view_set_visibility),
+                    .with_system(systems::fov::field_of_view_set_visibility_info)
+                    .with_system(systems::fov::field_of_view_set_visivility),
             )
             .add_system_set(
                 SystemSet::on_exit(self.running_state.clone()).with_system(Self::cleanup_map),
@@ -125,7 +126,7 @@ impl<T> RoguelikePlugin<T> {
             .insert(player_attributes.clone())
             .insert(Capability::new(player_attributes.clone()))
             .insert(FieldOfView::new(7))
-            .insert(VisibilityToggle {})
+            .insert(VisibilityToggle::default())
             .insert(info.player_start)
             .insert(Transform::from_translation(
                 options.to_world_position(info.player_start).extend(2.),
@@ -164,7 +165,7 @@ impl<T> RoguelikePlugin<T> {
                         .insert(monster_attributes.clone())
                         .insert(Capability::new(monster_attributes.clone()))
                         .insert(FieldOfView::new(4))
-                        .insert(VisibilityToggle {})
+                        .insert(VisibilityToggle::default())
                         .insert(mpt)
                         .insert(Transform::from_translation(
                             options.to_world_position(mpt).extend(2.),
@@ -201,7 +202,7 @@ fn spawn_tiles(
                 map_options.to_world_position(pt).extend(1.),
             ))
             .insert(GlobalTransform::default())
-            .insert(VisibilityToggle {})
+            .insert(VisibilityToggle::default())
             .insert(pt)
             .insert(match tile {
                 Tile::Wall => MapTile { is_passable: false },

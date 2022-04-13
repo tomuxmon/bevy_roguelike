@@ -17,20 +17,6 @@ pub fn camera_set_focus_player(
         }
     }
 }
-
-pub fn camera_focus_immediate(
-    mut camera: Query<&mut Transform, With<Camera>>,
-    map_info: Res<MapInfo>,
-    map_options: Res<MapOptions>,
-) {
-    for mut c in camera.iter_mut() {
-        let z = c.translation.z;
-        let new_pos = map_options
-            .to_world_position(map_info.camera_focus)
-            .extend(z);
-        c.translation = new_pos;
-    }
-}
 pub fn camera_focus_smooth(
     mut cmd: Commands,
     mut cmr_rdr: EventReader<CameraFocusEvent>,

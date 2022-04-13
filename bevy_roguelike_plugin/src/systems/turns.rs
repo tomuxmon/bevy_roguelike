@@ -23,7 +23,7 @@ pub fn gather_action_points(
     pool: Res<AsyncComputeTaskPool>,
     mut actors: Query<(&mut Capability, &mut TurnState)>,
 ) {
-    actors.par_for_each_mut(&*pool, 1000, |(mut cp, mut ts)| {
+    actors.par_for_each_mut(&*pool, 16, |(mut cp, mut ts)| {
         if *ts == TurnState::Collect {
             *ts = if cp.ap_current_add() > cp.ap_turn_ready_to_act() {
                 TurnState::Act
@@ -37,7 +37,7 @@ pub fn gather_action_points(
 }
 pub fn turn_end_now_gather(pool: Res<AsyncComputeTaskPool>, mut actors: Query<&mut TurnState>) {
     if actors.iter().all(|ts| *ts == TurnState::End) {
-        actors.par_for_each_mut(&*pool, 1000, |mut ts| {
+        actors.par_for_each_mut(&*pool, 16, |mut ts| {
             *ts = TurnState::Collect;
         });
     }

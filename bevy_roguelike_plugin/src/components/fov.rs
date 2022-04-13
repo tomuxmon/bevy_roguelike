@@ -1,9 +1,45 @@
+use std::ops::{Deref, DerefMut};
+
 use super::Vector2D;
-use bevy::{prelude::*, utils::HashSet};
+use bevy::{
+    prelude::*,
+    utils::{HashMap, HashSet},
+};
 
 #[derive(Default, Debug, Clone, Eq, PartialEq, Component, Reflect)]
 #[reflect(Component)]
-pub struct VisibilityToggle;
+pub struct VisibilityInfo {
+    pub is_revealed: bool,
+    pub is_visible: bool,
+    pub is_ambient: bool,
+}
+impl VisibilityInfo {
+    pub fn new(is_revealed: bool, is_visible: bool, is_ambient: bool) -> Self {
+        Self {
+            is_revealed,
+            is_visible,
+            is_ambient,
+        }
+    }
+}
+
+#[derive(Default, Debug, Clone, Eq, PartialEq, Component, Reflect)]
+#[reflect(Component)]
+pub struct VisibilityToggle {
+    inner: HashMap<Entity, VisibilityInfo>,
+}
+impl Deref for VisibilityToggle {
+    type Target = HashMap<Entity, VisibilityInfo>;
+
+    fn deref(&self) -> &Self::Target {
+        &self.inner
+    }
+}
+impl DerefMut for VisibilityToggle {
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        &mut self.inner
+    }
+}
 
 #[derive(Default, Debug, Clone, Eq, PartialEq, Component, Reflect)]
 #[reflect(Component)]
