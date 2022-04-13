@@ -87,7 +87,7 @@ impl Map {
         )
     }
 
-    // TODO: only in debug : #[cfg(feature = "debug")]
+    #[cfg(feature = "debug")]
     pub(crate) fn to_colorized_string(&self) -> String {
         let mut buffer = format!("Map (w: {}, h: {})\n", self.size.x(), self.size.y());
         let line: String = (0..(self.size.x() + 2)).into_iter().map(|_| '-').collect();

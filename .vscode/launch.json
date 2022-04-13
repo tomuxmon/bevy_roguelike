@@ -31,7 +31,9 @@
                 "args": [
                     "build",
                     "--bin=rogue-tiny",
-                    "--package=rogue-tiny"
+                    "--package=rogue-tiny",
+                    "--features",
+                    "debug"
                 ],
                 "filter": {
                     "name": "rogue-tiny",

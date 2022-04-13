@@ -1,5 +1,6 @@
 use std::fmt::*;
-// TODO: only in debug
+
+#[cfg(feature = "debug")]
 use colored::Colorize;
 
 /// Enum describing a map tile
@@ -14,7 +15,7 @@ impl Tile {
         matches!(self, Self::Wall)
     }
 
-    // TODO: only in debug #[cfg(feature = "debug")]
+    #[cfg(feature = "debug")]
     pub fn to_colorized_string(&self) -> String {
         format!(
             "{}",

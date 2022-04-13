@@ -595,6 +595,7 @@ dependencies = [
  "bevy-inspector-egui",
  "bevy_easings",
  "colored",
+ "getrandom",
  "line_drawing",
  "rand",
  "serde",

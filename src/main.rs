@@ -2,7 +2,7 @@ use bevy::{prelude::*, utils::HashMap};
 use bevy_roguelike_plugin::{components::*, events::ModifyHPEvent, resources::*, RoguelikePlugin};
 use rand::prelude::*;
 
-// TODO: only in debug
+#[cfg(feature = "debug")]
 use bevy_inspector_egui::WorldInspectorPlugin;
 
 #[derive(Debug, Clone, Eq, PartialEq, Hash)]
@@ -114,8 +114,10 @@ fn main() {
             running_state: AppState::InGame,
         })
         .add_system_set(SystemSet::on_update(AppState::InGame).with_system(input_all))
-        .add_plugin(WorldInspectorPlugin::new())
         .add_startup_system(rogue_setup);
+
+    #[cfg(feature = "debug")]
+    app.add_plugin(WorldInspectorPlugin::new());
 
     app.run();
 }

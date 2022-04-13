@@ -87,8 +87,12 @@ impl<T> RoguelikePlugin<T> {
 
         let map_generator = RandomMapGenerator {};
         let (map, info) = map_generator.gen(&mut rng, options.map_size);
+
+        #[cfg(feature = "debug")]
         log::info!("{}", map.to_colorized_string());
+        #[cfg(feature = "debug")]
         log::info!("{}", info.to_colorized_string());
+
         cmd.insert_resource(map.clone());
         cmd.insert_resource(info.clone());
         cmd.insert_resource(rng.clone());
