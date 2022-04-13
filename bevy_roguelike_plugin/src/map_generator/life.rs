@@ -2,11 +2,11 @@ use super::prelude::*;
 
 const DEFAULT_ITER_COUNT: usize = 9;
 
-pub struct AutomataGenerator {
+pub struct ConwayLifeGenerator {
     iter_count: usize,
 }
 
-impl Default for AutomataGenerator {
+impl Default for ConwayLifeGenerator {
     fn default() -> Self {
         Self {
             iter_count: DEFAULT_ITER_COUNT,
@@ -14,7 +14,7 @@ impl Default for AutomataGenerator {
     }
 }
 
-impl MapGenerator for AutomataGenerator {
+impl MapGenerator for ConwayLifeGenerator {
     fn gen(&self, rng: &mut StdRng, size: Vector2D) -> (Map, MapInfo) {
         let mut map = Map::random_noise(size, rng);
 

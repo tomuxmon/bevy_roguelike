@@ -1,4 +1,4 @@
-mod automata;
+mod life;
 mod drunkard;
 mod empty;
 mod rect;
@@ -17,7 +17,7 @@ use crate::{
     components::Vector2D,
     resources::{Map, MapInfo},
 };
-pub use automata::AutomataGenerator;
+pub use life::ConwayLifeGenerator;
 pub use drunkard::DrunkardGenerator;
 use empty::EmptyGenerator;
 use rand::prelude::*;
@@ -38,7 +38,7 @@ pub struct RandomMapGenerator {}
 impl MapGenerator for RandomMapGenerator {
     fn gen(&self, rng: &mut StdRng, size: Vector2D) -> (Map, MapInfo) {
         let generator: Box<dyn MapGenerator> = match rng.gen_range(0..3) {
-            0 => Box::new(AutomataGenerator::default()),
+            0 => Box::new(ConwayLifeGenerator::default()),
             1 => Box::new(DrunkardGenerator::default()),
             2 => Box::new(RoomsGenerator::default()),
             _ => Box::new(EmptyGenerator {}),
