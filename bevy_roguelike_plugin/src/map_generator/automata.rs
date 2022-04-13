@@ -28,9 +28,19 @@ impl MapGenerator for AutomataGenerator {
             *t = Tile::Wall;
         }
 
-        let player_start = floor[rng.gen_range(0..floor.len())];
+        let pidx = rng.gen_range(0..floor.len());
+        let monster_count = floor.len() / 16;
+        let player_start = floor[pidx];
+        let mut monster_spawns = Vec::new();
+        while monster_spawns.len() < monster_count {
+            let midx = rng.gen_range(0..floor.len());
+            let pt = floor[midx];
+            if midx != pidx && !monster_spawns.contains(&pt) {
+                monster_spawns.push(pt);
+            }
+        }
         // TODO: populate room centers
-        let info = MapInfo::new(player_start, &Vec::new());
+        let info = MapInfo::new(player_start, Vec::new(), monster_spawns);
 
         (map, info)
     }

@@ -37,8 +37,9 @@ impl MapGenerator for DrunkardGenerator {
         }
 
         let info = MapInfo::new(
-            room_centers[rng.gen_range(0..room_centers.len())],
-            &room_centers,
+            room_centers[0],
+            room_centers.clone(),
+            room_centers[1..room_centers.len()].to_vec(),
         );
 
         (map, info)

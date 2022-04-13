@@ -111,7 +111,7 @@ impl Map {
     /// |(-1, 1)|(0, 1)|(1, 1)|
     /// |(-1, 0)|tile|(1, 0)|
     /// |(-1, -1)|(0, -1)|(1, -1)|
-    pub fn get_neighbor_deltas() -> [Vector2D; 8] {        
+    pub fn get_neighbor_deltas() -> [Vector2D; 8] {
         // TODO: should be static or const (not fn) but still be vectors :\
         [
             Vector2D::new(-1, 1),
@@ -153,12 +153,16 @@ impl IndexMut<Vector2D> for Map {
 }
 
 impl MapInfo {
-    pub fn new(player_start: Vector2D, room_centers: &Vec<Vector2D>) -> Self {
+    pub fn new(
+        player_start: Vector2D,
+        room_centers: Vec<Vector2D>,
+        monster_spawns: Vec<Vector2D>,
+    ) -> Self {
         Self {
             player_start,
-            room_centers: room_centers.clone(),
+            room_centers,
             camera_focus: player_start,
-            monster_spawns: room_centers.clone(),
+            monster_spawns,
         }
     }
 
