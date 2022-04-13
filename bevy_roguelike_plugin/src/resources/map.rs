@@ -12,6 +12,7 @@ pub struct Map {
     tiles: Vec<Tile>,
 }
 
+// TODO: merge MapInfo into Map
 #[derive(Debug, Clone)]
 pub struct MapInfo {
     pub player_start: Vector2D,

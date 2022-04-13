@@ -9,6 +9,7 @@ use crate::events::*;
 use bevy::ecs::schedule::StateData;
 use bevy::log;
 use bevy::prelude::*;
+use bevy_easings::*;
 use map_generator::{MapGenerator, RandomMapGenerator};
 use rand::prelude::*;
 use resources::*;
@@ -19,6 +20,7 @@ pub struct RoguelikePlugin<T> {
 
 impl<T: StateData> Plugin for RoguelikePlugin<T> {
     fn build(&self, app: &mut App) {
+        app.add_plugin(EasingsPlugin {});
         app.add_system_set(
             SystemSet::on_enter(self.running_state.clone()).with_system(Self::create_map),
         )
@@ -28,7 +30,7 @@ impl<T: StateData> Plugin for RoguelikePlugin<T> {
                 .with_system(systems::turns::gather_action_points)
                 .with_system(systems::turns::turn_end_now_gather)
                 .with_system(systems::camera::camera_set_focus_player)
-                .with_system(systems::camera::camera_focus_immediate)
+                .with_system(systems::camera::camera_focus_smooth)
                 .with_system(systems::fov::field_of_view_recompute)
                 .with_system(systems::fov::field_of_view_set_visibility),
         )
