@@ -87,9 +87,8 @@ pub fn input_all(
                 dmg_wr.send(ModifyHPEvent::new(other.unwrap().0, -cp.attack_damage()));
             } else {
                 if delta != Vector2D::new(0, 0) {
-                    let old_pos = tr.translation;
-                    let new_pos = map_options.to_world_position(dest);
-                    tr.translation = new_pos.extend(old_pos.z);
+                    let z = tr.translation.z;
+                    tr.translation = map_options.to_world_position(dest).extend(z);
                     *pt = dest;
                     fov.is_dirty = true;
                 }
