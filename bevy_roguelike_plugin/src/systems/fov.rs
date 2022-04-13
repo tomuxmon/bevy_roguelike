@@ -33,9 +33,11 @@ pub fn field_of_view_recompute(mut actors: Query<(&Vector2D, &mut FieldOfView)>,
         .iter_mut()
         .filter(|(_, fov)| fov.is_dirty)
         .for_each(|(pt, mut fov)| {
-            let last_visible = fov.tiles_visible.clone();
-            fov.tiles_revealed.extend(last_visible);
+            let visible_last = fov.tiles_visible.clone();
             fov.tiles_visible = compute_fov(*pt, fov.radius, &*map);
+            let visible_current = fov.tiles_visible.clone();
+            fov.tiles_revealed.extend(visible_last);
+            fov.tiles_revealed.extend(visible_current);
             fov.is_dirty = false;
         });
 }
