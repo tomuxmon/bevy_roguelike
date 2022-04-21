@@ -1,4 +1,4 @@
-use bevy::{prelude::*, utils::HashMap};
+use bevy::prelude::*;
 use bevy_roguelike_plugin::{
     components::*, events::*, resources::*, systems::turns::gather_action_points, RoguelikePlugin,
 };
@@ -18,25 +18,12 @@ pub enum AppState {
 pub fn input_all(
     keys: Res<Input<KeyCode>>,
     mut rng: ResMut<StdRng>,
-    mut actors: Query<(
-        Entity,
-        &Team,
-        &Behaviour,
-        &TurnState,
-        &Capability,
-        &Vector2D,
-    )>,
-    mut dmg_wr: EventWriter<ModifyHPEvent>,
-    mut ap_wr: EventWriter<SpendAPEvent>,
-    mut mv_wr: EventWriter<MoveEvent>,
-
-    map: Res<Map>,
+    mut actors: Query<(Entity, &Behaviour, &TurnState)>,
+    mut act_writer: EventWriter<ActEvent>,
 ) {
-    let ocupied = HashMap::from_iter(actors.iter().map(|(e, t, _, _, _, p)| (*p, (e, *t))));
-
-    for (id, team, b, _, cp, pt) in actors
+    for (id, b, _) in actors
         .iter_mut()
-        .filter(|(_, _, _, ts, _, _)| **ts == TurnState::Act)
+        .filter(|(_, _, ts)| **ts == TurnState::Act)
     {
         let deltas = vec![
             Vector2D::new(0, 1),
@@ -45,25 +32,17 @@ pub fn input_all(
             Vector2D::new(1, 0),
             Vector2D::new(0, 0), // stay put - skip turn
         ];
-        let delta_costs = HashMap::from_iter(vec![
-            (Vector2D::new(0, 1), 900),
-            (Vector2D::new(0, -1), 900),
-            (Vector2D::new(-1, 0), 900),
-            (Vector2D::new(1, 0), 900),
-            (Vector2D::new(0, 0), 451), // stay put - skip turn
-        ]);
-
         let delta = match b {
             Behaviour::InputControlled => {
-                if keys.just_pressed(KeyCode::Up) {
+                if keys.pressed(KeyCode::Up) {
                     Vector2D::new(0, 1)
-                } else if keys.just_pressed(KeyCode::Down) {
+                } else if keys.pressed(KeyCode::Down) {
                     Vector2D::new(0, -1)
-                } else if keys.just_pressed(KeyCode::Left) {
+                } else if keys.pressed(KeyCode::Left) {
                     Vector2D::new(-1, 0)
-                } else if keys.just_pressed(KeyCode::Right) {
+                } else if keys.pressed(KeyCode::Right) {
                     Vector2D::new(1, 0)
-                } else if keys.just_pressed(KeyCode::Space) {
+                } else if keys.pressed(KeyCode::Space) {
                     Vector2D::new(0, 0) // stay put - skip turn
                 } else {
                     Vector2D::minmin()
@@ -71,30 +50,7 @@ pub fn input_all(
             }
             Behaviour::RandomMove => deltas[rng.gen_range(0..deltas.len())],
         };
-
-        // TODO: also extract this part as a plugin system
-        if delta != Vector2D::minmin() {
-            let mut cost = delta_costs[&delta];
-            let dest = *pt + delta;
-            if !map.is_in_bounds(dest) || map[dest] != Tile::Floor {
-                continue;
-            }
-            let other = ocupied.get(&dest);
-            // NOTE: can not move into a tile ocupied by a team mate
-            if other.is_some() && other.unwrap().1 == *team && delta != Vector2D::new(0, 0) {
-                continue;
-            }
-            // TODO: instead of 'delta != ..' check on is_same_id
-            if other.is_some() && delta != Vector2D::new(0, 0) {
-                cost = cp.attack_cost();
-                dmg_wr.send(ModifyHPEvent::new(other.unwrap().0, -cp.attack_damage()));
-            } else {
-                if delta != Vector2D::new(0, 0) {
-                    mv_wr.send(MoveEvent::new(id, dest));
-                }
-            }
-            ap_wr.send(SpendAPEvent::new(id, cost));
-        }
+        act_writer.send(ActEvent::new(id, delta));
     }
 }
 

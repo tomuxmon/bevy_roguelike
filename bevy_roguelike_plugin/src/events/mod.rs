@@ -2,6 +2,18 @@ use crate::components::Vector2D;
 use bevy::prelude::*;
 
 #[derive(Debug, Copy, Clone)]
+pub struct ActEvent {
+    pub id: Entity,
+    pub delta: Vector2D,
+}
+
+impl ActEvent {
+    pub fn new(id: Entity, delta: Vector2D) -> Self {
+        Self { id, delta }
+    }
+}
+
+#[derive(Debug, Copy, Clone)]
 pub struct ModifyHPEvent {
     pub id: Entity,
     pub amount: i32,

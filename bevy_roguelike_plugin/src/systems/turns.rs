@@ -1,15 +1,62 @@
-use crate::resources::MapOptions;
+use crate::resources::{Map, MapOptions, Tile};
 use crate::{components::*, events::*};
 use bevy::log;
 use bevy::prelude::*;
 use bevy::tasks::AsyncComputeTaskPool;
+use bevy::utils::HashMap;
+
+pub fn act(
+    mut actors: Query<(Entity, &Team, &Capability, &Vector2D)>,
+    mut act_reader: EventReader<ActEvent>,
+    mut hp_writer: EventWriter<ModifyHPEvent>,
+    mut ap_writer: EventWriter<SpendAPEvent>,
+    mut move_writer: EventWriter<MoveEvent>,
+    map: Res<Map>,
+) {
+    let delta_costs = HashMap::from_iter(vec![
+        (Vector2D::new(0, 1), 900),
+        (Vector2D::new(0, -1), 900),
+        (Vector2D::new(-1, 0), 900),
+        (Vector2D::new(1, 0), 900),
+        (Vector2D::new(0, 0), 451), // stay put - skip turn
+    ]);
+
+    let ocupied = HashMap::from_iter(actors.iter().map(|(e, t, _, p)| (*p, (e, *t))));
+
+    for e in act_reader.iter() {
+        if let Ok((_, team, cp, pt)) = actors.get_mut(e.id) {
+            if e.delta != Vector2D::minmin() {
+                let mut cost = delta_costs[&e.delta];
+                let dest = *pt + e.delta;
+                if !map.is_in_bounds(dest) || map[dest] != Tile::Floor {
+                    continue;
+                }
+                let other = ocupied.get(&dest);
+                // NOTE: can not move into a tile ocupied by a team mate
+                if other.is_some() && other.unwrap().1 == *team && e.delta != Vector2D::new(0, 0) {
+                    continue;
+                }
+                // TODO: instead of 'delta != ..' check on is_same_id
+                if other.is_some() && e.delta != Vector2D::new(0, 0) {
+                    cost = cp.attack_cost();
+                    hp_writer.send(ModifyHPEvent::new(other.unwrap().0, -cp.attack_damage()));
+                } else {
+                    if e.delta != Vector2D::new(0, 0) {
+                        move_writer.send(MoveEvent::new(e.id, dest));
+                    }
+                }
+                ap_writer.send(SpendAPEvent::new(e.id, cost));
+            }
+        }
+    }
+}
 
 pub fn apply_hp_modify(
     mut cmd: Commands,
     mut actors: Query<&mut Capability>,
-    mut dmg_rdr: EventReader<ModifyHPEvent>,
+    mut hp_reader: EventReader<ModifyHPEvent>,
 ) {
-    for e in dmg_rdr.iter() {
+    for e in hp_reader.iter() {
         if let Ok(mut cp) = actors.get_mut(e.id) {
             cp.hp_apply(e.amount);
             if cp.hp_current() <= 0 {
@@ -23,9 +70,9 @@ pub fn apply_hp_modify(
 
 pub fn spend_ap(
     mut actors: Query<(&mut Capability, &mut TurnState)>,
-    mut ap_rdr: EventReader<SpendAPEvent>,
+    mut ap_reader: EventReader<SpendAPEvent>,
 ) {
-    for e in ap_rdr.iter() {
+    for e in ap_reader.iter() {
         if let Ok((mut cp, mut ts)) = actors.get_mut(e.id) {
             if cp.ap_current_minus(e.amount) < cp.ap_turn_ready_to_act() {
                 *ts = TurnState::End;
@@ -36,10 +83,10 @@ pub fn spend_ap(
 
 pub fn do_move(
     mut actors: Query<(&mut Vector2D, &mut Transform, &mut FieldOfView)>,
-    mut mv_rdr: EventReader<MoveEvent>,
+    mut move_reader: EventReader<MoveEvent>,
     map_options: Res<MapOptions>,
 ) {
-    for e in mv_rdr.iter() {
+    for e in move_reader.iter() {
         if let Ok((mut pt, mut tr, mut fov)) = actors.get_mut(e.id) {
             let z = tr.translation.z;
             tr.translation = map_options.to_world_position(e.destination).extend(z);
