@@ -18,6 +18,7 @@ pub fn field_of_view_set_visibility_info(
     for fov in players.iter() {
         visibles.par_for_each_mut(&*pool, 16, |(pt, clds, bh, mut vt)| {
             for c in clds.iter() {
+                // TODO: rewrite with no inserts. just updates.
                 let is_revealed = fov.tiles_revealed.contains(&pt);
                 let is_visible = fov.tiles_visible.contains(&pt);
                 let is_ambient = bh.is_none();
@@ -31,7 +32,7 @@ pub fn field_of_view_set_visivility(
     visibles: Query<&VisibilityToggle>,
     mut visible_children: Query<(&mut Sprite, &mut Visibility)>,
 ) {
-    // still no paralelism :|     
+    // still no paralelism :|
     for vt in visibles.iter() {
         for (e, i) in vt.iter() {
             if let Ok((mut s, mut v)) = visible_children.get_mut(*e) {

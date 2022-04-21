@@ -12,16 +12,16 @@ debug = ["bevy_roguelike_plugin/debug", "bevy-inspector-egui"]
 [dependencies]
 rand = "~0.8"
 bevy_roguelike_plugin = { path = "bevy_roguelike_plugin" }
-bevy-inspector-egui = { version = "~0.9", optional = true }
+bevy-inspector-egui = { version = "~0.10", optional = true }
 
 [dependencies.bevy]
-version = "~0.6"
+version = "~0.7"
 default-features = false
 features = ["render", "bevy_winit", "png"]
 
 # Dependencies for native only.
 [target.'cfg(not(target_arch = "wasm32"))'.dependencies.bevy]
-version = "~0.6"
+version = "~0.7"
 default-features = false
 features = ["x11"]
 
