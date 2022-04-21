@@ -24,7 +24,7 @@ pub fn input_all(
         &Behaviour,
         &TurnState,
         &Capability,
-        &mut Vector2D,
+        &Vector2D,
     )>,
     mut dmg_wr: EventWriter<ModifyHPEvent>,
     mut ap_wr: EventWriter<SpendAPEvent>,
@@ -72,6 +72,7 @@ pub fn input_all(
             Behaviour::RandomMove => deltas[rng.gen_range(0..deltas.len())],
         };
 
+        // TODO: also extract this part as a plugin system
         if delta != Vector2D::minmin() {
             let mut cost = delta_costs[&delta];
             let dest = *pt + delta;
