@@ -140,7 +140,7 @@ impl<T> RoguelikePlugin<T> {
             .insert(Capability::new(player_attributes.clone()))
             .insert(FieldOfView::new(7))
             .insert(VisibilityToggle::default())
-            .insert(info.player_start)
+            .insert(Vector2D::from(info.player_start))
             .insert(Transform::from_translation(
                 options.to_world_position(info.player_start).extend(2.),
             ))
@@ -179,7 +179,7 @@ impl<T> RoguelikePlugin<T> {
                         .insert(Capability::new(monster_attributes.clone()))
                         .insert(FieldOfView::new(4))
                         .insert(VisibilityToggle::default())
-                        .insert(mpt)
+                        .insert(Vector2D::from(mpt))
                         .insert(Transform::from_translation(
                             options.to_world_position(mpt).extend(2.),
                         ))
@@ -216,7 +216,7 @@ fn spawn_tiles(
             ))
             .insert(GlobalTransform::default())
             .insert(VisibilityToggle::default())
-            .insert(pt)
+            .insert(Vector2D::from(pt))
             .insert(match tile {
                 Tile::Wall => MapTile { is_passable: false },
                 Tile::Floor => MapTile { is_passable: true },

@@ -1,6 +1,5 @@
 use std::ops::{Deref, DerefMut};
 
-use super::Vector2D;
 use bevy::{
     prelude::*,
     utils::{HashMap, HashSet},
@@ -45,8 +44,8 @@ impl DerefMut for VisibilityToggle {
 #[reflect(Component)]
 pub struct FieldOfView {
     pub radius: i32,
-    pub tiles_visible: HashSet<Vector2D>,
-    pub tiles_revealed: HashSet<Vector2D>,
+    pub tiles_visible: HashSet<IVec2>,
+    pub tiles_revealed: HashSet<IVec2>,
     pub is_dirty: bool,
 }
 

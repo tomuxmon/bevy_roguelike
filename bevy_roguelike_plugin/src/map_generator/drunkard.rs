@@ -1,4 +1,5 @@
 use super::prelude::*;
+use bevy::math::IVec2;
 
 const DEFAULT_WALK_RATIO: f32 = 0.015;
 const DEFAULT_FLOOR_RATIO: f32 = 0.6;
@@ -18,16 +19,16 @@ impl Default for DrunkardGenerator {
 }
 
 impl MapGenerator for DrunkardGenerator {
-    fn gen(&self, rng: &mut StdRng, size: Vector2D) -> (Map, MapInfo) {
+    fn gen(&self, rng: &mut StdRng, size: IVec2) -> (Map, MapInfo) {
         let mut map = Map::filled_with(size, Tile::Wall);
         let mut room_centers = Vec::new();
-        let walk_steps = ((size.x() * size.y()) as f32 * self.walk_ratio) as usize;
-        let desired_floor = ((size.x() * size.y()) as f32 * self.floor_ratio) as usize;
+        let walk_steps = ((size.x * size.y) as f32 * self.walk_ratio) as usize;
+        let desired_floor = ((size.x * size.y) as f32 * self.floor_ratio) as usize;
 
         while map.iter().filter(|t| **t == Tile::Floor).count() < desired_floor {
-            let mut from = Vector2D::new(
-                rng.gen_range(1..map.size().x() - 1),
-                rng.gen_range(1..map.size().y() - 1),
+            let mut from = IVec2::new(
+                rng.gen_range(1..map.size().x - 1),
+                rng.gen_range(1..map.size().y - 1),
             );
             room_centers.push(from);
             let stagger_count = usize::max(walk_steps / 10, 5);
@@ -36,7 +37,7 @@ impl MapGenerator for DrunkardGenerator {
             }
         }
 
-        let floor: Vec<Vector2D> = map
+        let floor: Vec<IVec2> = map
             .enumerate()
             .filter(|(_, t)| **t == Tile::Floor)
             .map(|(p, _)| p)
@@ -61,7 +62,7 @@ impl MapGenerator for DrunkardGenerator {
     }
 }
 
-fn walk(from: Vector2D, max_step: usize, rng: &mut StdRng, map: &mut Map) -> Vector2D {
+fn walk(from: IVec2, max_step: usize, rng: &mut StdRng, map: &mut Map) -> IVec2 {
     let mut pt = from.clone();
     let mut last_valid_pt = from.clone();
     let mut step = 0;

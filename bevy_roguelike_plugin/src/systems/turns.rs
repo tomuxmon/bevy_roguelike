@@ -14,39 +14,39 @@ pub fn act(
     map: Res<Map>,
 ) {
     let delta_costs = HashMap::from_iter(vec![
-        (Vector2D::new(0, 1), 900),
-        (Vector2D::new(0, -1), 900),
-        (Vector2D::new(-1, 0), 900),
-        (Vector2D::new(1, 0), 900),
-        (Vector2D::new(0, 0), 451), // stay put - skip turn
+        (IVec2::new(0, 1), 900),
+        (IVec2::new(0, -1), 900),
+        (IVec2::new(-1, 0), 900),
+        (IVec2::new(1, 0), 900),
+        (IVec2::new(0, 0), 451), // stay put - skip turn
     ]);
 
-    let ocupied = HashMap::from_iter(actors.iter().map(|(e, t, _, p)| (*p, (e, *t))));
+    let ocupied = HashMap::from_iter(actors.iter().map(|(e, t, _, p)| (**p, (e, *t))));
 
     for e in act_reader.iter() {
         if let Ok((_, team, cp, pt)) = actors.get_mut(e.id) {
-            if e.delta != Vector2D::minmin() {
-                let mut cost = delta_costs[&e.delta];
-                let dest = *pt + e.delta;
-                if !map.is_in_bounds(dest) || map[dest] != Tile::Floor {
-                    continue;
-                }
-                let other = ocupied.get(&dest);
-                // NOTE: can not move into a tile ocupied by a team mate
-                if other.is_some() && other.unwrap().1 == *team && e.delta != Vector2D::new(0, 0) {
-                    continue;
-                }
-                // TODO: instead of 'delta != ..' check on is_same_id
-                if other.is_some() && e.delta != Vector2D::new(0, 0) {
-                    cost = cp.attack_cost();
-                    hp_writer.send(ModifyHPEvent::new(other.unwrap().0, -cp.attack_damage()));
-                } else {
-                    if e.delta != Vector2D::new(0, 0) {
-                        move_writer.send(MoveEvent::new(e.id, dest));
-                    }
-                }
-                ap_writer.send(SpendAPEvent::new(e.id, cost));
+            // let delta = Vector2D::from(e.delta);
+            // if delta != Vector2D::minmin() {}
+            let mut cost = delta_costs[&e.delta];
+            let dest = **pt + e.delta;
+            if !map.is_in_bounds(dest) || map[dest] != Tile::Floor {
+                continue;
             }
+            let other = ocupied.get(&dest);
+            // NOTE: can not move into a tile ocupied by a team mate
+            if other.is_some() && other.unwrap().1 == *team && e.delta != IVec2::new(0, 0) {
+                continue;
+            }
+            // TODO: instead of 'delta != ..' check on is_same_id
+            if other.is_some() && e.delta != IVec2::new(0, 0) {
+                cost = cp.attack_cost();
+                hp_writer.send(ModifyHPEvent::new(other.unwrap().0, -cp.attack_damage()));
+            } else {
+                if e.delta != IVec2::new(0, 0) {
+                    move_writer.send(MoveEvent::new(e.id, dest));
+                }
+            }
+            ap_writer.send(SpendAPEvent::new(e.id, cost));
         }
     }
 }
@@ -90,7 +90,7 @@ pub fn do_move(
         if let Ok((mut pt, mut tr, mut fov)) = actors.get_mut(e.id) {
             let z = tr.translation.z;
             tr.translation = map_options.to_world_position(e.destination).extend(z);
-            *pt = e.destination;
+            *pt = Vector2D::from(e.destination);
             fov.is_dirty = true;
         }
     }

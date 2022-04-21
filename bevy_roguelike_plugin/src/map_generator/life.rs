@@ -1,4 +1,5 @@
 use super::prelude::*;
+use bevy::math::IVec2;
 
 const DEFAULT_ITER_COUNT: usize = 9;
 
@@ -15,7 +16,7 @@ impl Default for ConwayLifeGenerator {
 }
 
 impl MapGenerator for ConwayLifeGenerator {
-    fn gen(&self, rng: &mut StdRng, size: Vector2D) -> (Map, MapInfo) {
+    fn gen(&self, rng: &mut StdRng, size: IVec2) -> (Map, MapInfo) {
         let mut map = Map::random_noise(size, rng);
 
         for _ in 0..self.iter_count {
@@ -46,12 +47,12 @@ impl MapGenerator for ConwayLifeGenerator {
     }
 }
 
-fn iteration(map: &mut Map) -> Vec<Vector2D> {
+fn iteration(map: &mut Map) -> Vec<IVec2> {
     let mut pts = Vec::new();
     let map_clone = map.clone();
-    for y in 1..map_clone.size().y() - 1 {
-        for x in 1..map_clone.size().x() - 1 {
-            let pt = Vector2D::new(x, y);
+    for y in 1..map_clone.size().y - 1 {
+        for x in 1..map_clone.size().x - 1 {
+            let pt = IVec2::new(x, y);
             let neighbors = count_neighbors(&map_clone, pt);
             let tile = if neighbors > 4 || neighbors == 0 {
                 pts.push(pt);
@@ -66,7 +67,7 @@ fn iteration(map: &mut Map) -> Vec<Vector2D> {
     pts
 }
 
-fn count_neighbors(map: &Map, pt: Vector2D) -> usize {
+fn count_neighbors(map: &Map, pt: IVec2) -> usize {
     Map::get_neighbor_deltas()
         .map(|nb| pt + nb)
         .iter()

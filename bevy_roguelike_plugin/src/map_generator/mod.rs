@@ -1,6 +1,6 @@
-mod life;
 mod drunkard;
 mod empty;
+mod life;
 mod rect;
 mod rooms;
 
@@ -13,18 +13,16 @@ mod prelude {
     pub use rand::prelude::*;
 }
 
-use crate::{
-    components::Vector2D,
-    resources::{Map, MapInfo},
-};
-pub use life::ConwayLifeGenerator;
+use crate::resources::{Map, MapInfo};
+use bevy::math::IVec2;
 pub use drunkard::DrunkardGenerator;
 use empty::EmptyGenerator;
+pub use life::ConwayLifeGenerator;
 use rand::prelude::*;
 pub use rooms::RoomsGenerator;
 
 pub trait MapGenerator {
-    fn gen(&self, rng: &mut StdRng, size: Vector2D) -> (Map, MapInfo);
+    fn gen(&self, rng: &mut StdRng, size: IVec2) -> (Map, MapInfo);
 }
 
 // TODO: implement possibility to do map generation composition (mix multiple generators)
@@ -36,8 +34,8 @@ pub trait MapGenerator {
 pub struct RandomMapGenerator {}
 
 impl MapGenerator for RandomMapGenerator {
-    fn gen(&self, rng: &mut StdRng, size: Vector2D) -> (Map, MapInfo) {
-        let generator: Box<dyn MapGenerator> = match rng.gen_range(0..3) {
+    fn gen(&self, rng: &mut StdRng, size: IVec2) -> (Map, MapInfo) {
+        let generator: Box<dyn MapGenerator> = match rng.gen_range(1..2) {
             0 => Box::new(ConwayLifeGenerator::default()),
             1 => Box::new(DrunkardGenerator::default()),
             2 => Box::new(RoomsGenerator::default()),

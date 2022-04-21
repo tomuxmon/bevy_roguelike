@@ -1,14 +1,13 @@
-use crate::components::Vector2D;
 use bevy::prelude::*;
 
 #[derive(Debug, Copy, Clone)]
 pub struct ActEvent {
     pub id: Entity,
-    pub delta: Vector2D,
+    pub delta: IVec2,
 }
 
 impl ActEvent {
-    pub fn new(id: Entity, delta: Vector2D) -> Self {
+    pub fn new(id: Entity, delta: IVec2) -> Self {
         Self { id, delta }
     }
 }
@@ -39,21 +38,21 @@ impl SpendAPEvent {
 
 pub struct MoveEvent {
     pub id: Entity,
-    pub destination: Vector2D,
+    pub destination: IVec2,
 }
 
 impl MoveEvent {
-    pub fn new(id: Entity, destination: Vector2D) -> Self {
+    pub fn new(id: Entity, destination: IVec2) -> Self {
         Self { id, destination }
     }
 }
 
 #[derive(Debug, Copy, Clone)]
 pub struct CameraFocusEvent {
-    pub position: Vector2D,
+    pub position: IVec2,
 }
 impl CameraFocusEvent {
-    pub fn new(position: Vector2D) -> Self {
+    pub fn new(position: IVec2) -> Self {
         Self { position }
     }
 }

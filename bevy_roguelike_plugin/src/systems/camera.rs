@@ -12,9 +12,9 @@ pub fn camera_set_focus_player(
     mut cmr_wrt: EventWriter<CameraFocusEvent>,
 ) {
     for pt in players.iter() {
-        if map_info.camera_focus != *pt {
-            map_info.camera_focus = *pt;
-            cmr_wrt.send(CameraFocusEvent::new(*pt))
+        if map_info.camera_focus != **pt {
+            map_info.camera_focus = **pt;
+            cmr_wrt.send(CameraFocusEvent::new(**pt))
         }
     }
 }

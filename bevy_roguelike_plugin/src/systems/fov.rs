@@ -57,7 +57,7 @@ pub fn field_of_view_recompute(
             return;
         }
         let visible_last = fov.tiles_visible.clone();
-        fov.tiles_visible = compute_fov(*pt, fov.radius, &*map);
+        fov.tiles_visible = compute_fov(**pt, fov.radius, &*map);
         let visible_current = fov.tiles_visible.clone();
         fov.tiles_revealed.extend(visible_last);
         fov.tiles_revealed.extend(visible_current);
@@ -65,11 +65,11 @@ pub fn field_of_view_recompute(
     });
 }
 
-fn compute_fov(pt: Vector2D, radius: i32, map: &Map) -> HashSet<Vector2D> {
+fn compute_fov(pt: IVec2, radius: i32, map: &Map) -> HashSet<IVec2> {
     let mut fov = HashSet::default();
-    for (xo, yo) in BresenhamCircle::new(pt.x(), pt.y(), radius) {
-        for vpt in Supercover::new((pt.x(), pt.y()), (xo, yo))
-            .map(|(x, y)| Vector2D::new(x, y))
+    for (xo, yo) in BresenhamCircle::new(pt.x, pt.y, radius) {
+        for vpt in Supercover::new((pt.x, pt.y), (xo, yo))
+            .map(|(x, y)| IVec2::new(x, y))
             .filter(|p| map.is_in_bounds(*p))
         {
             if map[vpt] == Tile::Wall {

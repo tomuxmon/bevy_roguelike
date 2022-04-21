@@ -26,26 +26,26 @@ pub fn input_all(
         .filter(|(_, _, ts)| **ts == TurnState::Act)
     {
         let deltas = vec![
-            Vector2D::new(0, 1),
-            Vector2D::new(0, -1),
-            Vector2D::new(-1, 0),
-            Vector2D::new(1, 0),
-            Vector2D::new(0, 0), // stay put - skip turn
+            IVec2::new(0, 1),
+            IVec2::new(0, -1),
+            IVec2::new(-1, 0),
+            IVec2::new(1, 0),
+            IVec2::new(0, 0), // stay put - skip turn
         ];
         let delta = match b {
             Behaviour::InputControlled => {
-                if keys.pressed(KeyCode::Up) {
-                    Vector2D::new(0, 1)
-                } else if keys.pressed(KeyCode::Down) {
-                    Vector2D::new(0, -1)
-                } else if keys.pressed(KeyCode::Left) {
-                    Vector2D::new(-1, 0)
-                } else if keys.pressed(KeyCode::Right) {
-                    Vector2D::new(1, 0)
+                if keys.just_pressed(KeyCode::Up) {
+                    IVec2::new(0, 1)
+                } else if keys.just_pressed(KeyCode::Down) {
+                    IVec2::new(0, -1)
+                } else if keys.just_pressed(KeyCode::Left) {
+                    IVec2::new(-1, 0)
+                } else if keys.just_pressed(KeyCode::Right) {
+                    IVec2::new(1, 0)
                 } else if keys.pressed(KeyCode::Space) {
-                    Vector2D::new(0, 0) // stay put - skip turn
+                    IVec2::new(0, 0) // stay put - skip turn
                 } else {
-                    Vector2D::minmin()
+                    return;
                 }
             }
             Behaviour::RandomMove => deltas[rng.gen_range(0..deltas.len())],
@@ -90,7 +90,7 @@ fn rogue_setup(
     mut state: ResMut<State<AppState>>,
 ) {
     cmd.insert_resource(MapOptions {
-        map_size: Vector2D::new(79, 61),
+        map_size: IVec2::new(79, 61),
         tile_size: 32.0,
     });
     cmd.insert_resource(MapAssets {
