@@ -7,7 +7,6 @@ mod rooms;
 mod prelude {
     pub use super::rect::Rect;
     pub use super::MapGenerator;
-    pub use crate::components::Vector2D;
     pub use crate::resources::{Map, MapInfo, Tile};
     pub use bevy::log;
     pub use rand::prelude::*;
@@ -35,7 +34,7 @@ pub struct RandomMapGenerator {}
 
 impl MapGenerator for RandomMapGenerator {
     fn gen(&self, rng: &mut StdRng, size: IVec2) -> (Map, MapInfo) {
-        let generator: Box<dyn MapGenerator> = match rng.gen_range(1..2) {
+        let generator: Box<dyn MapGenerator> = match rng.gen_range(0..3) {
             0 => Box::new(ConwayLifeGenerator::default()),
             1 => Box::new(DrunkardGenerator::default()),
             2 => Box::new(RoomsGenerator::default()),

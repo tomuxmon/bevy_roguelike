@@ -63,8 +63,8 @@ impl MapGenerator for DrunkardGenerator {
 }
 
 fn walk(from: IVec2, max_step: usize, rng: &mut StdRng, map: &mut Map) -> IVec2 {
-    let mut pt = from.clone();
-    let mut last_valid_pt = from.clone();
+    let mut pt = from;
+    let mut last_valid_pt = from;
     let mut step = 0;
     loop {
         // Carve it!
@@ -72,7 +72,7 @@ fn walk(from: IVec2, max_step: usize, rng: &mut StdRng, map: &mut Map) -> IVec2 
         *tile = Tile::Floor;
 
         if rng.gen_range(0..max_step) < max_step / 3 {
-            last_valid_pt = pt.clone();
+            last_valid_pt = pt;
         }
 
         let deltas = Map::get_wasd_neighbor_deltas();
