@@ -13,6 +13,9 @@ use bevy_easings::*;
 use map_generator::{MapGenerator, RandomMapGenerator};
 use rand::prelude::*;
 use resources::*;
+use systems::camera::*;
+use systems::fov::*;
+use systems::turns::*;
 
 pub struct RoguelikePlugin<T> {
     pub running_state: T,
@@ -27,14 +30,15 @@ impl<T: StateData> Plugin for RoguelikePlugin<T> {
             )
             .add_system_set(
                 SystemSet::on_update(self.running_state.clone())
-                    .with_system(systems::turns::apply_hp_modify)
-                    .with_system(systems::turns::gather_action_points)
-                    .with_system(systems::turns::turn_end_now_gather)
-                    .with_system(systems::camera::camera_set_focus_player)
-                    .with_system(systems::camera::camera_focus_smooth)
-                    .with_system(systems::fov::field_of_view_recompute)
-                    .with_system(systems::fov::field_of_view_set_visibility_info)
-                    .with_system(systems::fov::field_of_view_set_visivility),
+                    .with_system(gather_action_points)
+                    .with_system(turn_end_now_gather.after(gather_action_points))
+                    .with_system(apply_hp_modify)
+                    .with_system(spend_ap)
+                    .with_system(camera_set_focus_player)
+                    .with_system(camera_focus_smooth.after(camera_set_focus_player))
+                    .with_system(field_of_view_recompute)
+                    .with_system(field_of_view_set_vis_info.after(field_of_view_recompute))
+                    .with_system(field_of_view_set_vis.after(field_of_view_set_vis_info)),
             )
             .add_system_set(
                 SystemSet::on_exit(self.running_state.clone()).with_system(Self::cleanup_map),
@@ -48,6 +52,7 @@ impl<T: StateData> Plugin for RoguelikePlugin<T> {
             .register_type::<FieldOfView>()
             .register_type::<Attributes>()
             .add_event::<ModifyHPEvent>()
+            .add_event::<SpendAPEvent>()
             .add_event::<CameraFocusEvent>();
 
         log::info!("Loaded Roguelike Plugin");

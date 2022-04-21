@@ -2,6 +2,7 @@ use crate::components::*;
 use crate::events::CameraFocusEvent;
 use crate::resources::*;
 use bevy::prelude::*;
+use bevy::render::camera::Camera2d;
 use bevy_easings::*;
 use std::time::Duration;
 
@@ -20,7 +21,7 @@ pub fn camera_set_focus_player(
 pub fn camera_focus_smooth(
     mut cmd: Commands,
     mut cmr_rdr: EventReader<CameraFocusEvent>,
-    cameras: Query<(Entity, &Transform), With<Camera>>,
+    cameras: Query<(Entity, &Transform), With<Camera2d>>,
     map_options: Res<MapOptions>,
 ) {
     for cfe in cmr_rdr.iter() {

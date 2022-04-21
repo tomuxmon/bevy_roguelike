@@ -36,11 +36,26 @@ impl MapGenerator for DrunkardGenerator {
             }
         }
 
-        let info = MapInfo::new(
-            room_centers[0],
-            room_centers.clone(),
-            room_centers[1..room_centers.len()].to_vec(),
-        );
+        let floor: Vec<Vector2D> = map
+            .enumerate()
+            .filter(|(_, t)| **t == Tile::Floor)
+            .map(|(p, _)| p)
+            .collect();
+
+        let pidx = rng.gen_range(0..floor.len());
+
+        let monster_count = floor.len() / 16;
+        let player_start = floor[pidx];
+        let mut monster_spawns = Vec::new();
+        while monster_spawns.len() < monster_count {
+            let midx = rng.gen_range(0..floor.len());
+            let pt = floor[midx];
+            if midx != pidx && !monster_spawns.contains(&pt) {
+                monster_spawns.push(pt);
+            }
+        }
+
+        let info = MapInfo::new(player_start, room_centers, monster_spawns);
 
         (map, info)
     }

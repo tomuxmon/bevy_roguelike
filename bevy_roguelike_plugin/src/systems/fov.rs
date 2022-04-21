@@ -5,7 +5,7 @@ use crate::{
 use bevy::{prelude::*, tasks::*, utils::HashSet};
 use line_drawing::{BresenhamCircle, Supercover};
 
-pub fn field_of_view_set_visibility_info(
+pub fn field_of_view_set_vis_info(
     pool: Res<AsyncComputeTaskPool>,
     players: Query<&FieldOfView, With<Player>>,
     mut visibles: Query<(
@@ -28,7 +28,7 @@ pub fn field_of_view_set_visibility_info(
     }
 }
 
-pub fn field_of_view_set_visivility(
+pub fn field_of_view_set_vis(
     visibles: Query<&VisibilityToggle>,
     mut visible_children: Query<(&mut Sprite, &mut Visibility)>,
 ) {

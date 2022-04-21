@@ -1,5 +1,7 @@
 use bevy::{prelude::*, utils::HashMap};
-use bevy_roguelike_plugin::{components::*, events::ModifyHPEvent, resources::*, RoguelikePlugin};
+use bevy_roguelike_plugin::{
+    components::*, events::*, resources::*, systems::turns::gather_action_points, RoguelikePlugin,
+};
 use rand::prelude::*;
 
 #[cfg(feature = "debug")]
@@ -20,19 +22,20 @@ pub fn input_all(
         Entity,
         &Team,
         &Behaviour,
-        &mut TurnState,
-        &mut Capability,
+        &TurnState,
+        &Capability,
         &mut FieldOfView,
         &mut Vector2D,
         &mut Transform,
     )>,
     mut dmg_wr: EventWriter<ModifyHPEvent>,
+    mut ap_wr: EventWriter<SpendAPEvent>,
     map_options: Res<MapOptions>,
     map: Res<Map>,
 ) {
     let ocupied = HashMap::from_iter(actors.iter().map(|(e, t, _, _, _, _, p, _)| (*p, (e, *t))));
 
-    for (_, team, b, mut ts, mut cp, mut fov, mut pt, mut tr) in actors
+    for (id, team, b, _, cp, mut fov, mut pt, mut tr) in actors
         .iter_mut()
         .filter(|(_, _, _, ts, _, _, _, _)| **ts == TurnState::Act)
     {
@@ -93,8 +96,7 @@ pub fn input_all(
                     fov.is_dirty = true;
                 }
             }
-            *ts = TurnState::End;
-            cp.ap_current_minus(cost);
+            ap_wr.send(SpendAPEvent::new(id, cost));
         }
     }
 }
@@ -113,11 +115,18 @@ fn main() {
         .add_plugin(RoguelikePlugin {
             running_state: AppState::InGame,
         })
-        .add_system_set(SystemSet::on_update(AppState::InGame).with_system(input_all))
+        .add_system_set(
+            SystemSet::on_update(AppState::InGame)
+                .with_system(input_all.after(gather_action_points)),
+        )
         .add_startup_system(rogue_setup);
 
     #[cfg(feature = "debug")]
     app.add_plugin(WorldInspectorPlugin::new());
+
+    // #[cfg(feature = "debug")]
+    // app.add_plugin(bevy::diagnostic::FrameTimeDiagnosticsPlugin)
+    //     .add_plugin(bevy::diagnostic::LogDiagnosticsPlugin::default());
 
     app.run();
 }
@@ -128,7 +137,7 @@ fn rogue_setup(
     mut state: ResMut<State<AppState>>,
 ) {
     cmd.insert_resource(MapOptions {
-        map_size: Vector2D::new(31, 27),
+        map_size: Vector2D::new(79, 61),
         tile_size: 32.0,
     });
     cmd.insert_resource(MapAssets {

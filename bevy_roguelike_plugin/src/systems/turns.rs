@@ -19,6 +19,20 @@ pub fn apply_hp_modify(
         }
     }
 }
+
+pub fn spend_ap(
+    mut actors: Query<(&mut Capability, &mut TurnState)>,
+    mut ap_rdr: EventReader<SpendAPEvent>,
+) {
+    for e in ap_rdr.iter() {
+        if let Ok((mut cp, mut ts)) = actors.get_mut(e.id) {
+            if cp.ap_current_minus(e.amount) < cp.ap_turn_ready_to_act() {
+                *ts = TurnState::End;
+            }
+        }
+    }
+}
+
 pub fn gather_action_points(
     pool: Res<AsyncComputeTaskPool>,
     mut actors: Query<(&mut Capability, &mut TurnState)>,

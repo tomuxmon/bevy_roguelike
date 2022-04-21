@@ -16,8 +16,8 @@ pub struct Capability {
     attack_damage: i32,
 }
 impl Capability {
-    pub const AP_TURN_READY_DEFAULT: u32 = 1000;
-    pub const AP_INCREMENT_MIN: u32 = 100;
+    pub const AP_TURN_READY_DEFAULT: u32 = 1024;
+    pub const AP_INCREMENT_MIN: u32 = 1024;
     pub const HP_MAX_MIN: i32 = 500;
     pub const ATTACK_COST_MAX: u32 = 900;
     pub const ATTACK_DAMAGE_MIN: i32 = 50;
@@ -28,7 +28,7 @@ impl Capability {
         let will = *attributes.get("willpower").unwrap_or(&5);
         let dex = *attributes.get("dexterity").unwrap_or(&5);
 
-        let ap_increment = Capability::AP_INCREMENT_MIN + (dex * 5 + will * 3) as u32;
+        let ap_increment = Capability::AP_INCREMENT_MIN + (dex * 8 + will * 4) as u32;
         let hp_max = Capability::HP_MAX_MIN + tou * 10 + str * 3 + will * 2 + dex;
         let attack_cost = Capability::ATTACK_COST_MAX - (dex * 10) as u32;
         let attack_damage = Capability::ATTACK_DAMAGE_MIN + str * 10 + dex * 3;
