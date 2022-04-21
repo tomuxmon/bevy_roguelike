@@ -5,21 +5,21 @@ use bevy::prelude::*;
 #[reflect(Component)]
 pub struct Capability {
     // NOTE: ActionPoints
-    ap_turn_ready: u32,
-    ap_current: u32,
-    ap_increment: u32,
+    ap_turn_ready: i32,
+    ap_current: i32,
+    ap_increment: i32,
     // NOTE: HitPoints
     hp_max: i32,
     hp_current: i32,
     // NOTE: Attack
-    attack_cost: u32,
+    attack_cost: i32,
     attack_damage: i32,
 }
 impl Capability {
-    pub const AP_TURN_READY_DEFAULT: u32 = 1024;
-    pub const AP_INCREMENT_MIN: u32 = 1024;
+    pub const AP_TURN_READY_DEFAULT: i32 = 1024;
+    pub const AP_INCREMENT_MIN: i32 = 1024;
     pub const HP_MAX_MIN: i32 = 500;
-    pub const ATTACK_COST_MAX: u32 = 900;
+    pub const ATTACK_COST_MAX: i32 = 900;
     pub const ATTACK_DAMAGE_MIN: i32 = 50;
 
     pub fn new(attributes: Attributes) -> Self {
@@ -28,9 +28,9 @@ impl Capability {
         let will = *attributes.get("willpower").unwrap_or(&5);
         let dex = *attributes.get("dexterity").unwrap_or(&5);
 
-        let ap_increment = Capability::AP_INCREMENT_MIN + (dex * 8 + will * 4) as u32;
+        let ap_increment = Capability::AP_INCREMENT_MIN + dex * 8 + will * 4;
         let hp_max = Capability::HP_MAX_MIN + tou * 10 + str * 3 + will * 2 + dex;
-        let attack_cost = Capability::ATTACK_COST_MAX - (dex * 10) as u32;
+        let attack_cost = Capability::ATTACK_COST_MAX - dex * 10;
         let attack_damage = Capability::ATTACK_DAMAGE_MIN + str * 10 + dex * 3;
 
         Self {
@@ -44,22 +44,22 @@ impl Capability {
         }
     }
 
-    pub fn ap_turn_ready_to_act(&self) -> u32 {
+    pub fn ap_turn_ready_to_act(&self) -> i32 {
         self.ap_turn_ready
     }
-    pub fn ap_current(&self) -> u32 {
+    pub fn ap_current(&self) -> i32 {
         self.ap_current
     }
-    pub fn ap_current_add(&mut self) -> u32 {
+    pub fn ap_current_add(&mut self) -> i32 {
         self.ap_current = self.ap_current + self.ap_increment;
         self.ap_current
     }
-    pub fn ap_current_add_delta(&mut self, time: &Time) -> u32 {
-        let breath = (self.ap_increment as f32 * time.delta_seconds()) as u32;
+    pub fn ap_current_add_delta(&mut self, time: &Time) -> i32 {
+        let breath = (self.ap_increment as f32 * time.delta_seconds()) as i32;
         self.ap_current = self.ap_current + breath;
         self.ap_current
     }
-    pub fn ap_current_minus(&mut self, cost: u32) -> u32 {
+    pub fn ap_current_minus(&mut self, cost: i32) -> i32 {
         self.ap_current -= cost;
         self.ap_current
     }
@@ -70,7 +70,7 @@ impl Capability {
     pub fn hp_current(&self) -> i32 {
         self.hp_current
     }
-    pub fn attack_cost(&self) -> u32 {
+    pub fn attack_cost(&self) -> i32 {
         self.attack_cost
     }
     pub fn attack_damage(&self) -> i32 {

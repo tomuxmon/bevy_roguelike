@@ -24,20 +24,19 @@ pub fn input_all(
         &Behaviour,
         &TurnState,
         &Capability,
-        &mut FieldOfView,
         &mut Vector2D,
-        &mut Transform,
     )>,
     mut dmg_wr: EventWriter<ModifyHPEvent>,
     mut ap_wr: EventWriter<SpendAPEvent>,
-    map_options: Res<MapOptions>,
+    mut mv_wr: EventWriter<MoveEvent>,
+
     map: Res<Map>,
 ) {
-    let ocupied = HashMap::from_iter(actors.iter().map(|(e, t, _, _, _, _, p, _)| (*p, (e, *t))));
+    let ocupied = HashMap::from_iter(actors.iter().map(|(e, t, _, _, _, p)| (*p, (e, *t))));
 
-    for (id, team, b, _, cp, mut fov, mut pt, mut tr) in actors
+    for (id, team, b, _, cp, pt) in actors
         .iter_mut()
-        .filter(|(_, _, _, ts, _, _, _, _)| **ts == TurnState::Act)
+        .filter(|(_, _, _, ts, _, _)| **ts == TurnState::Act)
     {
         let deltas = vec![
             Vector2D::new(0, 1),
@@ -90,10 +89,7 @@ pub fn input_all(
                 dmg_wr.send(ModifyHPEvent::new(other.unwrap().0, -cp.attack_damage()));
             } else {
                 if delta != Vector2D::new(0, 0) {
-                    let z = tr.translation.z;
-                    tr.translation = map_options.to_world_position(dest).extend(z);
-                    *pt = dest;
-                    fov.is_dirty = true;
+                    mv_wr.send(MoveEvent::new(id, dest));
                 }
             }
             ap_wr.send(SpendAPEvent::new(id, cost));

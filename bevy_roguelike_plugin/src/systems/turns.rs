@@ -1,3 +1,4 @@
+use crate::resources::MapOptions;
 use crate::{components::*, events::*};
 use bevy::log;
 use bevy::prelude::*;
@@ -29,6 +30,21 @@ pub fn spend_ap(
             if cp.ap_current_minus(e.amount) < cp.ap_turn_ready_to_act() {
                 *ts = TurnState::End;
             }
+        }
+    }
+}
+
+pub fn do_move(
+    mut actors: Query<(&mut Vector2D, &mut Transform, &mut FieldOfView)>,
+    mut mv_rdr: EventReader<MoveEvent>,
+    map_options: Res<MapOptions>,
+) {
+    for e in mv_rdr.iter() {
+        if let Ok((mut pt, mut tr, mut fov)) = actors.get_mut(e.id) {
+            let z = tr.translation.z;
+            tr.translation = map_options.to_world_position(e.destination).extend(z);
+            *pt = e.destination;
+            fov.is_dirty = true;
         }
     }
 }

@@ -16,12 +16,23 @@ impl ModifyHPEvent {
 #[derive(Debug, Copy, Clone)]
 pub struct SpendAPEvent {
     pub id: Entity,
-    pub amount: u32,
+    pub amount: i32,
 }
 
 impl SpendAPEvent {
-    pub fn new(id: Entity, amount: u32) -> Self {
+    pub fn new(id: Entity, amount: i32) -> Self {
         Self { id, amount }
+    }
+}
+
+pub struct MoveEvent {
+    pub id: Entity,
+    pub destination: Vector2D,
+}
+
+impl MoveEvent {
+    pub fn new(id: Entity, destination: Vector2D) -> Self {
+        Self { id, destination }
     }
 }
 
