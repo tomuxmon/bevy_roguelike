@@ -7,25 +7,6 @@
         {
             "type": "lldb",
             "request": "launch",
-            "name": "Debug unit tests in library 'bevy_roguelike_plugin'",
-            "cargo": {
-                "args": [
-                    "test",
-                    "--no-run",
-                    "--lib",
-                    "--package=bevy_roguelike_plugin"
-                ],
-                "filter": {
-                    "name": "bevy_roguelike_plugin",
-                    "kind": "lib"
-                }
-            },
-            "args": [],
-            "cwd": "${workspaceFolder}"
-        },
-        {
-            "type": "lldb",
-            "request": "launch",
             "name": "Debug executable 'rogue-tiny'",
             "cargo": {
                 "args": [
@@ -46,24 +27,5 @@
             "args": [],
             "cwd": "${workspaceFolder}"
         },
-        {
-            "type": "lldb",
-            "request": "launch",
-            "name": "Debug unit tests in executable 'rogue-tiny'",
-            "cargo": {
-                "args": [
-                    "test",
-                    "--no-run",
-                    "--bin=rogue-tiny",
-                    "--package=rogue-tiny"
-                ],
-                "filter": {
-                    "name": "rogue-tiny",
-                    "kind": "bin"
-                }
-            },
-            "args": [],
-            "cwd": "${workspaceFolder}"
-        }
     ]
 }

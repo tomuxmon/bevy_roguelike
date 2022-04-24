@@ -23,7 +23,7 @@ features = ["render", "bevy_winit", "png"]
 [target.'cfg(not(target_arch = "wasm32"))'.dependencies.bevy]
 version = "~0.7"
 default-features = false
-features = ["x11"]
+features = ["wayland"]
 
 [workspace]
 members = ["bevy_roguelike_plugin"]

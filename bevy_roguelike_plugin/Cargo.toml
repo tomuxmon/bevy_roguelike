@@ -10,7 +10,7 @@ default = []
 debug = ["colored", "bevy-inspector-egui"]
 
 [dependencies]
-bevy_easings = { path = "/home/tomas/sc/git/bevy_easings/" }
+bevy_easings = "~0.7"
 line_drawing = "~1.0"
 rand = "~0.8"
 serde = "~1.0"
