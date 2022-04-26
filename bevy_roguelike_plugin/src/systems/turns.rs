@@ -22,6 +22,10 @@ pub fn act(
         (IVec2::new(0, 0), 451), // stay put - skip turn
     ]);
     for e in act_reader.iter() {
+        if !delta_costs.contains_key(&e.delta) {
+            log::error!("delta with no cost! {:?}", e.delta);
+            continue;
+        }
         if e.delta == IVec2::new(0, 0) {
             ap_writer.send(SpendAPEvent::new(e.id, delta_costs[&e.delta]));
             continue;

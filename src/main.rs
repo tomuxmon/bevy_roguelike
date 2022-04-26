@@ -2,6 +2,7 @@ use bevy::prelude::*;
 use bevy_roguelike_plugin::{
     components::*, events::*, resources::*, systems::turns::gather_action_points, RoguelikePlugin,
 };
+use line_drawing::WalkGrid;
 use rand::prelude::*;
 
 #[cfg(feature = "debug")]
@@ -15,15 +16,39 @@ pub enum AppState {
     Out,
 }
 
-pub fn input_all(
+pub fn input_player(
     keys: Res<Input<KeyCode>>,
-    mut rng: ResMut<StdRng>,
-    mut actors: Query<(Entity, &Behaviour, &TurnState)>,
+    players: Query<(Entity, &TurnState), With<MovePlayer>>,
     mut act_writer: EventWriter<ActEvent>,
 ) {
-    for (id, b, _) in actors
-        .iter_mut()
-        .filter(|(_, _, ts)| **ts == TurnState::Act)
+    for (id, _) in players.iter().filter(|(_, ts)| **ts == TurnState::Act) {
+        let delta = if keys.just_pressed(KeyCode::Up) {
+            IVec2::new(0, 1)
+        } else if keys.just_pressed(KeyCode::Down) {
+            IVec2::new(0, -1)
+        } else if keys.just_pressed(KeyCode::Left) {
+            IVec2::new(-1, 0)
+        } else if keys.just_pressed(KeyCode::Right) {
+            IVec2::new(1, 0)
+        } else if keys.pressed(KeyCode::Space) {
+            IVec2::new(0, 0) // stay put - skip turn
+        } else {
+            return;
+        };
+        act_writer.send(ActEvent::new(id, delta));
+    }
+}
+
+pub fn input_fov_rand(
+    mut rng: ResMut<StdRng>,
+    actors: Query<(Entity, &Vector2D, &Team, &TurnState, &FieldOfView), With<MoveFov>>,
+    mut act_writer: EventWriter<ActEvent>,
+    team_map: Res<TeamMap>,
+    map: Res<Map>,
+) {
+    for (id, pt, team, _, fov) in actors
+        .iter()
+        .filter(|(_, _, _, ts, _)| **ts == TurnState::Act)
     {
         let deltas = vec![
             IVec2::new(0, 1),
@@ -32,24 +57,35 @@ pub fn input_all(
             IVec2::new(1, 0),
             IVec2::new(0, 0), // stay put - skip turn
         ];
-        let delta = match b {
-            Behaviour::InputControlled => {
-                if keys.just_pressed(KeyCode::Up) {
-                    IVec2::new(0, 1)
-                } else if keys.just_pressed(KeyCode::Down) {
-                    IVec2::new(0, -1)
-                } else if keys.just_pressed(KeyCode::Left) {
-                    IVec2::new(-1, 0)
-                } else if keys.just_pressed(KeyCode::Right) {
-                    IVec2::new(1, 0)
-                } else if keys.pressed(KeyCode::Space) {
-                    IVec2::new(0, 0) // stay put - skip turn
-                } else {
-                    return;
+
+        // NOTE: closest oposing team member search
+        let mut distance_last = ((fov.radius + 1) * (fov.radius + 1)) as f32;
+        let mut pt_move_target: Option<IVec2> = None;
+        for pt_visible in fov.tiles_visible.iter() {
+            if let Some(other_team) = team_map[*pt_visible] {
+                if other_team != *team {
+                    let distance = pt_visible.as_vec2().distance_squared(pt.as_vec2());
+                    if distance < distance_last {
+                        pt_move_target = Some(*pt_visible);
+                        distance_last = distance;
+                    }
                 }
             }
-            Behaviour::RandomMove => deltas[rng.gen_range(0..deltas.len())],
-        };
+        }
+
+        let mut delta = IVec2::new(0, 0);
+        if let Some(tgt) = pt_move_target {
+            if let Some((x, y)) = WalkGrid::new((pt.x, pt.y), (tgt.x, tgt.y)).take(2).last() {
+                let dest = IVec2::new(x, y);
+                if map[dest] == Tile::Floor
+                    && !(team_map[dest].is_some() && team_map[dest].unwrap() == *team)
+                {
+                    delta = IVec2::new(x - pt.x, y - pt.y);
+                }
+            }
+        } else {
+            delta = deltas[rng.gen_range(0..deltas.len())];
+        }
         act_writer.send(ActEvent::new(id, delta));
     }
 }
@@ -70,7 +106,8 @@ fn main() {
         })
         .add_system_set(
             SystemSet::on_update(AppState::InGame)
-                .with_system(input_all.after(gather_action_points)),
+                .with_system(input_player.after(gather_action_points))
+                .with_system(input_fov_rand.after(gather_action_points)),
         )
         .add_startup_system(rogue_setup);
 

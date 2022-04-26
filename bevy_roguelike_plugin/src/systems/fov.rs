@@ -7,21 +7,21 @@ use line_drawing::{BresenhamCircle, Supercover};
 
 pub fn field_of_view_set_vis_info(
     pool: Res<AsyncComputeTaskPool>,
-    players: Query<&FieldOfView, With<Player>>,
+    players: Query<&FieldOfView, With<MovePlayer>>,
     mut visibles: Query<(
         &Vector2D,
         &Children,
-        Option<&Behaviour>,
+        Option<&Capability>,
         &mut VisibilityToggle,
     )>,
 ) {
     for fov in players.iter() {
-        visibles.par_for_each_mut(&*pool, 16, |(pt, clds, bh, mut vt)| {
+        visibles.par_for_each_mut(&*pool, 16, |(pt, clds, cp, mut vt)| {
             for c in clds.iter() {
                 // TODO: rewrite with no inserts. just updates.
                 let is_revealed = fov.tiles_revealed.contains(&pt);
                 let is_visible = fov.tiles_visible.contains(&pt);
-                let is_ambient = bh.is_none();
+                let is_ambient = cp.is_none();
                 vt.insert(*c, VisibilityInfo::new(is_revealed, is_visible, is_ambient));
             }
         });

@@ -11,6 +11,7 @@ debug = ["bevy_roguelike_plugin/debug", "bevy-inspector-egui"]
 
 [dependencies]
 rand = "~0.8"
+line_drawing = "~1.0"
 bevy_roguelike_plugin = { path = "bevy_roguelike_plugin" }
 bevy-inspector-egui = { version = "~0.10", optional = true }
 

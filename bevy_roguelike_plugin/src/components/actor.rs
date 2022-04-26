@@ -3,19 +3,15 @@ use std::ops::{Deref, DerefMut};
 
 #[derive(Default, Debug, Copy, Clone, Ord, PartialOrd, Eq, PartialEq, Hash, Component, Reflect)]
 #[reflect(Component)]
-pub struct Player;
+pub struct MovePlayer;
 
-#[derive(Debug, Copy, Clone, Ord, PartialOrd, Eq, PartialEq, Hash, Component, Reflect)]
+#[derive(Debug, Default, Copy, Clone, Ord, PartialOrd, Eq, PartialEq, Hash, Component, Reflect)]
 #[reflect(Component)]
-pub enum Behaviour {
-    InputControlled,
-    RandomMove,
-}
-impl Default for Behaviour {
-    fn default() -> Self {
-        Self::RandomMove
-    }
-}
+pub struct MoveRandom;
+
+#[derive(Debug, Default, Copy, Clone, Ord, PartialOrd, Eq, PartialEq, Hash, Component, Reflect)]
+#[reflect(Component)]
+pub struct MoveFov;
 
 #[derive(Default, Debug, Copy, Clone, Ord, PartialOrd, Eq, PartialEq, Hash, Component, Reflect)]
 #[reflect(Component)]
