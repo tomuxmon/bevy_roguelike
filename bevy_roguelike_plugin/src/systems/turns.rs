@@ -1,4 +1,4 @@
-use crate::resources::{Map, MapOptions, Tile};
+use crate::resources::{Map, MapOptions, TeamMap, Tile};
 use crate::{components::*, events::*};
 use bevy::log;
 use bevy::prelude::*;
@@ -6,12 +6,13 @@ use bevy::tasks::AsyncComputeTaskPool;
 use bevy::utils::HashMap;
 
 pub fn act(
+    mut cmd: Commands,
     actors: Query<(Entity, &Team, &Capability, &Vector2D)>,
     mut act_reader: EventReader<ActEvent>,
-    mut hp_writer: EventWriter<ModifyHPEvent>,
     mut ap_writer: EventWriter<SpendAPEvent>,
     mut move_writer: EventWriter<MoveEvent>,
     map: Res<Map>,
+    mut team_map: ResMut<TeamMap>,
 ) {
     let delta_costs = HashMap::from_iter(vec![
         (IVec2::new(0, 1), 900),
@@ -30,15 +31,16 @@ pub fn act(
             if !map.is_in_bounds(dest) || map[dest] != Tile::Floor {
                 continue;
             }
-            if let Some((o_id, o_team, _, _)) = actors.iter().find(|(_, _, _, pt)| ***pt == dest) {
-                if o_team == team {
+            if let Some(other_team) = team_map[dest] {
+                if other_team == *team {
                     // NOTE: can not move into a tile ocupied by a team mate
                     continue;
                 } else {
                     ap_writer.send(SpendAPEvent::new(e.id, cp.attack_cost()));
-                    hp_writer.send(ModifyHPEvent::new(o_id, -cp.attack_damage()));
+                    cmd.spawn().insert(ModifyHP::new(dest, -cp.attack_damage()));
                 }
             } else {
+                team_map[dest] = Some(*team);
                 ap_writer.send(SpendAPEvent::new(e.id, delta_costs[&e.delta]));
                 move_writer.send(MoveEvent::new(e.id, dest));
             }
@@ -48,18 +50,21 @@ pub fn act(
 
 pub fn apply_hp_modify(
     mut cmd: Commands,
-    mut actors: Query<&mut Capability>,
-    mut hp_reader: EventReader<ModifyHPEvent>,
+    mut actors: Query<(Entity, &Vector2D, &mut Capability)>,
+    hp_mod: Query<(Entity, &ModifyHP)>,
+    mut team_map: ResMut<TeamMap>,
 ) {
-    for e in hp_reader.iter() {
-        if let Ok(mut cp) = actors.get_mut(e.id) {
-            cp.hp_apply(e.amount);
+    for (e, hpm) in hp_mod.iter() {
+        if let Some((ee, pt, mut cp)) = actors.iter_mut().find(|(_, p, _)| ***p == hpm.location) {
+            cp.hp_apply(hpm.amount);
             if cp.hp_current() <= 0 {
                 // TODO: animated death
-                log::info!("death to {:?}!", e.id);
-                cmd.entity(e.id).despawn_recursive();
+                log::info!("death to {:?}!", ee);
+                cmd.entity(ee).despawn_recursive();
+                team_map[**pt] = None;
             }
         }
+        cmd.entity(e).despawn();
     }
 }
 
@@ -80,14 +85,15 @@ pub fn do_move(
     mut actors: Query<(&mut Vector2D, &mut Transform, &mut FieldOfView)>,
     mut move_reader: EventReader<MoveEvent>,
     map_options: Res<MapOptions>,
+    mut team_map: ResMut<TeamMap>,
 ) {
     for e in move_reader.iter() {
         if let Ok((mut pt, mut tr, mut fov)) = actors.get_mut(e.id) {
-            // TODO: mark / unmark ocupied tiles
-
             let z = tr.translation.z;
+            let pt_old = **pt;
             tr.translation = map_options.to_world_position(e.destination).extend(z);
             *pt = Vector2D::from(e.destination);
+            team_map[pt_old] = None;
             fov.is_dirty = true;
         }
     }

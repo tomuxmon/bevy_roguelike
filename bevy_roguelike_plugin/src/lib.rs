@@ -50,10 +50,10 @@ impl<T: StateData> Plugin for RoguelikePlugin<T> {
             .register_type::<Behaviour>()
             .register_type::<Capability>()
             .register_type::<TurnState>()
+            .register_type::<ModifyHP>()
             .register_type::<Team>()
             .register_type::<FieldOfView>()
             .register_type::<Attributes>()
-            .add_event::<ModifyHPEvent>()
             .add_event::<SpendAPEvent>()
             .add_event::<MoveEvent>()
             .add_event::<ActEvent>()
@@ -96,15 +96,12 @@ impl<T> RoguelikePlugin<T> {
 
         let map_generator = RandomMapGenerator {};
         let (map, info) = map_generator.gen(&mut rng, options.map_size);
+        let mut team_map = TeamMap::empty(options.map_size);
 
         #[cfg(feature = "debug")]
         log::info!("{}", map.to_colorized_string());
         #[cfg(feature = "debug")]
         log::info!("{}", info.to_colorized_string());
-
-        cmd.insert_resource(map.clone());
-        cmd.insert_resource(info.clone());
-        cmd.insert_resource(rng.clone());
 
         for mut c in cameras.iter_mut() {
             let z = c.translation.z;
@@ -155,13 +152,15 @@ impl<T> RoguelikePlugin<T> {
                 spawn_player_body_wear(player, &player_assets, options.tile_size)
             });
 
+        team_map[info.player_start] = Some(Team::new(1));
+
         let enemies_id = cmd
             .spawn()
             .insert(Name::new("Enemies"))
             .insert(Transform::default())
             .insert(GlobalTransform::default())
             .with_children(|enms| {
-                for mpt in info.monster_spawns {
+                for mpt in info.monster_spawns.clone() {
                     let monster_attributes = Attributes::new(vec![
                         ("strength".to_string(), 6 + rng.gen_range(0..6)),
                         ("toughness".to_string(), 6 + rng.gen_range(0..6)),
@@ -170,10 +169,12 @@ impl<T> RoguelikePlugin<T> {
                         ("perception".to_string(), 6 + rng.gen_range(0..6)),
                     ]);
 
+                    let monster_team = Team::new(1 + rng.gen_range(1..4));
+
                     enms.spawn()
                         .insert(Name::new("Enemy"))
                         .insert(Behaviour::RandomMove)
-                        .insert(Team::new(1 + rng.gen_range(1..4)))
+                        .insert(monster_team)
                         .insert(TurnState::default())
                         .insert(monster_attributes.clone())
                         .insert(Capability::new(monster_attributes.clone()))
@@ -189,10 +190,16 @@ impl<T> RoguelikePlugin<T> {
                                 get_enemy_body_bundle(&enemy_assets, &mut rng, options.tile_size),
                             );
                         });
+
+                    team_map[mpt] = Some(monster_team);
                 }
             })
             .id();
 
+        cmd.insert_resource(map);
+        cmd.insert_resource(info);
+        cmd.insert_resource(rng);
+        cmd.insert_resource(team_map);
         cmd.insert_resource(MapEntities { map_id, enemies_id });
     }
 }

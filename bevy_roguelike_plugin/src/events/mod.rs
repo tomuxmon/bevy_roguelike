@@ -6,21 +6,10 @@ pub struct ActEvent {
     pub delta: IVec2,
 }
 
+// TODO: turn into Act component with is_dirty or is_used
 impl ActEvent {
     pub fn new(id: Entity, delta: IVec2) -> Self {
         Self { id, delta }
-    }
-}
-
-#[derive(Debug, Copy, Clone)]
-pub struct ModifyHPEvent {
-    pub id: Entity,
-    pub amount: i32,
-}
-
-impl ModifyHPEvent {
-    pub fn new(id: Entity, amount: i32) -> Self {
-        Self { id, amount }
     }
 }
 

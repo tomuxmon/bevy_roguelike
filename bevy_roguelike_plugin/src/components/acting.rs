@@ -90,3 +90,16 @@ impl Default for TurnState {
         TurnState::Collect
     }
 }
+
+#[derive(Default, Debug, Copy, Clone, Eq, PartialEq, Hash, Component, Reflect)]
+#[reflect(Component)]
+pub struct ModifyHP {
+    pub location: IVec2,
+    pub amount: i32,
+}
+
+impl ModifyHP {
+    pub fn new(location: IVec2, amount: i32) -> Self {
+        Self { location, amount }
+    }
+}

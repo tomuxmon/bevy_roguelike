@@ -1,4 +1,5 @@
 pub use acting::Capability;
+pub use acting::ModifyHP;
 pub use acting::TurnState;
 pub use actor::Attributes;
 pub use actor::Behaviour;
