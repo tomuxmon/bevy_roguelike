@@ -37,6 +37,7 @@ impl<T: StateData> Plugin for RoguelikePlugin<T> {
                     .with_system(do_move.after(act).after(spend_ap))
                     .with_system(apply_position_to_transform.after(do_move))
                     .with_system(apply_hp_modify.after(act).after(spend_ap))
+                    .with_system(idle_rest.after(apply_hp_modify))
                     .with_system(camera_set_focus_player)
                     .with_system(camera_focus_smooth.after(camera_set_focus_player))
                     .with_system(field_of_view_recompute)
@@ -60,6 +61,7 @@ impl<T: StateData> Plugin for RoguelikePlugin<T> {
             .add_event::<SpendAPEvent>()
             .add_event::<MoveEvent>()
             .add_event::<ActEvent>()
+            .add_event::<IdleEvent>()
             .add_event::<CameraFocusEvent>();
 
         log::info!("Loaded Roguelike Plugin");

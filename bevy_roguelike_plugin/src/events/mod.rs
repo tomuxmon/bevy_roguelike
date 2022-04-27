@@ -25,6 +25,17 @@ impl SpendAPEvent {
     }
 }
 
+#[derive(Debug, Copy, Clone)]
+pub struct IdleEvent {
+    pub id: Entity,
+}
+
+impl IdleEvent {
+    pub fn new(id: Entity) -> Self {
+        Self { id }
+    }
+}
+
 pub struct MoveEvent {
     pub id: Entity,
     pub destination: IVec2,

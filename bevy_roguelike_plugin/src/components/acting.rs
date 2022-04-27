@@ -11,16 +11,23 @@ pub struct Capability {
     // NOTE: HitPoints
     hp_max: i32,
     hp_current: i32,
+    // NOTE: hp regen
+    hp_regen_ready: i32,
+    hp_regen_current: i32,
+    hp_regen_increment: i32,
     // NOTE: Attack
     attack_cost: i32,
     attack_damage: i32,
 }
 impl Capability {
     pub const AP_TURN_READY_DEFAULT: i32 = 1024;
+    pub const HP_REGEN_READY_DEFAULT: i32 = 1024;
+
     pub const AP_INCREMENT_MIN: i32 = 1024;
     pub const HP_MAX_MIN: i32 = 500;
     pub const ATTACK_COST_MAX: i32 = 900;
     pub const ATTACK_DAMAGE_MIN: i32 = 50;
+    pub const HP_REGEN_INCREMENT_MIN: i32 = 100;
 
     pub fn new(attributes: Attributes) -> Self {
         let str = *attributes.get("strength").unwrap_or(&5);
@@ -32,6 +39,10 @@ impl Capability {
         let hp_max = Capability::HP_MAX_MIN + tou * 10 + str * 3 + will * 2 + dex;
         let attack_cost = Capability::ATTACK_COST_MAX - dex * 10;
         let attack_damage = Capability::ATTACK_DAMAGE_MIN + str * 10 + dex * 3;
+        let hp_regen_ready = Capability::HP_REGEN_READY_DEFAULT;
+        let hp_regen_current = 0;
+        let hp_regen_increment =
+            Capability::HP_REGEN_INCREMENT_MIN + tou * 16 + str * 4 + dex * 4 + will * 2;
 
         Self {
             ap_turn_ready: Capability::AP_TURN_READY_DEFAULT,
@@ -39,6 +50,9 @@ impl Capability {
             ap_current: 0,
             hp_max,
             hp_current: hp_max,
+            hp_regen_ready,
+            hp_regen_current,
+            hp_regen_increment,
             attack_cost,
             attack_damage,
         }
@@ -78,6 +92,15 @@ impl Capability {
     }
     pub fn attack_damage(&self) -> i32 {
         self.attack_damage
+    }
+    pub fn regen(&mut self) {
+        self.hp_regen_current = self.hp_regen_current + self.hp_regen_increment;
+        if self.hp_regen_current > self.hp_regen_ready {
+            let amount = self.hp_regen_current / self.hp_regen_ready;
+            let rem = self.hp_regen_current % self.hp_regen_ready;
+            self.hp_apply(amount);
+            self.hp_regen_current = rem;
+        }
     }
 }
 

@@ -12,6 +12,7 @@ pub fn act(
     mut act_reader: EventReader<ActEvent>,
     mut ap_writer: EventWriter<SpendAPEvent>,
     mut move_writer: EventWriter<MoveEvent>,
+    mut idle_writer: EventWriter<IdleEvent>,
     map: Res<Map>,
     mut team_map: ResMut<TeamMap>,
 ) {
@@ -28,20 +29,20 @@ pub fn act(
             continue;
         }
         if e.delta == IVec2::new(0, 0) {
-            // TODO: idle, rest, regen.
+            idle_writer.send(IdleEvent::new(e.id));
             ap_writer.send(SpendAPEvent::new(e.id, delta_costs[&e.delta]));
             continue;
         }
         if let Ok((_, team, cp, pt)) = actors.get(e.id) {
             let dest = **pt + e.delta;
             if !map.is_in_bounds(dest) || map[dest] != Tile::Floor {
-                // TODO: idle, rest, regen.
+                idle_writer.send(IdleEvent::new(e.id));
                 continue;
             }
             if let Some(other_team) = team_map[dest] {
                 if other_team == *team {
                     // NOTE: can not move into a tile ocupied by a team mate
-                    // TODO: idle, rest, regen.
+                    idle_writer.send(IdleEvent::new(e.id));
                     continue;
                 } else {
                     ap_writer.send(SpendAPEvent::new(e.id, cp.attack_cost()));
@@ -86,6 +87,14 @@ pub fn spend_ap(
             if cp.ap_current_minus(e.amount) < cp.ap_turn_ready_to_act() {
                 *ts = TurnState::End;
             }
+        }
+    }
+}
+
+pub fn idle_rest(mut actors: Query<&mut Capability>, mut idle_reader: EventReader<IdleEvent>) {
+    for e in idle_reader.iter() {
+        if let Ok(mut cp) = actors.get_mut(e.id) {
+            cp.regen();
         }
     }
 }

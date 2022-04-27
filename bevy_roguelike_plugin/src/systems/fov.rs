@@ -48,6 +48,7 @@ pub fn field_of_view_set_vis(
     map_options: Res<MapOptions>,
 ) {
     // still no paralelism :|
+    // TODO: solve health hud polution problem
     for vt in visibles.iter() {
         for (e, i) in vt.iter() {
             if let Ok((mut s, mut t, mut v, h)) = visible_children.get_mut(*e) {
