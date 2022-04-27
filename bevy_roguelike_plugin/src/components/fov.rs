@@ -11,14 +11,19 @@ pub struct VisibilityInfo {
     pub is_revealed: bool,
     pub is_visible: bool,
     pub is_ambient: bool,
+    pub hp_percent: u8,
 }
 impl VisibilityInfo {
-    pub fn new(is_revealed: bool, is_visible: bool, is_ambient: bool) -> Self {
+    pub fn new(is_revealed: bool, is_visible: bool, is_ambient: bool, hp_percent: u8) -> Self {
         Self {
             is_revealed,
             is_visible,
             is_ambient,
+            hp_percent,
         }
+    }
+    pub fn is_damaged(&self) -> bool {
+        self.hp_percent != 100
     }
 }
 

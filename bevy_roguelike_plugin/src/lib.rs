@@ -149,9 +149,14 @@ impl<T> RoguelikePlugin<T> {
                     .spawn()
                     .insert(Name::new("body"))
                     .insert_bundle(get_player_body_bundle(&player_assets, options.tile_size));
-            })
-            .with_children(|player| {
-                spawn_player_body_wear(player, &player_assets, options.tile_size)
+
+                spawn_player_body_wear(player, &player_assets, options.tile_size);
+
+                player
+                    .spawn()
+                    .insert(Name::new("hud"))
+                    .insert(OnTopHud {})
+                    .insert_bundle(get_hud_bundle(options.tile_size));
             });
 
         team_map[info.player_start] = Some(Team::new(1));
@@ -164,11 +169,11 @@ impl<T> RoguelikePlugin<T> {
             .with_children(|enms| {
                 for mpt in info.monster_spawns.clone() {
                     let monster_attributes = Attributes::new(vec![
-                        ("strength".to_string(), 6 + rng.gen_range(0..6)),
-                        ("toughness".to_string(), 6 + rng.gen_range(0..6)),
-                        ("dexterity".to_string(), 6 + rng.gen_range(0..6)),
-                        ("willpower".to_string(), 6 + rng.gen_range(0..6)),
-                        ("perception".to_string(), 6 + rng.gen_range(0..6)),
+                        ("strength".to_string(), 2 + rng.gen_range(0..9)),
+                        ("toughness".to_string(), 2 + rng.gen_range(0..9)),
+                        ("dexterity".to_string(), 2 + rng.gen_range(0..9)),
+                        ("willpower".to_string(), 2 + rng.gen_range(0..9)),
+                        ("perception".to_string(), 2 + rng.gen_range(0..9)),
                     ]);
 
                     let monster_team = Team::new(1 + rng.gen_range(1..4));
@@ -191,6 +196,11 @@ impl<T> RoguelikePlugin<T> {
                             enemy.spawn().insert(Name::new("body")).insert_bundle(
                                 get_enemy_body_bundle(&enemy_assets, &mut rng, options.tile_size),
                             );
+                            enemy
+                                .spawn()
+                                .insert(Name::new("hud"))
+                                .insert(OnTopHud {})
+                                .insert_bundle(get_hud_bundle(options.tile_size));
                         });
 
                     team_map[mpt] = Some(monster_team);
@@ -243,6 +253,19 @@ fn spawn_tiles(
                         ..Default::default()
                     });
             });
+    }
+}
+
+fn get_hud_bundle(size: f32) -> impl Bundle {
+    let height = size / 16.;
+    SpriteBundle {
+        sprite: Sprite {
+            color: Color::GREEN,
+            custom_size: Some(Vec2::new(size, height)),
+            ..Default::default()
+        },
+        transform: Transform::from_xyz(0., -size / 2. + height / 2., 100.),
+        ..Default::default()
     }
 }
 

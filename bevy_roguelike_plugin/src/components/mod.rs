@@ -5,6 +5,7 @@ pub use actor::Attributes;
 pub use actor::MovingFovRandom;
 pub use actor::MovingPlayer;
 pub use actor::MovingRandom;
+pub use actor::OnTopHud;
 pub use actor::Team;
 pub use environment::MapTile;
 pub use fov::FieldOfView;

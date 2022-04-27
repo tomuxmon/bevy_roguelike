@@ -70,6 +70,9 @@ impl Capability {
     pub fn hp_current(&self) -> i32 {
         self.hp_current
     }
+    pub fn hp_percent(&self) -> u8 {
+        (self.hp_current * 100 / self.hp_max) as u8
+    }
     pub fn attack_cost(&self) -> i32 {
         self.attack_cost
     }

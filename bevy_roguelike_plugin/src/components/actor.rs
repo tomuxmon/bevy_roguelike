@@ -49,3 +49,7 @@ impl DerefMut for Attributes {
         &mut self.inner
     }
 }
+
+#[derive(Default, Debug, Clone, Eq, PartialEq, Component, Reflect)]
+#[reflect(Component)]
+pub struct OnTopHud;

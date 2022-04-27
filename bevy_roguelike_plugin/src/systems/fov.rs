@@ -1,6 +1,6 @@
 use crate::{
     components::*,
-    resources::{Map, Tile},
+    resources::{Map, MapOptions, Tile},
 };
 use bevy::{prelude::*, tasks::*, utils::HashSet};
 use line_drawing::{BresenhamCircle, Supercover};
@@ -23,7 +23,15 @@ pub fn field_of_view_set_vis_info(
                 let is_revealed = fov.tiles_revealed.contains(&pt);
                 let is_visible = fov.tiles_visible.contains(&pt);
                 let is_ambient = cp.is_none();
-                vt.insert(*c, VisibilityInfo::new(is_revealed, is_visible, is_ambient));
+                let percent_health = if cp.is_none() {
+                    100
+                } else {
+                    cp.unwrap().hp_percent()
+                };
+                vt.insert(
+                    *c,
+                    VisibilityInfo::new(is_revealed, is_visible, is_ambient, percent_health),
+                );
             }
         });
     }
@@ -31,18 +39,42 @@ pub fn field_of_view_set_vis_info(
 
 pub fn field_of_view_set_vis(
     visibles: Query<&VisibilityToggle>,
-    mut visible_children: Query<(&mut Sprite, &mut Visibility)>,
+    mut visible_children: Query<(
+        &mut Sprite,
+        &mut Transform,
+        &mut Visibility,
+        Option<&OnTopHud>,
+    )>,
+    map_options: Res<MapOptions>,
 ) {
     // still no paralelism :|
     for vt in visibles.iter() {
         for (e, i) in vt.iter() {
-            if let Ok((mut s, mut v)) = visible_children.get_mut(*e) {
-                v.is_visible = i.is_visible || (i.is_revealed && i.is_ambient);
-                s.color = if i.is_visible && i.is_revealed {
-                    Color::WHITE
+            if let Ok((mut s, mut t, mut v, h)) = visible_children.get_mut(*e) {
+                let is_hud = h.is_some();
+                v.is_visible = (i.is_visible && !is_hud)
+                    || (i.is_visible && is_hud && i.is_damaged())
+                    || (i.is_ambient && i.is_revealed);
+
+                if !is_hud {
+                    s.color = if i.is_visible && i.is_revealed {
+                        Color::WHITE
+                    } else {
+                        Color::rgb(0.65, 0.65, 0.65)
+                    };
                 } else {
-                    Color::rgb(0.65, 0.65, 0.65)
-                };
+                    let g = i.hp_percent as f32 / 100.;
+                    let r = (100. - i.hp_percent as f32) / 100.;
+                    s.color.set_g(g);
+                    s.color.set_r(r);
+
+                    if let Some(size) = s.custom_size {
+                        let x = map_options.tile_size * i.hp_percent as f32 / 100.;
+                        let slide = map_options.tile_size - x;
+                        s.custom_size = Some(Vec2::new(x, size.y));
+                        t.translation.x = -slide / 2.;
+                    }
+                }
             }
         }
     }
