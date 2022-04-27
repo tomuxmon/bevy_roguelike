@@ -20,14 +20,18 @@ pub struct Capability {
     attack_damage: i32,
 }
 impl Capability {
-    pub const AP_TURN_READY_DEFAULT: i32 = 1024;
-    pub const HP_REGEN_READY_DEFAULT: i32 = 1024;
+    pub const DELTA_COST_MOVE_DEFAULT: i32 = 100;
+    pub const IDLE_COST_DEFAULT: i32 = 64;
 
-    pub const AP_INCREMENT_MIN: i32 = 1024;
-    pub const HP_MAX_MIN: i32 = 500;
-    pub const ATTACK_COST_MAX: i32 = 900;
-    pub const ATTACK_DAMAGE_MIN: i32 = 50;
-    pub const HP_REGEN_INCREMENT_MIN: i32 = 100;
+    pub const AP_TURN_READY_DEFAULT: i32 = 128;
+    pub const HP_REGEN_READY_DEFAULT: i32 = 128;
+
+    pub const AP_INCREMENT_MIN: i32 = 64;
+    pub const HP_MAX_MIN: i32 = 20;
+    pub const ATTACK_COST_MAX: i32 = 128;
+    pub const ATTACK_COST_MIN: i32 = 36;
+    pub const ATTACK_DAMAGE_MIN: i32 = 1;
+    pub const HP_REGEN_INCREMENT_MIN: i32 = 64;
 
     pub fn new(attributes: Attributes) -> Self {
         let str = *attributes.get("strength").unwrap_or(&5);
@@ -35,14 +39,16 @@ impl Capability {
         let will = *attributes.get("willpower").unwrap_or(&5);
         let dex = *attributes.get("dexterity").unwrap_or(&5);
 
-        let ap_increment = Capability::AP_INCREMENT_MIN + dex * 8 + will * 4;
-        let hp_max = Capability::HP_MAX_MIN + tou * 10 + str * 3 + will * 2 + dex;
-        let attack_cost = Capability::ATTACK_COST_MAX - dex * 10;
-        let attack_damage = Capability::ATTACK_DAMAGE_MIN + str * 10 + dex * 3;
+        let ap_increment = Capability::AP_INCREMENT_MIN + dex * 7 + will * 3;
+        let hp_max = Capability::HP_MAX_MIN + tou * 6 + str * 2 + will;
+        let attack_cost = i32::max(
+            Capability::ATTACK_COST_MAX - dex * 4,
+            Capability::ATTACK_COST_MIN,
+        );
+        let attack_damage = Capability::ATTACK_DAMAGE_MIN + str;
         let hp_regen_ready = Capability::HP_REGEN_READY_DEFAULT;
         let hp_regen_current = 0;
-        let hp_regen_increment =
-            Capability::HP_REGEN_INCREMENT_MIN + tou * 16 + str * 4 + dex * 4 + will * 2;
+        let hp_regen_increment = Capability::HP_REGEN_INCREMENT_MIN + tou * 4 + str * 2 + will;
 
         Self {
             ap_turn_ready: Capability::AP_TURN_READY_DEFAULT,

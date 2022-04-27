@@ -17,11 +17,11 @@ pub fn act(
     mut team_map: ResMut<TeamMap>,
 ) {
     let delta_costs = HashMap::from_iter(vec![
-        (IVec2::new(0, 1), 900),
-        (IVec2::new(0, -1), 900),
-        (IVec2::new(-1, 0), 900),
-        (IVec2::new(1, 0), 900),
-        (IVec2::new(0, 0), 451), // stay put - skip turn
+        (IVec2::new(0, 1), Capability::DELTA_COST_MOVE_DEFAULT),
+        (IVec2::new(0, -1), Capability::DELTA_COST_MOVE_DEFAULT),
+        (IVec2::new(-1, 0), Capability::DELTA_COST_MOVE_DEFAULT),
+        (IVec2::new(1, 0), Capability::DELTA_COST_MOVE_DEFAULT),
+        (IVec2::new(0, 0), Capability::IDLE_COST_DEFAULT), // stay put - skip turn
     ]);
     for e in act_reader.iter() {
         if !delta_costs.contains_key(&e.delta) {
