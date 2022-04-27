@@ -7,7 +7,7 @@ use bevy_easings::*;
 use std::time::Duration;
 
 pub fn camera_set_focus_player(
-    players: Query<&Vector2D, With<MovePlayer>>,
+    players: Query<&Vector2D, With<MovingPlayer>>,
     mut map_info: ResMut<MapInfo>,
     mut cmr_wrt: EventWriter<CameraFocusEvent>,
 ) {

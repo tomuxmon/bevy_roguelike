@@ -8,6 +8,7 @@ use bevy::utils::HashMap;
 pub fn act(
     mut cmd: Commands,
     actors: Query<(Entity, &Team, &Capability, &Vector2D)>,
+    // TODO: ActComponent instead of ActEvent
     mut act_reader: EventReader<ActEvent>,
     mut ap_writer: EventWriter<SpendAPEvent>,
     mut move_writer: EventWriter<MoveEvent>,
@@ -27,21 +28,25 @@ pub fn act(
             continue;
         }
         if e.delta == IVec2::new(0, 0) {
+            // TODO: idle, rest, regen.
             ap_writer.send(SpendAPEvent::new(e.id, delta_costs[&e.delta]));
             continue;
         }
         if let Ok((_, team, cp, pt)) = actors.get(e.id) {
             let dest = **pt + e.delta;
             if !map.is_in_bounds(dest) || map[dest] != Tile::Floor {
+                // TODO: idle, rest, regen.
                 continue;
             }
             if let Some(other_team) = team_map[dest] {
                 if other_team == *team {
                     // NOTE: can not move into a tile ocupied by a team mate
+                    // TODO: idle, rest, regen.
                     continue;
                 } else {
                     ap_writer.send(SpendAPEvent::new(e.id, cp.attack_cost()));
                     cmd.spawn().insert(ModifyHP::new(dest, -cp.attack_damage()));
+                    // TODO: spawn attack animation
                 }
             } else {
                 team_map[dest] = Some(*team);
@@ -86,20 +91,27 @@ pub fn spend_ap(
 }
 
 pub fn do_move(
-    mut actors: Query<(&mut Vector2D, &mut Transform, &mut FieldOfView)>,
+    mut actors: Query<(&mut Vector2D, &mut FieldOfView)>,
     mut move_reader: EventReader<MoveEvent>,
-    map_options: Res<MapOptions>,
     mut team_map: ResMut<TeamMap>,
 ) {
     for e in move_reader.iter() {
-        if let Ok((mut pt, mut tr, mut fov)) = actors.get_mut(e.id) {
-            let z = tr.translation.z;
+        if let Ok((mut pt, mut fov)) = actors.get_mut(e.id) {
             let pt_old = **pt;
-            tr.translation = map_options.to_world_position(e.destination).extend(z);
             *pt = Vector2D::from(e.destination);
             team_map[pt_old] = None;
             fov.is_dirty = true;
         }
+    }
+}
+
+pub fn apply_position_to_transform(
+    mut actors: Query<(&Vector2D, &mut Transform, Changed<Vector2D>)>,
+    map_options: Res<MapOptions>,
+) {
+    for (pt, mut tr, _) in actors.iter_mut() {
+        let z = tr.translation.z;
+        tr.translation = map_options.to_world_position(**pt).extend(z);
     }
 }
 

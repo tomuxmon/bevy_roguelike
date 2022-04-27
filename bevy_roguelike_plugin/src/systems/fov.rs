@@ -7,7 +7,7 @@ use line_drawing::{BresenhamCircle, Supercover};
 
 pub fn field_of_view_set_vis_info(
     pool: Res<AsyncComputeTaskPool>,
-    players: Query<&FieldOfView, With<MovePlayer>>,
+    players: Query<&FieldOfView, With<MovingPlayer>>,
     mut visibles: Query<(
         &Vector2D,
         &Children,
@@ -19,6 +19,7 @@ pub fn field_of_view_set_vis_info(
         visibles.par_for_each_mut(&*pool, 16, |(pt, clds, cp, mut vt)| {
             for c in clds.iter() {
                 // TODO: rewrite with no inserts. just updates.
+                // TODO: prefill VisibilityToggle in creation
                 let is_revealed = fov.tiles_revealed.contains(&pt);
                 let is_visible = fov.tiles_visible.contains(&pt);
                 let is_ambient = cp.is_none();

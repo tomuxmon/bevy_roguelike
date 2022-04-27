@@ -3,15 +3,15 @@ use std::ops::{Deref, DerefMut};
 
 #[derive(Default, Debug, Copy, Clone, Ord, PartialOrd, Eq, PartialEq, Hash, Component, Reflect)]
 #[reflect(Component)]
-pub struct MovePlayer;
+pub struct MovingPlayer;
 
 #[derive(Debug, Default, Copy, Clone, Ord, PartialOrd, Eq, PartialEq, Hash, Component, Reflect)]
 #[reflect(Component)]
-pub struct MoveRandom;
+pub struct MovingRandom;
 
 #[derive(Debug, Default, Copy, Clone, Ord, PartialOrd, Eq, PartialEq, Hash, Component, Reflect)]
 #[reflect(Component)]
-pub struct MoveFov;
+pub struct MovingFovRandom;
 
 #[derive(Default, Debug, Copy, Clone, Ord, PartialOrd, Eq, PartialEq, Hash, Component, Reflect)]
 #[reflect(Component)]

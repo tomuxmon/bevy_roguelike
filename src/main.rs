@@ -18,7 +18,7 @@ pub enum AppState {
 
 pub fn input_player(
     keys: Res<Input<KeyCode>>,
-    players: Query<(Entity, &TurnState), With<MovePlayer>>,
+    players: Query<(Entity, &TurnState), With<MovingPlayer>>,
     mut act_writer: EventWriter<ActEvent>,
 ) {
     for (id, _) in players.iter().filter(|(_, ts)| **ts == TurnState::Act) {
@@ -41,7 +41,7 @@ pub fn input_player(
 
 pub fn input_fov_rand(
     mut rng: ResMut<StdRng>,
-    actors: Query<(Entity, &Vector2D, &Team, &TurnState, &FieldOfView), With<MoveFov>>,
+    actors: Query<(Entity, &Vector2D, &Team, &TurnState, &FieldOfView), With<MovingFovRandom>>,
     mut act_writer: EventWriter<ActEvent>,
     team_map: Res<TeamMap>,
     map: Res<Map>,
@@ -127,7 +127,7 @@ fn rogue_setup(
     mut state: ResMut<State<AppState>>,
 ) {
     cmd.insert_resource(MapOptions {
-        map_size: IVec2::new(79, 61),
+        map_size: IVec2::new(141, 89),
         tile_size: 32.0,
     });
     cmd.insert_resource(MapAssets {
