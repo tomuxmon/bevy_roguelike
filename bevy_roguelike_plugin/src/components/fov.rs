@@ -58,13 +58,17 @@ impl FieldOfView {
     pub const MIN_RADIUS: i32 = 2;
 
     pub fn new(atr: &Attributes) -> Self {
-        let radius = FieldOfView::MIN_RADIUS
-            + (atr.perception as f32 / 3. + atr.inteligence as f32 / 10.) as i32;
         Self {
-            radius,
+            radius: FieldOfView::MIN_RADIUS
+                + (atr.perception as f32 / 3. + atr.inteligence as f32 / 10.) as i32,
             tiles_visible: HashSet::default(),
             tiles_revealed: HashSet::default(),
             is_dirty: true,
         }
+    }
+    pub fn update(&mut self, atr: &Attributes) {
+        self.radius = FieldOfView::MIN_RADIUS
+            + (atr.perception as f32 / 3. + atr.inteligence as f32 / 10.) as i32;
+        self.is_dirty = true;
     }
 }

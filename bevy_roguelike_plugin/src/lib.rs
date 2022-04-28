@@ -13,6 +13,7 @@ use bevy_easings::*;
 use map_generator::{MapGenerator, RandomMapGenerator};
 use rand::prelude::*;
 use resources::*;
+use systems::actor_stats::*;
 use systems::camera::*;
 use systems::fov::*;
 use systems::turns::*;
@@ -30,6 +31,10 @@ impl<T: StateData> Plugin for RoguelikePlugin<T> {
             )
             .add_system_set(
                 SystemSet::on_update(self.running_state.clone())
+                    .with_system(attributes_update_action_points)
+                    .with_system(attributes_update_hit_points)
+                    .with_system(attributes_update_attack_stats)
+                    .with_system(attributes_update_field_of_view)
                     .with_system(gather_action_points)
                     .with_system(turn_end_now_gather.after(gather_action_points))
                     .with_system(act)

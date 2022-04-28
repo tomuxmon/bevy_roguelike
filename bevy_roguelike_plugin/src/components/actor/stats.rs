@@ -44,14 +44,18 @@ impl ActionPoints {
     pub const INCREMENT_MIN: i16 = 64;
 
     pub fn new(atr: &Attributes) -> Self {
-        let will = atr.willpower as i16;
-        let dex = atr.dexterity as i16;
-        let increment = ActionPoints::INCREMENT_MIN + dex * 7 + will * 3;
         Self {
             turn_ready: ActionPoints::TURN_READY_DEFAULT,
-            increment,
+            increment: ActionPoints::INCREMENT_MIN
+                + (atr.dexterity as i16) * 7
+                + (atr.willpower as i16) * 3,
             current: 0,
         }
+    }
+    pub fn update(&mut self, atr: &Attributes) {
+        self.turn_ready = ActionPoints::TURN_READY_DEFAULT;
+        self.increment =
+            ActionPoints::INCREMENT_MIN + (atr.dexterity as i16) * 7 + (atr.willpower as i16) * 3;
     }
 
     pub fn turn_ready_to_act(&self) -> i16 {
@@ -86,22 +90,33 @@ impl HitPoints {
     pub const REGEN_INCREMENT_MIN: i16 = 64;
 
     pub fn new(atr: &Attributes) -> Self {
-        let str = atr.strength as i16;
-        let tou = atr.toughness as i16;
-        let will = atr.willpower as i16;
-
-        let max = HitPoints::MAX_MIN + tou * 6 + str * 2 + will;
-        let regen_ready = HitPoints::REGEN_READY_DEFAULT;
-        let regen_current = 0;
-        let regen_increment = HitPoints::REGEN_INCREMENT_MIN + tou * 4 + str * 2 + will;
-
+        let max = HitPoints::MAX_MIN
+            + (atr.toughness as i16) * 6
+            + (atr.strength as i16) * 2
+            + (atr.willpower as i16);
         Self {
             max,
             current: max,
-            regen_ready,
-            regen_current,
-            regen_increment,
+            regen_ready: HitPoints::REGEN_READY_DEFAULT,
+            regen_current: 0,
+            regen_increment: HitPoints::REGEN_INCREMENT_MIN
+                + (atr.toughness as i16) * 4
+                + (atr.strength as i16) * 2
+                + (atr.willpower as i16),
         }
+    }
+    pub fn update(&mut self, atr: &Attributes) {
+        let current_ratio = self.current as f32 / self.max as f32;
+        self.max = HitPoints::MAX_MIN
+            + (atr.toughness as i16) * 6
+            + (atr.strength as i16) * 2
+            + (atr.willpower as i16);
+        self.current = (current_ratio * self.max as f32) as i16;
+        self.regen_ready = HitPoints::REGEN_READY_DEFAULT;
+        self.regen_increment = HitPoints::REGEN_INCREMENT_MIN
+            + (atr.toughness as i16) * 4
+            + (atr.strength as i16) * 2
+            + (atr.willpower as i16);
     }
 
     pub fn apply(&mut self, amount: i16) -> i16 {
@@ -138,16 +153,20 @@ impl AttackStats {
     pub const DAMAGE_MIN: i16 = 1;
 
     pub fn new(atr: &Attributes) -> Self {
-        let str = atr.strength as i16;
-        let dex = atr.dexterity as i16;
-
-        let attack_cost = i16::max(AttackStats::COST_MAX - dex * 4, AttackStats::COST_MIN);
-        let attack_damage = AttackStats::DAMAGE_MIN + str;
-
         Self {
-            cost: attack_cost,
-            damage: attack_damage,
+            cost: i16::max(
+                AttackStats::COST_MAX - (atr.dexterity as i16) * 4,
+                AttackStats::COST_MIN,
+            ),
+            damage: AttackStats::DAMAGE_MIN + (atr.strength as i16),
         }
+    }
+    pub fn update(&mut self, atr: &Attributes) {
+        self.cost = i16::max(
+            AttackStats::COST_MAX - (atr.dexterity as i16) * 4,
+            AttackStats::COST_MIN,
+        );
+        self.damage = AttackStats::DAMAGE_MIN + (atr.strength as i16);
     }
     pub fn cost(&self) -> i16 {
         self.cost
