@@ -126,20 +126,17 @@ impl<T> RoguelikePlugin<T> {
             })
             .id();
 
-        let plr_atr = Attributes::new(10, 10, 10, 10, 10, 10);
+        let plr_atr = Attributes::new(11, 11, 11, 11, 11, 11);
+        let team_player = 1;
 
         cmd.spawn()
-            .insert(Name::new("Junglo The Jorge"))
+            .insert_bundle(Actor::new(
+                "Player",
+                team_player,
+                plr_atr,
+                info.player_start,
+            ))
             .insert(MovingPlayer {})
-            .insert(Team::new(1))
-            .insert(TurnState::default())
-            .insert(ActionPoints::new(&plr_atr))
-            .insert(HitPoints::new(&plr_atr))
-            .insert(AttackStats::new(&plr_atr))
-            .insert(FieldOfView::new(&plr_atr))
-            .insert(plr_atr)
-            .insert(VisibilityToggle::default())
-            .insert(Vector2D::from(info.player_start))
             .insert(Transform::from_translation(
                 options.to_world_position(info.player_start).extend(2.),
             ))
@@ -159,7 +156,7 @@ impl<T> RoguelikePlugin<T> {
                     .insert_bundle(get_hud_bundle(options.tile_size));
             });
 
-        team_map[info.player_start] = Some(Team::new(1));
+        team_map[info.player_start] = Some(Team::new(team_player));
 
         let enemies_id = cmd
             .spawn()
@@ -177,20 +174,11 @@ impl<T> RoguelikePlugin<T> {
                         2 + rng.gen_range(0..9),
                     );
 
-                    let monster_team = Team::new(1 + rng.gen_range(1..4));
+                    let team_monster = 1 + rng.gen_range(1..4);
 
                     enms.spawn()
-                        .insert(Name::new("Enemy"))
+                        .insert_bundle(Actor::new("Enemy", team_monster, mon_atr, mpt))
                         .insert(MovingFovRandom {})
-                        .insert(monster_team)
-                        .insert(TurnState::default())
-                        .insert(ActionPoints::new(&mon_atr))
-                        .insert(HitPoints::new(&mon_atr))
-                        .insert(AttackStats::new(&mon_atr))
-                        .insert(FieldOfView::new(&mon_atr))
-                        .insert(mon_atr)
-                        .insert(VisibilityToggle::default())
-                        .insert(Vector2D::from(mpt))
                         .insert(Transform::from_translation(
                             options.to_world_position(mpt).extend(2.),
                         ))
@@ -206,7 +194,7 @@ impl<T> RoguelikePlugin<T> {
                                 .insert_bundle(get_hud_bundle(options.tile_size));
                         });
 
-                    team_map[mpt] = Some(monster_team);
+                    team_map[mpt] = Some(Team::new(team_monster));
                 }
             })
             .id();

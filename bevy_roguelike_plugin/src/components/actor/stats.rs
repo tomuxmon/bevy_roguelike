@@ -130,6 +130,7 @@ impl HitPoints {
 pub struct AttackStats {
     cost: i16,
     damage: i16,
+    // TODO: chance to hit
 }
 impl AttackStats {
     pub const COST_MAX: i16 = 128;
