@@ -1,6 +1,8 @@
 use bevy::prelude::*;
+pub use stats::ActionPoints;
+pub use stats::AttackStats;
 pub use stats::Attributes;
-pub use stats::Capability;
+pub use stats::HitPoints;
 
 pub mod stats;
 

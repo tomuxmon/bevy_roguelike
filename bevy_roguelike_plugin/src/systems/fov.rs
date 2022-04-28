@@ -11,22 +11,23 @@ pub fn field_of_view_set_vis_info(
     mut visibles: Query<(
         &Vector2D,
         &Children,
-        Option<&Capability>,
+        Option<&ActionPoints>,
+        Option<&HitPoints>,
         &mut VisibilityToggle,
     )>,
 ) {
     for fov in players.iter() {
-        visibles.par_for_each_mut(&*pool, 16, |(pt, clds, cp, mut vt)| {
+        visibles.par_for_each_mut(&*pool, 16, |(pt, clds, cp, hp, mut vt)| {
             for c in clds.iter() {
                 // TODO: rewrite with no inserts. just updates.
                 // TODO: prefill VisibilityToggle in creation
                 let is_revealed = fov.tiles_revealed.contains(&pt);
                 let is_visible = fov.tiles_visible.contains(&pt);
                 let is_ambient = cp.is_none();
-                let percent_health = if cp.is_none() {
-                    100
+                let percent_health = if hp.is_none() {
+                    1.
                 } else {
-                    cp.unwrap().hp_percent()
+                    hp.unwrap().percent()
                 };
                 vt.insert(
                     *c,
@@ -64,13 +65,11 @@ pub fn field_of_view_set_vis(
                         Color::rgb(0.65, 0.65, 0.65)
                     };
                 } else {
-                    let g = i.hp_percent as f32 / 100.;
-                    let r = (100. - i.hp_percent as f32) / 100.;
-                    s.color.set_g(g);
-                    s.color.set_r(r);
+                    s.color.set_g(i.hp_percent);
+                    s.color.set_r(1. - i.hp_percent);
 
                     if let Some(size) = s.custom_size {
-                        let x = map_options.tile_size * i.hp_percent as f32 / 100.;
+                        let x = map_options.tile_size * i.hp_percent;
                         let slide = map_options.tile_size - x;
                         s.custom_size = Some(Vec2::new(x, size.y));
                         t.translation.x = -slide / 2.;

@@ -49,7 +49,10 @@ impl<T: StateData> Plugin for RoguelikePlugin<T> {
             )
             .register_type::<Vector2D>()
             .register_type::<MapTile>()
-            .register_type::<Capability>()
+            .register_type::<Attributes>()
+            .register_type::<ActionPoints>()
+            .register_type::<AttackStats>()
+            .register_type::<HitPoints>()
             .register_type::<TurnState>()
             .register_type::<ModifyHP>()
             .register_type::<Team>()
@@ -57,7 +60,6 @@ impl<T: StateData> Plugin for RoguelikePlugin<T> {
             .register_type::<MovingRandom>()
             .register_type::<MovingFovRandom>()
             .register_type::<FieldOfView>()
-            .register_type::<Attributes>()
             .add_event::<SpendAPEvent>()
             .add_event::<MoveEvent>()
             .add_event::<ActEvent>()
@@ -124,16 +126,18 @@ impl<T> RoguelikePlugin<T> {
             })
             .id();
 
-        let player_attributes = Attributes::new(10, 10, 10, 10, 10, 10);
+        let plr_atr = Attributes::new(10, 10, 10, 10, 10, 10);
 
         cmd.spawn()
-            .insert(Name::new("Player"))
+            .insert(Name::new("Junglo The Jorge"))
             .insert(MovingPlayer {})
             .insert(Team::new(1))
             .insert(TurnState::default())
-            .insert(player_attributes.clone())
-            .insert(Capability::new(player_attributes.clone()))
-            .insert(FieldOfView::new(9))
+            .insert(ActionPoints::new(&plr_atr))
+            .insert(HitPoints::new(&plr_atr))
+            .insert(AttackStats::new(&plr_atr))
+            .insert(FieldOfView::new(&plr_atr))
+            .insert(plr_atr)
             .insert(VisibilityToggle::default())
             .insert(Vector2D::from(info.player_start))
             .insert(Transform::from_translation(
@@ -164,7 +168,7 @@ impl<T> RoguelikePlugin<T> {
             .insert(GlobalTransform::default())
             .with_children(|enms| {
                 for mpt in info.monster_spawns.clone() {
-                    let monster_attributes = Attributes::new(
+                    let mon_atr = Attributes::new(
                         2 + rng.gen_range(0..9),
                         2 + rng.gen_range(0..9),
                         2 + rng.gen_range(0..9),
@@ -180,9 +184,11 @@ impl<T> RoguelikePlugin<T> {
                         .insert(MovingFovRandom {})
                         .insert(monster_team)
                         .insert(TurnState::default())
-                        .insert(monster_attributes.clone())
-                        .insert(Capability::new(monster_attributes.clone()))
-                        .insert(FieldOfView::new(5))
+                        .insert(ActionPoints::new(&mon_atr))
+                        .insert(HitPoints::new(&mon_atr))
+                        .insert(AttackStats::new(&mon_atr))
+                        .insert(FieldOfView::new(&mon_atr))
+                        .insert(mon_atr)
                         .insert(VisibilityToggle::default())
                         .insert(Vector2D::from(mpt))
                         .insert(Transform::from_translation(

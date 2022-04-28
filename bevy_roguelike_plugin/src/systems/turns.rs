@@ -7,7 +7,7 @@ use bevy::utils::HashMap;
 
 pub fn act(
     mut cmd: Commands,
-    actors: Query<(Entity, &Team, &Capability, &Vector2D)>,
+    actors: Query<(&Team, &AttackStats, &Vector2D)>,
     // TODO: ActComponent instead of ActEvent
     mut act_reader: EventReader<ActEvent>,
     mut ap_writer: EventWriter<SpendAPEvent>,
@@ -17,11 +17,11 @@ pub fn act(
     mut team_map: ResMut<TeamMap>,
 ) {
     let delta_costs = HashMap::from_iter(vec![
-        (IVec2::new(0, 1), Capability::DELTA_COST_MOVE_DEFAULT),
-        (IVec2::new(0, -1), Capability::DELTA_COST_MOVE_DEFAULT),
-        (IVec2::new(-1, 0), Capability::DELTA_COST_MOVE_DEFAULT),
-        (IVec2::new(1, 0), Capability::DELTA_COST_MOVE_DEFAULT),
-        (IVec2::new(0, 0), Capability::IDLE_COST_DEFAULT), // stay put - skip turn
+        (IVec2::new(0, 1), ActionPoints::DELTA_COST_MOVE_DEFAULT),
+        (IVec2::new(0, -1), ActionPoints::DELTA_COST_MOVE_DEFAULT),
+        (IVec2::new(-1, 0), ActionPoints::DELTA_COST_MOVE_DEFAULT),
+        (IVec2::new(1, 0), ActionPoints::DELTA_COST_MOVE_DEFAULT),
+        (IVec2::new(0, 0), ActionPoints::IDLE_COST_DEFAULT), // stay put - skip turn
     ]);
     for e in act_reader.iter() {
         if !delta_costs.contains_key(&e.delta) {
@@ -33,7 +33,7 @@ pub fn act(
             ap_writer.send(SpendAPEvent::new(e.id, delta_costs[&e.delta]));
             continue;
         }
-        if let Ok((_, team, cp, pt)) = actors.get(e.id) {
+        if let Ok((team, atk, pt)) = actors.get(e.id) {
             let dest = **pt + e.delta;
             if !map.is_in_bounds(dest) || map[dest] != Tile::Floor {
                 idle_writer.send(IdleEvent::new(e.id));
@@ -45,8 +45,8 @@ pub fn act(
                     idle_writer.send(IdleEvent::new(e.id));
                     continue;
                 } else {
-                    ap_writer.send(SpendAPEvent::new(e.id, cp.attack_cost()));
-                    cmd.spawn().insert(ModifyHP::new(dest, -cp.attack_damage()));
+                    ap_writer.send(SpendAPEvent::new(e.id, atk.cost()));
+                    cmd.spawn().insert(ModifyHP::new(dest, -atk.damage()));
                     // TODO: spawn attack animation
                 }
             } else {
@@ -60,16 +60,15 @@ pub fn act(
 
 pub fn apply_hp_modify(
     mut cmd: Commands,
-    mut actors: Query<(Entity, &Vector2D, &mut Capability)>,
+    mut actors: Query<(Entity, &Vector2D, &mut HitPoints)>,
     hp_mod: Query<(Entity, &ModifyHP)>,
     mut team_map: ResMut<TeamMap>,
 ) {
     for (e, hpm) in hp_mod.iter() {
-        if let Some((ee, pt, mut cp)) = actors.iter_mut().find(|(_, p, _)| ***p == hpm.location) {
-            cp.hp_apply(hpm.amount);
-            if cp.hp_current() <= 0 {
+        if let Some((ee, pt, mut hp)) = actors.iter_mut().find(|(_, p, _)| ***p == hpm.location) {
+            hp.apply(hpm.amount);
+            if hp.current() <= 0 {
                 // TODO: animated death
-                log::info!("death to {:?}!", ee);
                 cmd.entity(ee).despawn_recursive();
                 team_map[**pt] = None;
             }
@@ -79,22 +78,22 @@ pub fn apply_hp_modify(
 }
 
 pub fn spend_ap(
-    mut actors: Query<(&mut Capability, &mut TurnState)>,
+    mut actors: Query<(&mut ActionPoints, &mut TurnState)>,
     mut ap_reader: EventReader<SpendAPEvent>,
 ) {
     for e in ap_reader.iter() {
-        if let Ok((mut cp, mut ts)) = actors.get_mut(e.id) {
-            if cp.ap_current_minus(e.amount) < cp.ap_turn_ready_to_act() {
+        if let Ok((mut ap, mut ts)) = actors.get_mut(e.id) {
+            if ap.current_minus(e.amount) < ap.turn_ready_to_act() {
                 *ts = TurnState::End;
             }
         }
     }
 }
 
-pub fn idle_rest(mut actors: Query<&mut Capability>, mut idle_reader: EventReader<IdleEvent>) {
+pub fn idle_rest(mut actors: Query<&mut HitPoints>, mut idle_reader: EventReader<IdleEvent>) {
     for e in idle_reader.iter() {
-        if let Ok(mut cp) = actors.get_mut(e.id) {
-            cp.regen();
+        if let Ok(mut hp) = actors.get_mut(e.id) {
+            hp.regen();
         }
     }
 }
@@ -126,11 +125,11 @@ pub fn apply_position_to_transform(
 
 pub fn gather_action_points(
     pool: Res<AsyncComputeTaskPool>,
-    mut actors: Query<(&mut Capability, &mut TurnState)>,
+    mut actors: Query<(&mut ActionPoints, &mut TurnState)>,
 ) {
-    actors.par_for_each_mut(&*pool, 16, |(mut cp, mut ts)| {
+    actors.par_for_each_mut(&*pool, 16, |(mut ap, mut ts)| {
         if *ts == TurnState::Collect {
-            *ts = if cp.ap_current_add() > cp.ap_turn_ready_to_act() {
+            *ts = if ap.current_add() > ap.turn_ready_to_act() {
                 TurnState::Act
             } else {
                 // NOTE: not yet ready to perform turn.

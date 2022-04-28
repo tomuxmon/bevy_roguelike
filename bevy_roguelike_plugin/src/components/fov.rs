@@ -1,20 +1,20 @@
-use std::ops::{Deref, DerefMut};
-
+use super::Attributes;
 use bevy::{
     prelude::*,
     utils::{HashMap, HashSet},
 };
+use std::ops::{Deref, DerefMut};
 
-#[derive(Default, Debug, Clone, Eq, PartialEq, Component, Reflect)]
+#[derive(Default, Debug, Clone, Component, Reflect)]
 #[reflect(Component)]
 pub struct VisibilityInfo {
     pub is_revealed: bool,
     pub is_visible: bool,
     pub is_ambient: bool,
-    pub hp_percent: u8,
+    pub hp_percent: f32,
 }
 impl VisibilityInfo {
-    pub fn new(is_revealed: bool, is_visible: bool, is_ambient: bool, hp_percent: u8) -> Self {
+    pub fn new(is_revealed: bool, is_visible: bool, is_ambient: bool, hp_percent: f32) -> Self {
         Self {
             is_revealed,
             is_visible,
@@ -23,11 +23,11 @@ impl VisibilityInfo {
         }
     }
     pub fn is_damaged(&self) -> bool {
-        self.hp_percent != 100
+        self.hp_percent != 1.
     }
 }
 
-#[derive(Default, Debug, Clone, Eq, PartialEq, Component, Reflect)]
+#[derive(Default, Debug, Clone, Component, Reflect)]
 #[reflect(Component)]
 pub struct VisibilityToggle {
     inner: HashMap<Entity, VisibilityInfo>,
@@ -55,7 +55,11 @@ pub struct FieldOfView {
 }
 
 impl FieldOfView {
-    pub fn new(radius: i32) -> Self {
+    pub const MIN_RADIUS: i32 = 2;
+
+    pub fn new(atr: &Attributes) -> Self {
+        let radius = FieldOfView::MIN_RADIUS
+            + (atr.perception as f32 / 3. + atr.inteligence as f32 / 10.) as i32;
         Self {
             radius,
             tiles_visible: HashSet::default(),

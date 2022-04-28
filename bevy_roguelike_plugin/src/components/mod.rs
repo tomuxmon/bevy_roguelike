@@ -1,5 +1,7 @@
+pub use actor::stats::ActionPoints;
+pub use actor::stats::AttackStats;
 pub use actor::stats::Attributes;
-pub use actor::stats::Capability;
+pub use actor::stats::HitPoints;
 pub use actor::ModifyHP;
 pub use actor::MovingFovRandom;
 pub use actor::MovingPlayer;
