@@ -130,17 +130,14 @@ impl<T> RoguelikePlugin<T> {
         let team_player = 1;
 
         cmd.spawn()
+            .insert(MovingPlayer {})
             .insert_bundle(Actor::new(
                 "Player",
                 team_player,
                 plr_atr,
                 info.player_start,
+                &options,
             ))
-            .insert(MovingPlayer {})
-            .insert(Transform::from_translation(
-                options.to_world_position(info.player_start).extend(2.),
-            ))
-            .insert(GlobalTransform::default())
             .with_children(|player| {
                 player
                     .spawn()
@@ -177,12 +174,8 @@ impl<T> RoguelikePlugin<T> {
                     let team_monster = 1 + rng.gen_range(1..4);
 
                     enms.spawn()
-                        .insert_bundle(Actor::new("Enemy", team_monster, mon_atr, mpt))
                         .insert(MovingFovRandom {})
-                        .insert(Transform::from_translation(
-                            options.to_world_position(mpt).extend(2.),
-                        ))
-                        .insert(GlobalTransform::default())
+                        .insert_bundle(Actor::new("Enemy", team_monster, mon_atr, mpt, &options))
                         .with_children(|enemy| {
                             enemy.spawn().insert(Name::new("body")).insert_bundle(
                                 get_enemy_body_bundle(&enemy_assets, &mut rng, options.tile_size),

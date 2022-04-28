@@ -1,6 +1,7 @@
 use super::FieldOfView;
 use super::Vector2D;
 use super::VisibilityToggle;
+use crate::resources::MapOptions;
 use bevy::prelude::*;
 use std::borrow::Cow;
 
@@ -24,6 +25,8 @@ pub struct Actor {
     fov: FieldOfView,
     toggle: VisibilityToggle,
     position: Vector2D,
+    #[bundle]
+    transform: TransformBundle,
 }
 impl Actor {
     pub fn new(
@@ -31,6 +34,7 @@ impl Actor {
         team: u32,
         attributes: Attributes,
         position: IVec2,
+        options: &MapOptions,
     ) -> Self {
         Self {
             name: Name::new(name),
@@ -43,6 +47,10 @@ impl Actor {
             fov: FieldOfView::new(&attributes),
             toggle: VisibilityToggle::default(),
             position: Vector2D::from(position),
+            transform: TransformBundle {
+                local: Transform::from_translation(options.to_world_position(position).extend(2.)),
+                ..Default::default()
+            },
         }
     }
 }
