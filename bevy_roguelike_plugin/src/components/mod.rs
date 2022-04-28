@@ -1,19 +1,18 @@
-pub use acting::Capability;
-pub use acting::ModifyHP;
-pub use acting::TurnState;
-pub use actor::Attributes;
+pub use actor::stats::Attributes;
+pub use actor::stats::Capability;
+pub use actor::ModifyHP;
 pub use actor::MovingFovRandom;
 pub use actor::MovingPlayer;
 pub use actor::MovingRandom;
 pub use actor::OnTopHud;
 pub use actor::Team;
+pub use actor::TurnState;
 pub use environment::MapTile;
 pub use fov::FieldOfView;
 pub use fov::VisibilityInfo;
 pub use fov::VisibilityToggle;
 pub use vector2d::Vector2D;
 
-mod acting;
 mod actor;
 mod environment;
 mod fov;

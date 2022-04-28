@@ -1,5 +1,21 @@
-use bevy::{prelude::*, utils::HashMap};
-use std::ops::{Deref, DerefMut};
+use bevy::prelude::*;
+pub use stats::Attributes;
+pub use stats::Capability;
+
+pub mod stats;
+
+#[derive(Debug, Copy, Clone, Ord, PartialOrd, Eq, PartialEq, Hash, Component, Reflect)]
+#[reflect(Component)]
+pub enum TurnState {
+    Collect,
+    Act,
+    End,
+}
+impl Default for TurnState {
+    fn default() -> Self {
+        TurnState::Collect
+    }
+}
 
 #[derive(Default, Debug, Copy, Clone, Ord, PartialOrd, Eq, PartialEq, Hash, Component, Reflect)]
 #[reflect(Component)]
@@ -27,29 +43,18 @@ impl Team {
 
 #[derive(Default, Debug, Clone, Eq, PartialEq, Component, Reflect)]
 #[reflect(Component)]
-pub struct Attributes {
-    inner: HashMap<String, i32>,
-}
-impl Attributes {
-    pub fn new(attribs: impl IntoIterator<Item = (String, i32)>) -> Self {
-        Self {
-            inner: HashMap::from_iter(attribs),
-        }
-    }
-}
-impl Deref for Attributes {
-    type Target = HashMap<String, i32>;
-
-    fn deref(&self) -> &Self::Target {
-        &self.inner
-    }
-}
-impl DerefMut for Attributes {
-    fn deref_mut(&mut self) -> &mut Self::Target {
-        &mut self.inner
-    }
-}
-
-#[derive(Default, Debug, Clone, Eq, PartialEq, Component, Reflect)]
-#[reflect(Component)]
 pub struct OnTopHud;
+
+// NOTE: a clunky component to transfer damage
+#[derive(Default, Debug, Copy, Clone, Eq, PartialEq, Hash, Component, Reflect)]
+#[reflect(Component)]
+pub struct ModifyHP {
+    pub location: IVec2,
+    pub amount: i16,
+}
+
+impl ModifyHP {
+    pub fn new(location: IVec2, amount: i16) -> Self {
+        Self { location, amount }
+    }
+}

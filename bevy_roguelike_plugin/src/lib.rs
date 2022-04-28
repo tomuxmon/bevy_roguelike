@@ -124,13 +124,7 @@ impl<T> RoguelikePlugin<T> {
             })
             .id();
 
-        let player_attributes = Attributes::new(vec![
-            ("strength".to_string(), 10),
-            ("toughness".to_string(), 10),
-            ("dexterity".to_string(), 10),
-            ("willpower".to_string(), 10),
-            ("perception".to_string(), 10),
-        ]);
+        let player_attributes = Attributes::new(10, 10, 10, 10, 10, 10);
 
         cmd.spawn()
             .insert(Name::new("Player"))
@@ -170,13 +164,14 @@ impl<T> RoguelikePlugin<T> {
             .insert(GlobalTransform::default())
             .with_children(|enms| {
                 for mpt in info.monster_spawns.clone() {
-                    let monster_attributes = Attributes::new(vec![
-                        ("strength".to_string(), 2 + rng.gen_range(0..9)),
-                        ("toughness".to_string(), 2 + rng.gen_range(0..9)),
-                        ("dexterity".to_string(), 2 + rng.gen_range(0..9)),
-                        ("willpower".to_string(), 2 + rng.gen_range(0..9)),
-                        ("perception".to_string(), 2 + rng.gen_range(0..9)),
-                    ]);
+                    let monster_attributes = Attributes::new(
+                        2 + rng.gen_range(0..9),
+                        2 + rng.gen_range(0..9),
+                        2 + rng.gen_range(0..9),
+                        2 + rng.gen_range(0..9),
+                        2 + rng.gen_range(0..9),
+                        2 + rng.gen_range(0..9),
+                    );
 
                     let monster_team = Team::new(1 + rng.gen_range(1..4));
 

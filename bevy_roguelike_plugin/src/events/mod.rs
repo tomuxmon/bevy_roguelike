@@ -16,11 +16,11 @@ impl ActEvent {
 #[derive(Debug, Copy, Clone)]
 pub struct SpendAPEvent {
     pub id: Entity,
-    pub amount: i32,
+    pub amount: i16,
 }
 
 impl SpendAPEvent {
-    pub fn new(id: Entity, amount: i32) -> Self {
+    pub fn new(id: Entity, amount: i16) -> Self {
         Self { id, amount }
     }
 }
