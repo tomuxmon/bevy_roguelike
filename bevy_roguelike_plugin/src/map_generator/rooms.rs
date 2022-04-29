@@ -1,6 +1,3 @@
-use bevy::math::IVec2;
-use line_drawing::WalkGrid;
-
 use super::prelude::*;
 
 const DEFAULT_R0OM_SIZE_RATIO: f32 = 0.19;
@@ -20,7 +17,7 @@ impl Default for RoomsGenerator {
 }
 
 impl MapGenerator for RoomsGenerator {
-    fn gen(&self, rng: &mut StdRng, size: IVec2) -> (Map, MapInfo) {
+    fn gen(&self, rng: &mut StdRng, size: IVec2) -> Map {
         let mut map = Map::filled_with(size, Tile::Wall);
         let room_size_max = (size.as_vec2() * self.room_size_ratio).as_ivec2();
         let room_count = ((size.x * size.y) as f32 * self.room_count_ratio) as usize;
@@ -36,13 +33,7 @@ impl MapGenerator for RoomsGenerator {
         }
         carve_coriddors(&mut map, rooms.clone());
 
-        let room_centers: Vec<IVec2> = rooms.iter().map(|r| r.get_center()).collect();
-        let info = MapInfo::new(
-            room_centers[0],
-            room_centers.clone(),
-            room_centers[1..room_centers.len()].to_vec(),
-        );
-        (map, info)
+        map
     }
 }
 

@@ -10,7 +10,7 @@ use bevy::ecs::schedule::StateData;
 use bevy::log;
 use bevy::prelude::*;
 use bevy_easings::*;
-use map_generator::{MapGenerator, RandomMapGenerator};
+use map_generator::*;
 use rand::prelude::*;
 use resources::*;
 use systems::actor_stats::*;
@@ -107,7 +107,8 @@ impl<T> RoguelikePlugin<T> {
         let mut rng = StdRng::from_rng(trng).expect("Could not construct StdRng using ThreadRng");
 
         let map_generator = RandomMapGenerator {};
-        let (map, info) = map_generator.gen(&mut rng, options.map_size);
+        let map = map_generator.gen(&mut rng, options.map_size);
+        let info = MapInfo::from_map(&map, &mut rng);
         let mut team_map = TeamMap::empty(options.map_size);
 
         #[cfg(feature = "debug")]

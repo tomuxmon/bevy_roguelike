@@ -1,4 +1,5 @@
-use crate::resources::{Map, MapOptions, TeamMap, Tile};
+use crate::map_generator::*;
+use crate::resources::{MapOptions, TeamMap};
 use crate::{components::*, events::*};
 use bevy::log;
 use bevy::prelude::*;

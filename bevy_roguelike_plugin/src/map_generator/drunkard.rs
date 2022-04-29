@@ -1,5 +1,4 @@
 use super::prelude::*;
-use bevy::math::IVec2;
 
 const DEFAULT_WALK_RATIO: f32 = 0.015;
 const DEFAULT_FLOOR_RATIO: f32 = 0.6;
@@ -19,7 +18,7 @@ impl Default for DrunkardGenerator {
 }
 
 impl MapGenerator for DrunkardGenerator {
-    fn gen(&self, rng: &mut StdRng, size: IVec2) -> (Map, MapInfo) {
+    fn gen(&self, rng: &mut StdRng, size: IVec2) -> Map {
         let mut map = Map::filled_with(size, Tile::Wall);
         let mut room_centers = Vec::new();
         let walk_steps = ((size.x * size.y) as f32 * self.walk_ratio) as usize;
@@ -37,28 +36,7 @@ impl MapGenerator for DrunkardGenerator {
             }
         }
 
-        let floor: Vec<IVec2> = map
-            .enumerate()
-            .filter(|(_, t)| **t == Tile::Floor)
-            .map(|(p, _)| p)
-            .collect();
-
-        let pidx = rng.gen_range(0..floor.len());
-
-        let monster_count = floor.len() / 16;
-        let player_start = floor[pidx];
-        let mut monster_spawns = Vec::new();
-        while monster_spawns.len() < monster_count {
-            let midx = rng.gen_range(0..floor.len());
-            let pt = floor[midx];
-            if midx != pidx && !monster_spawns.contains(&pt) {
-                monster_spawns.push(pt);
-            }
-        }
-
-        let info = MapInfo::new(player_start, room_centers, monster_spawns);
-
-        (map, info)
+        map
     }
 }
 
@@ -68,6 +46,7 @@ fn walk(from: IVec2, max_step: usize, rng: &mut StdRng, map: &mut Map) -> IVec2 
     let mut step = 0;
     loop {
         // Carve it!
+        // TODO: carved floor counter to eliminate  .. Tile::Floor).count()
         let tile = &mut map[pt];
         *tile = Tile::Floor;
 

@@ -1,27 +1,32 @@
 mod drunkard;
 mod empty;
 mod life;
+mod map;
 mod rect;
 mod rooms;
 
 mod prelude {
+    pub use super::map::Map;
+    pub use super::map::Tile;
     pub use super::rect::Rect;
     pub use super::MapGenerator;
-    pub use crate::resources::{Map, MapInfo, Tile};
     pub use bevy::log;
+    pub use bevy::math::IVec2;
+    pub use line_drawing::WalkGrid;
     pub use rand::prelude::*;
 }
 
-use crate::resources::{Map, MapInfo};
-use bevy::math::IVec2;
 pub use drunkard::DrunkardGenerator;
-use empty::EmptyGenerator;
+pub use empty::EmptyGenerator;
 pub use life::ConwayLifeGenerator;
-use rand::prelude::*;
+pub use map::Map;
+pub use map::Tile;
 pub use rooms::RoomsGenerator;
 
+use prelude::*;
+
 pub trait MapGenerator {
-    fn gen(&self, rng: &mut StdRng, size: IVec2) -> (Map, MapInfo);
+    fn gen(&self, rng: &mut StdRng, size: IVec2) -> Map;
 }
 
 // TODO: separate as a separate lib not depending on bevy
@@ -34,8 +39,8 @@ pub trait MapGenerator {
 pub struct RandomMapGenerator {}
 
 impl MapGenerator for RandomMapGenerator {
-    fn gen(&self, rng: &mut StdRng, size: IVec2) -> (Map, MapInfo) {
-        let generator: Box<dyn MapGenerator> = match rng.gen_range(0..3) {
+    fn gen(&self, rng: &mut StdRng, size: IVec2) -> Map {
+        let generator: Box<dyn MapGenerator> = match rng.gen_range(0..4) {
             0 => Box::new(ConwayLifeGenerator::default()),
             1 => Box::new(DrunkardGenerator::default()),
             2 => Box::new(RoomsGenerator::default()),

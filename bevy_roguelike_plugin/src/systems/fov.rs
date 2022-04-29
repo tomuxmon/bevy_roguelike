@@ -1,7 +1,4 @@
-use crate::{
-    components::*,
-    resources::{Map, MapOptions, Tile},
-};
+use crate::{components::*, map_generator::*, resources::MapOptions};
 use bevy::{prelude::*, tasks::*, utils::HashSet};
 use line_drawing::{BresenhamCircle, Supercover};
 

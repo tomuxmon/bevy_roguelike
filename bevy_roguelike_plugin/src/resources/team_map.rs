@@ -1,9 +1,7 @@
-use std::ops::{Index, IndexMut};
-
 use crate::components::Team;
+use crate::map_generator::Map;
 use bevy::prelude::*;
-
-use super::Map;
+use std::ops::{Index, IndexMut};
 
 #[derive(Debug, Clone)]
 pub struct TeamMap {
