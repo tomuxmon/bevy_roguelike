@@ -24,6 +24,7 @@ pub trait MapGenerator {
     fn gen(&self, rng: &mut StdRng, size: IVec2) -> (Map, MapInfo);
 }
 
+// TODO: separate as a separate lib not depending on bevy
 // TODO: implement possibility to do map generation composition (mix multiple generators)
 // TODO: implement space straversal and room detector
 // TODO: dijkstra plotting to determine distinct not connected rooms
