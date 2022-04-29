@@ -127,7 +127,7 @@ fn rogue_setup(
     mut state: ResMut<State<AppState>>,
 ) {
     cmd.insert_resource(MapOptions {
-        map_size: IVec2::new(19, 17),
+        map_size: IVec2::new(40, 25),
         tile_size: 32.0,
     });
     cmd.insert_resource(MapAssets {

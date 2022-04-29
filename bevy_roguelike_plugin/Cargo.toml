@@ -10,6 +10,7 @@ default = []
 debug = ["colored", "bevy-inspector-egui"]
 
 [dependencies]
+# TODO: migrate to bevy_tweening
 bevy_easings = "~0.7"
 line_drawing = "~1.0"
 rand = "~0.8"

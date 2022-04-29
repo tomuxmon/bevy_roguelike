@@ -1,9 +1,10 @@
 use bevy::math::IVec2;
+use line_drawing::WalkGrid;
 
 use super::prelude::*;
 
 const DEFAULT_R0OM_SIZE_RATIO: f32 = 0.19;
-const DEFAULT_ROOM_COUNT_RATIO: f32 = 0.005;
+const DEFAULT_ROOM_COUNT_RATIO: f32 = 0.017;
 
 pub struct RoomsGenerator {
     pub room_size_ratio: f32,
@@ -33,7 +34,7 @@ impl MapGenerator for RoomsGenerator {
                 }
             });
         }
-        carve_coriddors(&mut map, rooms.clone(), rng);
+        carve_coriddors(&mut map, rooms.clone());
 
         let room_centers: Vec<IVec2> = rooms.iter().map(|r| r.get_center()).collect();
         let info = MapInfo::new(
@@ -45,45 +46,17 @@ impl MapGenerator for RoomsGenerator {
     }
 }
 
-fn carve_coriddors(map: &mut Map, rooms: Vec<Rect>, rng: &mut StdRng) {
+fn carve_coriddors(map: &mut Map, rooms: Vec<Rect>) {
     let mut rooms = rooms.clone();
     rooms.sort_by(|a, b| a.get_center().y.cmp(&b.get_center().y));
     for (i, room) in rooms.iter().enumerate().skip(1) {
         let prev = rooms[i - 1].get_center();
         let new = room.get_center();
-        for pt in get_converging_carv_points(map, rng, prev, new) {
+        for pt in WalkGrid::new((prev.x, prev.y), (new.x, new.y)).map(|(x, y)| IVec2::new(x, y)) {
             let tile = &mut map[pt];
             *tile = Tile::Floor;
         }
     }
-}
-
-fn get_converging_carv_points(map: &Map, rng: &mut StdRng, c1: IVec2, c2: IVec2) -> Vec<IVec2> {
-    let mut path = Vec::new();
-    let mut pt = c1;
-    // even distribution of deltas
-    let mut deltas = Vec::new();
-    deltas.push(IVec2::new(1, 0));
-    deltas.push(IVec2::new(-1, 0));
-    deltas.push(IVec2::new(0, 1));
-    deltas.push(IVec2::new(0, -1));
-
-    let mut distance = pt.as_vec2().distance_squared(c2.as_vec2());
-
-    while pt != c2 {
-        let distance_last = distance;
-        let delta = deltas[rng.gen_range(0..deltas.len())];
-        if !map.is_in_bounds(pt + delta)
-            || map.is_edge(pt + delta)
-            || (pt + delta).as_vec2().distance_squared(c2.as_vec2()) > distance_last
-        {
-            continue;
-        }
-        pt = pt + delta;
-        distance = pt.as_vec2().distance_squared(c2.as_vec2());
-        path.push(pt);
-    }
-    path
 }
 
 fn build_rooms(
@@ -97,8 +70,8 @@ fn build_rooms(
     while rooms.len() < room_count && i > 1 {
         i -= 1;
         let room_size = IVec2::new(
-            rng.gen_range(i32::max(room_size_max.x / 4, 3)..room_size_max.x),
-            rng.gen_range(i32::max(room_size_max.y / 4, 3)..room_size_max.y),
+            rng.gen_range(i32::max(room_size_max.x / 4, 3)..i32::max(room_size_max.x, 5)),
+            rng.gen_range(i32::max(room_size_max.y / 4, 3)..i32::max(room_size_max.y, 5)),
         );
         let room = Rect::new(
             IVec2::new(

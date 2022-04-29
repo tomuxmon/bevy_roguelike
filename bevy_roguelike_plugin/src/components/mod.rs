@@ -19,4 +19,5 @@ pub use vector2d::Vector2D;
 mod actor;
 mod environment;
 mod fov;
+mod item;
 mod vector2d;
