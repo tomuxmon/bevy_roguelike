@@ -17,6 +17,7 @@ use systems::actor_stats::*;
 use systems::camera::*;
 use systems::fov::*;
 use systems::item::*;
+use systems::map::*;
 use systems::render::*;
 use systems::turns::*;
 

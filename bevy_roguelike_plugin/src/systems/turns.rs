@@ -1,9 +1,9 @@
 use crate::map_generator::*;
-use crate::resources::{MapOptions, TeamMap};
+use crate::resources::TeamMap;
 use crate::{components::*, events::*};
 use bevy::log;
 use bevy::prelude::*;
-use bevy::tasks::AsyncComputeTaskPool;
+use bevy::tasks::ComputeTaskPool;
 use bevy::utils::HashMap;
 
 pub fn act(
@@ -114,18 +114,8 @@ pub fn do_move(
     }
 }
 
-pub fn apply_position_to_transform(
-    mut actors: Query<(&Vector2D, &mut Transform, Changed<Vector2D>)>,
-    map_options: Res<MapOptions>,
-) {
-    for (pt, mut tr, _) in actors.iter_mut() {
-        let z = tr.translation.z;
-        tr.translation = map_options.to_world_position(**pt).extend(z);
-    }
-}
-
 pub fn gather_action_points(
-    pool: Res<AsyncComputeTaskPool>,
+    pool: Res<ComputeTaskPool>,
     mut actors: Query<(&mut ActionPoints, &mut TurnState)>,
 ) {
     actors.par_for_each_mut(&*pool, 16, |(mut ap, mut ts)| {
@@ -140,7 +130,7 @@ pub fn gather_action_points(
         }
     });
 }
-pub fn turn_end_now_gather(pool: Res<AsyncComputeTaskPool>, mut actors: Query<&mut TurnState>) {
+pub fn turn_end_now_gather(pool: Res<ComputeTaskPool>, mut actors: Query<&mut TurnState>) {
     if actors.iter().all(|ts| *ts == TurnState::End) {
         actors.par_for_each_mut(&*pool, 16, |mut ts| {
             *ts = TurnState::Collect;
