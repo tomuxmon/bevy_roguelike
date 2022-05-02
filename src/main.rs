@@ -57,6 +57,10 @@ pub fn input_fov_rand(
             IVec2::new(-1, 0),
             IVec2::new(1, 0),
             IVec2::new(0, 0), // stay put - skip turn
+            IVec2::new(0, 0), // stay put - skip turn
+            IVec2::new(0, 0), // stay put - skip turn
+            IVec2::new(0, 0), // stay put - skip turn
+            IVec2::new(0, 0), // stay put - skip turn
         ];
 
         // NOTE: closest oposing team member search
@@ -172,6 +176,17 @@ fn rogue_setup(
             asset_server.load("sprites/enemy/kobold.png"),
             asset_server.load("sprites/enemy/orc.png"),
             asset_server.load("sprites/enemy/stone_giant.png"),
+        ],
+    });
+    cmd.insert_resource(ItemAssets {
+        skins: vec![
+            asset_server.load("sprites/item/buckler_1.png"),
+            asset_server.load("sprites/item/club.png"),
+            asset_server.load("sprites/item/gold_green.png"),
+            asset_server.load("sprites/item/orcish_dager.png"),
+            asset_server.load("sprites/item/ring_mail_1.png"),
+            asset_server.load("sprites/item/spear.png"),
+            asset_server.load("sprites/item/two_handed_sword.png"),
         ],
     });
 

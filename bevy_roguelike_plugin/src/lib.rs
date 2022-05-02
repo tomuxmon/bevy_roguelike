@@ -94,6 +94,7 @@ impl<T> RoguelikePlugin<T> {
         map_assets: Res<MapAssets>,
         player_assets: Res<PlayerAssets>,
         enemy_assets: Res<EnemyAssets>,
+        item_assets: Res<ItemAssets>,
         mut cameras: Query<&mut Transform, With<Camera>>,
     ) {
         let options = match map_options {
@@ -132,9 +133,29 @@ impl<T> RoguelikePlugin<T> {
             })
             .id();
 
+        // TODO: spawn few items
+
+        for ipt in info.item_spawns.clone() {
+            cmd.spawn()
+                .insert(Name::new("Item"))
+                .insert(Item {})
+                .insert(VisibilityToggle::default())
+                .insert(Vector2D::from(ipt))
+                .insert(Transform::from_translation(
+                    options.to_world_position(ipt).extend(1.),
+                ))
+                .insert(GlobalTransform::default())
+                .with_children(|item| {
+                    item.spawn().insert_bundle(get_item_body_bundle(
+                        &item_assets,
+                        &mut rng,
+                        options.tile_size,
+                    ));
+                });
+        }
+
         let plr_atr = Attributes::new(11, 11, 11, 11, 11, 11);
         let team_player = 1;
-
         cmd.spawn()
             .insert(MovingPlayer {})
             .insert_bundle(Actor::new(
@@ -296,6 +317,20 @@ fn get_enemy_body_bundle(enemy_assets: &EnemyAssets, rng: &mut StdRng, size: f32
         },
         texture,
         transform: Transform::from_xyz(0., 0., 3.),
+        ..Default::default()
+    }
+}
+
+fn get_item_body_bundle(item_assets: &ItemAssets, rng: &mut StdRng, size: f32) -> impl Bundle {
+    let texture = item_assets.skins[rng.gen_range(0..item_assets.skins.len())].clone();
+    SpriteBundle {
+        sprite: Sprite {
+            color: Color::WHITE,
+            custom_size: Some(Vec2::splat(size)),
+            ..Default::default()
+        },
+        texture,
+        transform: Transform::from_xyz(0., 0., 1.),
         ..Default::default()
     }
 }
