@@ -60,6 +60,18 @@ impl PickUpItemEvent {
 }
 
 #[derive(Debug, Copy, Clone)]
+pub struct DropItemEvent {
+    pub droper: Entity,
+    pub item: Entity,
+}
+
+impl DropItemEvent {
+    pub fn new(droper: Entity, item: Entity) -> Self {
+        Self { droper, item }
+    }
+}
+
+#[derive(Debug, Copy, Clone)]
 pub struct CameraFocusEvent {
     pub position: IVec2,
 }

@@ -19,11 +19,12 @@ pub enum AppState {
 
 pub fn input_player(
     keys: Res<Input<KeyCode>>,
-    players: Query<(Entity, &TurnState), With<MovingPlayer>>,
+    players: Query<(Entity, &TurnState, &Inventory), With<MovingPlayer>>,
     mut act_writer: EventWriter<ActEvent>,
     mut pick_up_writer: EventWriter<PickUpItemEvent>,
+    mut drop_writer: EventWriter<DropItemEvent>,
 ) {
-    for (id, _) in players.iter().filter(|(_, ts)| **ts == TurnState::Act) {
+    for (id, _, inv) in players.iter().filter(|(_, ts, _)| **ts == TurnState::Act) {
         let delta = if keys.just_pressed(KeyCode::Up) {
             IVec2::new(0, 1)
         } else if keys.just_pressed(KeyCode::Down) {
@@ -39,6 +40,11 @@ pub fn input_player(
             IVec2::new(0, 0) // still stay put - skip turn
         } else if keys.pressed(KeyCode::I) {
             //TODO: open inventory
+            return;
+        } else if keys.just_pressed(KeyCode::D) {
+            if let Some(ee) = inv.iter().last() {
+                drop_writer.send(DropItemEvent::new(id, *ee));
+            }
             return;
         } else {
             return;

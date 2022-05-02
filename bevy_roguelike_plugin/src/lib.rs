@@ -16,6 +16,7 @@ use resources::*;
 use systems::actor_stats::*;
 use systems::camera::*;
 use systems::fov::*;
+use systems::item::*;
 use systems::render::*;
 use systems::turns::*;
 
@@ -41,6 +42,7 @@ impl<T: StateData> Plugin for RoguelikePlugin<T> {
                     .with_system(turn_end_now_gather.after(gather_action_points))
                     .with_system(act)
                     .with_system(pick_up_items)
+                    .with_system(drop_item)
                     .with_system(spend_ap.after(act))
                     .with_system(do_move.after(act).after(spend_ap))
                     .with_system(apply_position_to_transform.after(do_move))
@@ -73,6 +75,7 @@ impl<T: StateData> Plugin for RoguelikePlugin<T> {
             .add_event::<ActEvent>()
             .add_event::<IdleEvent>()
             .add_event::<PickUpItemEvent>()
+            .add_event::<DropItemEvent>()
             .add_event::<CameraFocusEvent>();
 
         log::info!("Loaded Roguelike Plugin");

@@ -59,38 +59,6 @@ pub fn act(
     }
 }
 
-pub fn pick_up_items(
-    mut cmd: Commands,
-    mut pick_up_item_reader: EventReader<PickUpItemEvent>,
-    mut actors: Query<(&Vector2D, &mut Inventory)>,
-    items: Query<
-        (Entity, &Vector2D, &Children),
-        (
-            With<Item>,
-            With<Transform>,
-            With<GlobalTransform>,
-            With<VisibilityToggle>,
-        ),
-    >,
-) {
-    for e in pick_up_item_reader.iter() {
-        if let Ok((actor_pt, mut inventory)) = actors.get_mut(e.picker) {
-            for (item_entity, _, children) in items.iter().filter(|(_, pt, _)| **pt == *actor_pt) {
-                for c in children.iter() {
-                    cmd.entity(*c).despawn();
-                }
-                cmd.entity(item_entity)
-                    .remove::<Vector2D>()
-                    .remove::<Transform>()
-                    .remove::<GlobalTransform>()
-                    .remove::<VisibilityToggle>();
-
-                inventory.insert(item_entity);
-            }
-        }
-    }
-}
-
 pub fn apply_hp_modify(
     mut cmd: Commands,
     mut actors: Query<(Entity, &Vector2D, &mut HitPoints)>,
@@ -106,7 +74,7 @@ pub fn apply_hp_modify(
                 team_map[**pt] = None;
             }
         }
-        cmd.entity(e).despawn();
+        cmd.entity(e).despawn_recursive();
     }
 }
 
