@@ -12,7 +12,6 @@ pub use actor::Team;
 pub use actor::TurnState;
 pub use environment::MapTile;
 pub use fov::FieldOfView;
-pub use fov::VisibilityInfo;
 pub use fov::VisibilityToggle;
 pub use item::Inventory;
 pub use item::Item;

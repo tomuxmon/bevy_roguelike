@@ -47,8 +47,7 @@ impl<T: StateData> Plugin for RoguelikePlugin<T> {
                     .with_system(camera_set_focus_player)
                     .with_system(camera_focus_smooth.after(camera_set_focus_player))
                     .with_system(field_of_view_recompute)
-                    .with_system(field_of_view_set_vis_info.after(field_of_view_recompute))
-                    .with_system(field_of_view_set_vis.after(field_of_view_set_vis_info)),
+                    .with_system(field_of_view_set_visibility.after(field_of_view_recompute)),
             )
             .add_system_set(
                 SystemSet::on_exit(self.running_state.clone()).with_system(Self::cleanup_map),
