@@ -21,6 +21,7 @@ pub fn input_player(
     keys: Res<Input<KeyCode>>,
     players: Query<(Entity, &TurnState), With<MovingPlayer>>,
     mut act_writer: EventWriter<ActEvent>,
+    mut pick_up_writer: EventWriter<PickUpItemEvent>,
 ) {
     for (id, _) in players.iter().filter(|(_, ts)| **ts == TurnState::Act) {
         let delta = if keys.just_pressed(KeyCode::Up) {
@@ -33,6 +34,9 @@ pub fn input_player(
             IVec2::new(1, 0)
         } else if keys.pressed(KeyCode::Space) {
             IVec2::new(0, 0) // stay put - skip turn
+        } else if keys.pressed(KeyCode::Comma) {
+            pick_up_writer.send(PickUpItemEvent::new(id));
+            IVec2::new(0, 0) // still stay put - skip turn
         } else {
             return;
         };
@@ -132,7 +136,7 @@ fn rogue_setup(
     mut state: ResMut<State<AppState>>,
 ) {
     cmd.insert_resource(MapOptions {
-        map_size: IVec2::new(40, 25),
+        map_size: IVec2::new(20, 15),
         tile_size: 32.0,
     });
     cmd.insert_resource(MapAssets {

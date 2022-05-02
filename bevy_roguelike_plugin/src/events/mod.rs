@@ -36,6 +36,7 @@ impl IdleEvent {
     }
 }
 
+#[derive(Debug, Copy, Clone)]
 pub struct MoveEvent {
     pub id: Entity,
     pub destination: IVec2,
@@ -44,6 +45,17 @@ pub struct MoveEvent {
 impl MoveEvent {
     pub fn new(id: Entity, destination: IVec2) -> Self {
         Self { id, destination }
+    }
+}
+
+#[derive(Debug, Copy, Clone)]
+pub struct PickUpItemEvent {
+    pub picker: Entity,
+}
+
+impl PickUpItemEvent {
+    pub fn new(picker: Entity) -> Self {
+        Self { picker }
     }
 }
 

@@ -23,7 +23,7 @@ impl MapInfo {
 
         let pidx = rng.gen_range(0..floor.len());
         let monster_count = floor.len() / 16;
-        let item_count = floor.len() / 160;
+        let item_count = floor.len() / 16;
         let player_start = floor[pidx];
 
         let mut monster_spawns = Vec::new();

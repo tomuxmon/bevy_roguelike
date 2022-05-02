@@ -1,4 +1,5 @@
 use super::FieldOfView;
+use super::Inventory;
 use super::Vector2D;
 use super::VisibilityToggle;
 use crate::resources::MapOptions;
@@ -23,6 +24,7 @@ pub struct Actor {
     atack: AttackStats,
     // TODO: DefenceStats
     fov: FieldOfView,
+    inventory: Inventory,
     toggle: VisibilityToggle,
     position: Vector2D,
     #[bundle]
@@ -45,6 +47,7 @@ impl Actor {
             hp: HitPoints::new(&attributes),
             atack: AttackStats::new(&attributes),
             fov: FieldOfView::new(&attributes),
+            inventory: Inventory::default(),
             toggle: VisibilityToggle::default(),
             position: Vector2D::from(position),
             transform: TransformBundle {
