@@ -15,10 +15,12 @@ pub use fov::FieldOfView;
 pub use fov::VisibilityToggle;
 pub use item::Inventory;
 pub use item::Item;
+pub use render_info::RenderInfo;
 pub use vector2d::Vector2D;
 
 mod actor;
 mod environment;
 mod fov;
 mod item;
+mod render_info;
 mod vector2d;

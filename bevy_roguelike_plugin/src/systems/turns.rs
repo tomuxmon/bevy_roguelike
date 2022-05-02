@@ -75,10 +75,7 @@ pub fn pick_up_items(
 ) {
     for e in pick_up_item_reader.iter() {
         if let Ok((actor_pt, mut inventory)) = actors.get_mut(e.picker) {
-            // NOTE: picking up items one by one
-            if let Some((item_entity, _, children)) =
-                items.iter().find(|(_, pt, _)| **pt == *actor_pt)
-            {
+            for (item_entity, _, children) in items.iter().filter(|(_, pt, _)| **pt == *actor_pt) {
                 for c in children.iter() {
                     cmd.entity(*c).despawn();
                 }

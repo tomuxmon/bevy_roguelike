@@ -37,6 +37,9 @@ pub fn input_player(
         } else if keys.pressed(KeyCode::Comma) {
             pick_up_writer.send(PickUpItemEvent::new(id));
             IVec2::new(0, 0) // still stay put - skip turn
+        } else if keys.pressed(KeyCode::I) {
+            //TODO: open inventory
+            return;
         } else {
             return;
         };
@@ -187,7 +190,7 @@ fn rogue_setup(
             asset_server.load("sprites/item/buckler_1.png"),
             asset_server.load("sprites/item/club.png"),
             asset_server.load("sprites/item/gold_green.png"),
-            asset_server.load("sprites/item/orcish_dager.png"),
+            asset_server.load("sprites/item/orcish_dagger.png"),
             asset_server.load("sprites/item/ring_mail_1.png"),
             asset_server.load("sprites/item/spear.png"),
             asset_server.load("sprites/item/two_handed_sword.png"),

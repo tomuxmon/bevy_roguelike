@@ -1,8 +1,7 @@
 use super::FieldOfView;
 use super::Inventory;
+use super::RenderInfo;
 use super::Vector2D;
-use super::VisibilityToggle;
-use crate::resources::MapOptions;
 use bevy::prelude::*;
 use std::borrow::Cow;
 
@@ -25,10 +24,8 @@ pub struct Actor {
     // TODO: DefenceStats
     fov: FieldOfView,
     inventory: Inventory,
-    toggle: VisibilityToggle,
     position: Vector2D,
-    #[bundle]
-    transform: TransformBundle,
+    render_info: RenderInfo,
 }
 impl Actor {
     pub fn new(
@@ -36,7 +33,8 @@ impl Actor {
         team: u32,
         attributes: Attributes,
         position: IVec2,
-        options: &MapOptions,
+        sprite: Sprite,
+        texture: Handle<Image>,
     ) -> Self {
         Self {
             name: Name::new(name),
@@ -48,11 +46,11 @@ impl Actor {
             atack: AttackStats::new(&attributes),
             fov: FieldOfView::new(&attributes),
             inventory: Inventory::default(),
-            toggle: VisibilityToggle::default(),
             position: Vector2D::from(position),
-            transform: TransformBundle {
-                local: Transform::from_translation(options.to_world_position(position).extend(2.)),
-                ..Default::default()
+            render_info: RenderInfo {
+                sprite,
+                texture,
+                z: 2.,
             },
         }
     }

@@ -16,6 +16,7 @@ use resources::*;
 use systems::actor_stats::*;
 use systems::camera::*;
 use systems::fov::*;
+use systems::render::*;
 use systems::turns::*;
 
 pub struct RoguelikePlugin<T> {
@@ -31,6 +32,7 @@ impl<T: StateData> Plugin for RoguelikePlugin<T> {
             )
             .add_system_set(
                 SystemSet::on_update(self.running_state.clone())
+                    .with_system(render_body)
                     .with_system(attributes_update_action_points)
                     .with_system(attributes_update_hit_points)
                     .with_system(attributes_update_attack_stats)
@@ -53,6 +55,7 @@ impl<T: StateData> Plugin for RoguelikePlugin<T> {
                 SystemSet::on_exit(self.running_state.clone()).with_system(Self::cleanup_map),
             )
             .register_type::<Vector2D>()
+            .register_type::<RenderInfo>()
             .register_type::<MapTile>()
             .register_type::<Attributes>()
             .register_type::<ActionPoints>()
@@ -134,24 +137,19 @@ impl<T> RoguelikePlugin<T> {
             })
             .id();
 
-        // TODO: spawn few items
-
         for ipt in info.item_spawns.clone() {
             cmd.spawn()
                 .insert(Name::new("Item"))
                 .insert(Item {})
-                .insert(VisibilityToggle::default())
                 .insert(Vector2D::from(ipt))
-                .insert(Transform::from_translation(
-                    options.to_world_position(ipt).extend(1.),
-                ))
-                .insert(GlobalTransform::default())
-                .with_children(|item| {
-                    item.spawn().insert_bundle(get_item_body_bundle(
-                        &item_assets,
-                        &mut rng,
-                        options.tile_size,
-                    ));
+                .insert(RenderInfo {
+                    sprite: Sprite {
+                        color: Color::WHITE,
+                        custom_size: Some(Vec2::splat(options.tile_size)),
+                        ..Default::default()
+                    },
+                    texture: item_assets.skins[rng.gen_range(0..item_assets.skins.len())].clone(),
+                    z: 1.,
                 });
         }
 
@@ -164,14 +162,14 @@ impl<T> RoguelikePlugin<T> {
                 team_player,
                 plr_atr,
                 info.player_start,
-                &options,
+                Sprite {
+                    color: Color::WHITE,
+                    custom_size: Some(Vec2::splat(options.tile_size)),
+                    ..Default::default()
+                },
+                player_assets.body.clone(),
             ))
             .with_children(|player| {
-                player
-                    .spawn()
-                    .insert(Name::new("body"))
-                    .insert_bundle(get_player_body_bundle(&player_assets, options.tile_size));
-
                 spawn_player_body_wear(player, &player_assets, options.tile_size);
 
                 player
@@ -203,11 +201,19 @@ impl<T> RoguelikePlugin<T> {
 
                     enms.spawn()
                         .insert(MovingFovRandom {})
-                        .insert_bundle(Actor::new("Enemy", team_monster, mon_atr, mpt, &options))
+                        .insert_bundle(Actor::new(
+                            "Enemy",
+                            team_monster,
+                            mon_atr,
+                            mpt,
+                            Sprite {
+                                color: Color::WHITE,
+                                custom_size: Some(Vec2::splat(options.tile_size)),
+                                ..Default::default()
+                            },
+                            enemy_assets.skins[rng.gen_range(0..enemy_assets.skins.len())].clone(),
+                        ))
                         .with_children(|enemy| {
-                            enemy.spawn().insert(Name::new("body")).insert_bundle(
-                                get_enemy_body_bundle(&enemy_assets, &mut rng, options.tile_size),
-                            );
                             enemy
                                 .spawn()
                                 .insert(Name::new("hud"))
@@ -281,18 +287,6 @@ fn get_hud_bundle(size: f32) -> impl Bundle {
     }
 }
 
-fn get_player_body_bundle(player_assets: &PlayerAssets, size: f32) -> impl Bundle {
-    SpriteBundle {
-        sprite: Sprite {
-            color: Color::WHITE,
-            custom_size: Some(Vec2::splat(size)),
-            ..Default::default()
-        },
-        texture: player_assets.body.clone(),
-        transform: Transform::from_xyz(0., 0., 3.),
-        ..Default::default()
-    }
-}
 fn spawn_player_body_wear(cb: &mut ChildBuilder, player_assets: &PlayerAssets, size: f32) {
     for i in 0..player_assets.wear.len() {
         cb.spawn_bundle(SpriteBundle {
@@ -305,34 +299,6 @@ fn spawn_player_body_wear(cb: &mut ChildBuilder, player_assets: &PlayerAssets, s
             transform: Transform::from_xyz(0., 0., 4.),
             ..Default::default()
         });
-    }
-}
-
-fn get_enemy_body_bundle(enemy_assets: &EnemyAssets, rng: &mut StdRng, size: f32) -> impl Bundle {
-    let texture = enemy_assets.skins[rng.gen_range(0..enemy_assets.skins.len())].clone();
-    SpriteBundle {
-        sprite: Sprite {
-            color: Color::WHITE,
-            custom_size: Some(Vec2::splat(size)),
-            ..Default::default()
-        },
-        texture,
-        transform: Transform::from_xyz(0., 0., 3.),
-        ..Default::default()
-    }
-}
-
-fn get_item_body_bundle(item_assets: &ItemAssets, rng: &mut StdRng, size: f32) -> impl Bundle {
-    let texture = item_assets.skins[rng.gen_range(0..item_assets.skins.len())].clone();
-    SpriteBundle {
-        sprite: Sprite {
-            color: Color::WHITE,
-            custom_size: Some(Vec2::splat(size)),
-            ..Default::default()
-        },
-        texture,
-        transform: Transform::from_xyz(0., 0., 1.),
-        ..Default::default()
     }
 }
 

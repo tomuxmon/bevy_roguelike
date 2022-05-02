@@ -2,11 +2,18 @@ use std::ops::{Deref, DerefMut};
 
 use bevy::{prelude::*, utils::HashSet};
 
-#[derive(Default, Debug, Copy, Clone, Ord, PartialOrd, Eq, PartialEq, Hash, Component, Reflect)]
+#[derive(Default, Debug, Copy, Clone, Component, Reflect)]
 #[reflect(Component)]
 pub struct Item;
 
-#[derive(Default, Debug, Clone, Eq, PartialEq, Component, Reflect)]
+#[derive(Default, Debug, Copy, Clone, Component, Reflect)]
+#[reflect(Component)]
+pub struct Equiped;
+
+
+
+
+#[derive(Default, Debug, Clone, Component, Reflect)]
 #[reflect(Component)]
 pub struct Inventory {
     items: HashSet<Entity>,
