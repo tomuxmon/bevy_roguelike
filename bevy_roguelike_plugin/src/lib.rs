@@ -110,6 +110,12 @@ impl<T> RoguelikePlugin<T> {
             Some(o) => o.clone(),
         };
 
+        let tile_sprite_white = Sprite {
+            color: Color::WHITE,
+            custom_size: Some(Vec2::splat(options.tile_size)),
+            ..Default::default()
+        };
+
         // max u64: 18_446_744_073_709_551_615
         // let mut rng = StdRng::seed_from_u64(54155745465);
         let trng = thread_rng();
@@ -147,11 +153,7 @@ impl<T> RoguelikePlugin<T> {
                 .insert(Item {})
                 .insert(Vector2D::from(ipt))
                 .insert(RenderInfo {
-                    sprite: Sprite {
-                        color: Color::WHITE,
-                        custom_size: Some(Vec2::splat(options.tile_size)),
-                        ..Default::default()
-                    },
+                    sprite: tile_sprite_white.clone(),
                     texture: item_assets.skins[rng.gen_range(0..item_assets.skins.len())].clone(),
                     z: 1.,
                 });
@@ -166,14 +168,11 @@ impl<T> RoguelikePlugin<T> {
                 team_player,
                 plr_atr,
                 info.player_start,
-                Sprite {
-                    color: Color::WHITE,
-                    custom_size: Some(Vec2::splat(options.tile_size)),
-                    ..Default::default()
-                },
+                tile_sprite_white.clone(),
                 player_assets.body.clone(),
             ))
             .with_children(|player| {
+                // TODO: instead should be equiped inventory
                 spawn_player_body_wear(player, &player_assets, options.tile_size);
 
                 player
@@ -210,11 +209,7 @@ impl<T> RoguelikePlugin<T> {
                             team_monster,
                             mon_atr,
                             mpt,
-                            Sprite {
-                                color: Color::WHITE,
-                                custom_size: Some(Vec2::splat(options.tile_size)),
-                                ..Default::default()
-                            },
+                            tile_sprite_white.clone(),
                             enemy_assets.skins[rng.gen_range(0..enemy_assets.skins.len())].clone(),
                         ))
                         .with_children(|enemy| {
