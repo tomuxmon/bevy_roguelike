@@ -235,28 +235,19 @@ fn spawn_tiles(
         };
         cb.spawn()
             .insert(Name::new(format!("Tile {}", pt)))
-            .insert(Transform::from_translation(
-                map_options.to_world_position(pt).extend(1.),
-            ))
-            .insert(GlobalTransform::default())
-            .insert(VisibilityToggle::default())
             .insert(Vector2D::from(pt))
             .insert(match tile {
                 Tile::Wall => MapTile { is_passable: false },
                 Tile::Floor => MapTile { is_passable: true },
             })
-            .with_children(|cb| {
-                cb.spawn()
-                    .insert(Name::new("body"))
-                    .insert_bundle(SpriteBundle {
-                        sprite: Sprite {
-                            color: Color::WHITE,
-                            custom_size: Some(Vec2::splat(map_options.tile_size)),
-                            ..Default::default()
-                        },
-                        texture,
-                        ..Default::default()
-                    });
+            .insert(RenderInfo {
+                sprite: Sprite {
+                    color: Color::WHITE,
+                    custom_size: Some(Vec2::splat(map_options.tile_size)),
+                    ..Default::default()
+                },
+                texture,
+                z: 0.,
             });
     }
 }
