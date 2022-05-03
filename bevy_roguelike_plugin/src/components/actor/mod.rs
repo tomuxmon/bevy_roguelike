@@ -33,7 +33,6 @@ impl Actor {
         team: u32,
         attributes: Attributes,
         position: IVec2,
-        sprite: Sprite,
         texture: Handle<Image>,
     ) -> Self {
         Self {
@@ -47,11 +46,7 @@ impl Actor {
             fov: FieldOfView::new(&attributes),
             inventory: Inventory::default(),
             position: Vector2D::from(position),
-            render_info: RenderInfo {
-                sprite,
-                texture,
-                z: 2.,
-            },
+            render_info: RenderInfo { texture, z: 2. },
         }
     }
 }

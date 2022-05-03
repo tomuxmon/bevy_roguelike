@@ -111,12 +111,6 @@ impl<T> RoguelikePlugin<T> {
             Some(o) => o.clone(),
         };
 
-        let tile_sprite_white = Sprite {
-            color: Color::WHITE,
-            custom_size: Some(Vec2::splat(options.tile_size)),
-            ..Default::default()
-        };
-
         // max u64: 18_446_744_073_709_551_615
         // let mut rng = StdRng::seed_from_u64(54155745465);
         let trng = thread_rng();
@@ -144,7 +138,25 @@ impl<T> RoguelikePlugin<T> {
             .insert(Transform::default())
             .insert(GlobalTransform::default())
             .with_children(|rogue_map| {
-                spawn_tiles(rogue_map, &map_assets, &options, &map, &mut rng);
+                for (pt, tile) in map.enumerate() {
+                    let texture = match tile {
+                        Tile::Wall => {
+                            map_assets.wall[rng.gen_range(0..map_assets.wall.len())].clone()
+                        }
+                        Tile::Floor => {
+                            map_assets.floor[rng.gen_range(0..map_assets.floor.len())].clone()
+                        }
+                    };
+                    rogue_map
+                        .spawn()
+                        .insert(Name::new(format!("Tile {}", pt)))
+                        .insert(Vector2D::from(pt))
+                        .insert(match tile {
+                            Tile::Wall => MapTile { is_passable: false },
+                            Tile::Floor => MapTile { is_passable: true },
+                        })
+                        .insert(RenderInfo { texture, z: 0. });
+                }
             })
             .id();
 
@@ -154,7 +166,6 @@ impl<T> RoguelikePlugin<T> {
                 .insert(Item {})
                 .insert(Vector2D::from(ipt))
                 .insert(RenderInfo {
-                    sprite: tile_sprite_white.clone(),
                     texture: item_assets.skins[rng.gen_range(0..item_assets.skins.len())].clone(),
                     z: 1.,
                 });
@@ -169,7 +180,6 @@ impl<T> RoguelikePlugin<T> {
                 team_player,
                 plr_atr,
                 info.player_start,
-                tile_sprite_white.clone(),
                 player_assets.body.clone(),
             ))
             .with_children(|player| {
@@ -204,7 +214,6 @@ impl<T> RoguelikePlugin<T> {
                             team_monster,
                             mon_atr,
                             mpt,
-                            tile_sprite_white.clone(),
                             enemy_assets.skins[rng.gen_range(0..enemy_assets.skins.len())].clone(),
                         ));
 
@@ -221,36 +230,6 @@ impl<T> RoguelikePlugin<T> {
     }
 }
 
-fn spawn_tiles(
-    cb: &mut ChildBuilder,
-    map_assets: &MapAssets,
-    map_options: &MapOptions,
-    map: &Map,
-    rng: &mut StdRng,
-) {
-    for (pt, tile) in map.enumerate() {
-        let texture = match tile {
-            Tile::Wall => map_assets.wall[rng.gen_range(0..map_assets.wall.len())].clone(),
-            Tile::Floor => map_assets.floor[rng.gen_range(0..map_assets.floor.len())].clone(),
-        };
-        cb.spawn()
-            .insert(Name::new(format!("Tile {}", pt)))
-            .insert(Vector2D::from(pt))
-            .insert(match tile {
-                Tile::Wall => MapTile { is_passable: false },
-                Tile::Floor => MapTile { is_passable: true },
-            })
-            .insert(RenderInfo {
-                sprite: Sprite {
-                    color: Color::WHITE,
-                    custom_size: Some(Vec2::splat(map_options.tile_size)),
-                    ..Default::default()
-                },
-                texture,
-                z: 0.,
-            });
-    }
-}
 fn spawn_player_body_wear(cb: &mut ChildBuilder, player_assets: &PlayerAssets, size: f32) {
     for i in 0..player_assets.wear.len() {
         cb.spawn_bundle(SpriteBundle {

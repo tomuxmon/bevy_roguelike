@@ -18,7 +18,11 @@ pub fn render_body(
                     .spawn()
                     .insert(Name::new("body"))
                     .insert_bundle(SpriteBundle {
-                        sprite: info.sprite.clone(),
+                        sprite: Sprite {
+                            color: Color::WHITE,
+                            custom_size: Some(Vec2::splat(map_options.tile_size)),
+                            ..Default::default()
+                        },
                         texture: info.texture.clone(),
                         transform: Transform::from_xyz(0., 0., info.z + 0.1),
                         ..Default::default()
