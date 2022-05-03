@@ -1,4 +1,6 @@
+use crate::components::{AttackBoost, DefenseBoost};
 use bevy::prelude::*;
+use std::ops::Add;
 
 #[derive(Default, Debug, Copy, Clone, Eq, PartialEq, Hash, Component, Reflect)]
 #[reflect(Component)]
@@ -181,6 +183,17 @@ impl AttackStats {
         self.rate
     }
 }
+impl Add<AttackBoost> for AttackStats {
+    type Output = AttackStats;
+
+    fn add(self, rhs: AttackBoost) -> Self::Output {
+        AttackStats {
+            damage: self.damage + rhs.damage(),
+            cost: self.cost + rhs.cost(),
+            rate: self.rate + rhs.rate(),
+        }
+    }
+}
 
 #[derive(Default, Debug, Copy, Clone, Eq, PartialEq, Hash, Component, Reflect)]
 #[reflect(Component)]
@@ -225,5 +238,16 @@ impl DefenseStats {
     }
     pub fn rate(&self) -> i16 {
         self.rate
+    }
+}
+impl Add<DefenseBoost> for DefenseStats {
+    type Output = DefenseStats;
+
+    fn add(self, rhs: DefenseBoost) -> Self::Output {
+        DefenseStats {
+            absorb: self.absorb + rhs.absorb(),
+            cost: self.cost() + rhs.cost(),
+            rate: self.rate + rhs.rate(),
+        }
     }
 }

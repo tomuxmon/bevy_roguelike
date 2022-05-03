@@ -14,8 +14,13 @@ pub use actor::TurnState;
 pub use environment::MapTile;
 pub use fov::FieldOfView;
 pub use fov::VisibilityToggle;
+pub use item::Armor;
+pub use item::AttackBoost;
+pub use item::DefenseBoost;
+pub use item::Equiped;
 pub use item::Inventory;
 pub use item::Item;
+pub use item::Weapon;
 pub use render_info::RenderInfo;
 pub use vector2d::Vector2D;
 

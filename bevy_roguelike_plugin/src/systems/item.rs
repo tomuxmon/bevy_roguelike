@@ -25,7 +25,9 @@ pub fn pick_up_items(
                     .remove::<Vector2D>()
                     .remove::<Transform>()
                     .remove::<GlobalTransform>()
-                    .remove::<VisibilityToggle>();
+                    .remove::<VisibilityToggle>()
+                    // TODO: remove when inventory handling implemented
+                    .insert(Equiped {});
 
                 inventory.insert(item_entity);
             }

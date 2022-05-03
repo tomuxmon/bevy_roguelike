@@ -75,6 +75,10 @@ impl<T: StateData> Plugin for RoguelikePlugin<T> {
             .register_type::<MovingRandom>()
             .register_type::<MovingFovRandom>()
             .register_type::<FieldOfView>()
+            .register_type::<Item>()
+            .register_type::<AttackBoost>()
+            .register_type::<DefenseBoost>()
+            .register_type::<Equiped>()
             .add_event::<SpendAPEvent>()
             .add_event::<AttackEvent>()
             .add_event::<MoveEvent>()
@@ -165,14 +169,29 @@ impl<T> RoguelikePlugin<T> {
             .id();
 
         for ipt in info.item_spawns.clone() {
-            cmd.spawn()
-                .insert(Name::new("Item"))
-                .insert(Item {})
-                .insert(Vector2D::from(ipt))
-                .insert(RenderInfo {
-                    texture: item_assets.skins[rng.gen_range(0..item_assets.skins.len())].clone(),
-                    z: 1.,
-                });
+            if rng.gen_bool(0.5) {
+                let damage = rng.gen_range(1..16);
+                let rate = rng.gen_range(1..16);
+                let cost = rng.gen_range(4..16);
+                cmd.spawn()
+                    .insert_bundle(Weapon::new(
+                        "weapon",
+                        AttackBoost::new(damage, rate, cost),
+                        item_assets.skins[rng.gen_range(0..item_assets.skins.len())].clone(),
+                    ))
+                    .insert(Vector2D::from(ipt));
+            } else {
+                let absorb = rng.gen_range(1..8);
+                let rate = rng.gen_range(1..8);
+                let cost = rng.gen_range(4..12);
+                cmd.spawn()
+                    .insert_bundle(Armor::new(
+                        "armor",
+                        DefenseBoost::new(absorb, rate, cost),
+                        item_assets.skins[rng.gen_range(0..item_assets.skins.len())].clone(),
+                    ))
+                    .insert(Vector2D::from(ipt));
+            }
         }
 
         let plr_atr = Attributes::new(11, 11, 11, 11, 11, 11);
@@ -209,7 +228,7 @@ impl<T> RoguelikePlugin<T> {
                         2 + rng.gen_range(0..9),
                     );
 
-                    let team_monster = 1 + rng.gen_range(1..4);
+                    let team_monster = 1 + rng.gen_range(2..4);
 
                     enms.spawn()
                         .insert(MovingFovRandom {})
