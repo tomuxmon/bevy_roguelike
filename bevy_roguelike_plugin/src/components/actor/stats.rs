@@ -143,15 +143,15 @@ impl HitPoints {
 #[derive(Default, Debug, Copy, Clone, Eq, PartialEq, Hash, Component, Reflect)]
 #[reflect(Component)]
 pub struct AttackStats {
-    cost: i16,
     damage: i16,
+    cost: i16,
     rate: i16,
 }
 impl AttackStats {
     pub const COST_MAX: i16 = 128;
     pub const COST_MIN: i16 = 36;
     pub const DAMAGE_MIN: i16 = 1;
-    pub const RATE_MIN: i16 = 4;
+    pub const RATE_MIN: i16 = 8;
 
     pub fn new(atr: &Attributes) -> Self {
         Self {
@@ -171,44 +171,9 @@ impl AttackStats {
         self.damage = AttackStats::DAMAGE_MIN + atr.strength as i16;
         self.rate = AttackStats::RATE_MIN + atr.dexterity as i16;
     }
-    pub fn cost(&self) -> i16 {
-        self.cost
-    }
     pub fn damage(&self) -> i16 {
         self.damage
     }
-    pub fn rate(&self) -> i16 {
-        self.rate
-    }
-}
-
-#[derive(Default, Debug, Copy, Clone, Eq, PartialEq, Hash, Component, Reflect)]
-#[reflect(Component)]
-pub struct DamageAvoidStats {
-    cost: i16,
-    rate: i16,
-}
-impl DamageAvoidStats {
-    pub const COST_MAX: i16 = 36;
-    pub const COST_MIN: i16 = 8;
-    pub const RATE_MIN: i16 = 4;
-
-    pub fn new(atr: &Attributes) -> Self {
-        Self {
-            cost: i16::max(
-                DamageAvoidStats::COST_MAX - atr.dexterity as i16,
-                DamageAvoidStats::COST_MIN,
-            ),
-            rate: DamageAvoidStats::RATE_MIN + (atr.dexterity as f32 / 4.) as i16,
-        }
-    }
-    pub fn update(&mut self, atr: &Attributes) {
-        self.cost = i16::max(
-            DamageAvoidStats::COST_MAX - atr.dexterity as i16,
-            DamageAvoidStats::COST_MIN,
-        );
-        self.rate = DamageAvoidStats::RATE_MIN + (atr.dexterity as f32 / 4.) as i16;
-    }
     pub fn cost(&self) -> i16 {
         self.cost
     }
@@ -219,23 +184,46 @@ impl DamageAvoidStats {
 
 #[derive(Default, Debug, Copy, Clone, Eq, PartialEq, Hash, Component, Reflect)]
 #[reflect(Component)]
-pub struct DamageProtectStats {
-    absorbed: i16,
+pub struct DefenseStats {
+    absorb: i16,
+    cost: i16,
+    rate: i16,
 }
-impl DamageProtectStats {
-    pub const ABSORBED_MIN: i16 = 0;
+impl DefenseStats {
+    pub const ABSORB_MIN: i16 = 0;
+    pub const COST_MAX: i16 = 36;
+    pub const COST_MIN: i16 = 8;
+    pub const RATE_MIN: i16 = 2;
 
     pub fn new(atr: &Attributes) -> Self {
         Self {
-            absorbed: DamageProtectStats::ABSORBED_MIN
+            absorb: DefenseStats::ABSORB_MIN
                 + (atr.toughness as f32 / 4. + atr.willpower as f32 / 16.) as i16,
+            cost: i16::max(
+                DefenseStats::COST_MAX - atr.dexterity as i16,
+                DefenseStats::COST_MIN,
+            ),
+            rate: DefenseStats::RATE_MIN
+                + (atr.dexterity as f32 / 4. + atr.willpower as f32 / 16.) as i16,
         }
     }
     pub fn update(&mut self, atr: &Attributes) {
-        self.absorbed = DamageProtectStats::ABSORBED_MIN
+        self.absorb = DefenseStats::ABSORB_MIN
             + (atr.toughness as f32 / 4. + atr.willpower as f32 / 16.) as i16;
+        self.cost = i16::max(
+            DefenseStats::COST_MAX - atr.dexterity as i16,
+            DefenseStats::COST_MIN,
+        );
+        self.rate = DefenseStats::RATE_MIN
+            + (atr.dexterity as f32 / 4. + atr.willpower as f32 / 16.) as i16;
     }
-    pub fn absorbed(&self) -> i16 {
-        self.absorbed
+    pub fn absorb(&self) -> i16 {
+        self.absorb
+    }
+    pub fn cost(&self) -> i16 {
+        self.cost
+    }
+    pub fn rate(&self) -> i16 {
+        self.rate
     }
 }

@@ -26,20 +26,14 @@ pub fn attributes_update_attack_stats(
         atk.update(atr);
     }
 }
-pub fn attributes_update_avoid_stats(
-    mut actors: Query<(&Attributes, &mut DamageAvoidStats, Changed<Attributes>)>,
+pub fn attributes_update_defense_stats(
+    mut actors: Query<(&Attributes, &mut DefenseStats, Changed<Attributes>)>,
 ) {
     for (atr, mut das, _) in actors.iter_mut() {
         das.update(atr);
     }
 }
-pub fn attributes_update_protection_stats(
-    mut actors: Query<(&Attributes, &mut DamageProtectStats, Changed<Attributes>)>,
-) {
-    for (atr, mut prot, _) in actors.iter_mut() {
-        prot.update(atr);
-    }
-}
+
 pub fn attributes_update_field_of_view(
     mut actors: Query<(&Attributes, &mut FieldOfView, Changed<Attributes>)>,
 ) {

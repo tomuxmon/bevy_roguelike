@@ -5,13 +5,15 @@ use bevy::log;
 use bevy::prelude::*;
 use bevy::tasks::ComputeTaskPool;
 use bevy::utils::HashMap;
+use rand::prelude::*;
 
 pub fn act(
-    mut cmd: Commands,
     actors: Query<(&Team, &AttackStats, &Vector2D)>,
+    enemies: Query<(Entity, &Team, &Vector2D)>,
     // TODO: ActComponent instead of ActEvent
     mut act_reader: EventReader<ActEvent>,
-    mut ap_writer: EventWriter<SpendAPEvent>,
+    mut attack_writer: EventWriter<AttackEvent>,
+    mut ap_spend_writer: EventWriter<SpendAPEvent>,
     mut move_writer: EventWriter<MoveEvent>,
     mut idle_writer: EventWriter<IdleEvent>,
     map: Res<Map>,
@@ -30,31 +32,66 @@ pub fn act(
             continue;
         }
         if e.delta == IVec2::new(0, 0) {
+            ap_spend_writer.send(SpendAPEvent::new(e.id, delta_costs[&e.delta]));
             idle_writer.send(IdleEvent::new(e.id));
-            ap_writer.send(SpendAPEvent::new(e.id, delta_costs[&e.delta]));
             continue;
         }
         if let Ok((team, atk, pt)) = actors.get(e.id) {
             let dest = **pt + e.delta;
             if !map.is_in_bounds(dest) || map[dest] != Tile::Floor {
+                ap_spend_writer.send(SpendAPEvent::new(e.id, delta_costs[&IVec2::new(0, 0)]));
                 idle_writer.send(IdleEvent::new(e.id));
                 continue;
             }
             if let Some(other_team) = team_map[dest] {
                 if other_team == *team {
                     // NOTE: can not move into a tile ocupied by a team mate
+                    ap_spend_writer.send(SpendAPEvent::new(e.id, delta_costs[&IVec2::new(0, 0)]));
                     idle_writer.send(IdleEvent::new(e.id));
                     continue;
                 } else {
-                    ap_writer.send(SpendAPEvent::new(e.id, atk.cost()));
-                    cmd.spawn().insert(ModifyHP::new(dest, -atk.damage()));
-                    // TODO: spawn attack animation
+                    if let Some((enemy_entity, _, _)) =
+                        enemies.iter().find(|(_, t, p)| *t != team && ***p == dest)
+                    {
+                        ap_spend_writer.send(SpendAPEvent::new(e.id, atk.cost()));
+                        attack_writer.send(AttackEvent::new(e.id, enemy_entity))
+                    } else {
+                        log::error!("nothing to attack at {:?} (TeamMap has bugs).", dest);
+                    }
                 }
             } else {
                 team_map[dest] = Some(*team);
-                ap_writer.send(SpendAPEvent::new(e.id, delta_costs[&e.delta]));
+                ap_spend_writer.send(SpendAPEvent::new(e.id, delta_costs[&e.delta]));
                 move_writer.send(MoveEvent::new(e.id, dest));
             }
+        }
+    }
+}
+
+pub fn attack(
+    mut cmd: Commands,
+    mut attack_reader: EventReader<AttackEvent>,
+    attackers: Query<&AttackStats>,
+    defenders: Query<(&DefenseStats, &Vector2D)>,
+    mut rng: ResMut<StdRng>,
+) {
+    for e in attack_reader.iter() {
+        if let Ok(atack) = attackers.get(e.attacker) {
+            if let Ok((defense, pt)) = defenders.get(e.defender) {
+                if !rng.gen_ratio(defense.rate() as u32, atack.rate() as u32) {
+                    cmd.spawn().insert(ModifyHP::new(
+                        **pt,
+                        -i16::max(atack.damage() - defense.absorb(), 0),
+                    ));
+                } else {
+                    log::info!("attack miss.");
+                }
+                // TODO: spawn attack animation
+            } else {
+                log::error!("no defender found.");
+            }
+        } else {
+            log::error!("no attacker found.");
         }
     }
 }

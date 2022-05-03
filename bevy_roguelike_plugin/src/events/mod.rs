@@ -14,6 +14,17 @@ impl ActEvent {
 }
 
 #[derive(Debug, Copy, Clone)]
+pub struct AttackEvent {
+    pub attacker: Entity,
+    pub defender: Entity,
+}
+impl AttackEvent {
+    pub fn new(attacker: Entity, defender: Entity) -> Self {
+        Self { attacker, defender }
+    }
+}
+
+#[derive(Debug, Copy, Clone)]
 pub struct SpendAPEvent {
     pub id: Entity,
     pub amount: i16,

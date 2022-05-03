@@ -1,8 +1,7 @@
 pub use actor::stats::ActionPoints;
 pub use actor::stats::AttackStats;
 pub use actor::stats::Attributes;
-pub use actor::stats::DamageAvoidStats;
-pub use actor::stats::DamageProtectStats;
+pub use actor::stats::DefenseStats;
 pub use actor::stats::HitPoints;
 pub use actor::Actor;
 pub use actor::HudHealthBar;
