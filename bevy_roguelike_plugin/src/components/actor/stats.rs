@@ -71,6 +71,7 @@ impl ActionPoints {
         self.current
     }
     pub fn current_minus(&mut self, cost: i16) -> i16 {
+        //TODO: Too much of defending overflows it into negative side. fix it
         self.current -= cost;
         self.current
     }
