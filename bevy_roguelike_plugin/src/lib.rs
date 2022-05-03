@@ -66,6 +66,8 @@ impl<T: StateData> Plugin for RoguelikePlugin<T> {
             .register_type::<Attributes>()
             .register_type::<ActionPoints>()
             .register_type::<AttackStats>()
+            .register_type::<DamageAvoidStats>()
+            .register_type::<DamageProtectStats>()
             .register_type::<HitPoints>()
             .register_type::<TurnState>()
             .register_type::<ModifyHP>()

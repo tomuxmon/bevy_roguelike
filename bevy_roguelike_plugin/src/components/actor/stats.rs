@@ -228,12 +228,12 @@ impl DamageProtectStats {
     pub fn new(atr: &Attributes) -> Self {
         Self {
             absorbed: DamageProtectStats::ABSORBED_MIN
-                - (atr.toughness as f32 / 4. + atr.willpower as f32 / 16.) as i16,
+                + (atr.toughness as f32 / 4. + atr.willpower as f32 / 16.) as i16,
         }
     }
     pub fn update(&mut self, atr: &Attributes) {
         self.absorbed = DamageProtectStats::ABSORBED_MIN
-            - (atr.toughness as f32 / 4. + atr.willpower as f32 / 16.) as i16;
+            + (atr.toughness as f32 / 4. + atr.willpower as f32 / 16.) as i16;
     }
     pub fn absorbed(&self) -> i16 {
         self.absorbed
