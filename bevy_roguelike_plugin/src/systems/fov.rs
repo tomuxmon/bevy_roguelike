@@ -15,7 +15,7 @@ pub fn field_of_view_set_visibility(
         &mut Sprite,
         &mut Transform,
         &mut Visibility,
-        Option<&OnTopHud>,
+        Option<&HudHealthBar>,
     )>,
     map_options: Res<MapOptions>,
 ) {
@@ -31,12 +31,12 @@ pub fn field_of_view_set_visibility(
             };
             for c in children.iter() {
                 if let Ok((mut s, mut t, mut v, h)) = visible_children.get_mut(*c) {
-                    let is_hud = h.is_some();
-                    v.is_visible = (is_visible && !is_hud)
-                        || (is_visible && is_hud && hp_percent != 1.)
+                    let is_hud_hp = h.is_some();
+                    v.is_visible = (is_visible && !is_hud_hp)
+                        || (is_visible && is_hud_hp && hp_percent != 1.)
                         || (is_ambient && is_revealed);
 
-                    if !is_hud {
+                    if !is_hud_hp {
                         s.color = if is_visible && is_revealed {
                             Color::WHITE
                         } else {

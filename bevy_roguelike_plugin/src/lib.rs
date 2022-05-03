@@ -35,6 +35,7 @@ impl<T: StateData> Plugin for RoguelikePlugin<T> {
             .add_system_set(
                 SystemSet::on_update(self.running_state.clone())
                     .with_system(render_body)
+                    .with_system(render_hud_health_bar)
                     .with_system(attributes_update_action_points)
                     .with_system(attributes_update_hit_points)
                     .with_system(attributes_update_attack_stats)
@@ -174,12 +175,6 @@ impl<T> RoguelikePlugin<T> {
             .with_children(|player| {
                 // TODO: instead should be equiped inventory
                 spawn_player_body_wear(player, &player_assets, options.tile_size);
-
-                player
-                    .spawn()
-                    .insert(Name::new("hud"))
-                    .insert(OnTopHud {})
-                    .insert_bundle(get_hud_bundle(options.tile_size));
             });
 
         team_map[info.player_start] = Some(Team::new(team_player));
@@ -211,14 +206,7 @@ impl<T> RoguelikePlugin<T> {
                             mpt,
                             tile_sprite_white.clone(),
                             enemy_assets.skins[rng.gen_range(0..enemy_assets.skins.len())].clone(),
-                        ))
-                        .with_children(|enemy| {
-                            enemy
-                                .spawn()
-                                .insert(Name::new("hud"))
-                                .insert(OnTopHud {})
-                                .insert_bundle(get_hud_bundle(options.tile_size));
-                        });
+                        ));
 
                     team_map[mpt] = Some(Team::new(team_monster));
                 }
@@ -272,20 +260,6 @@ fn spawn_tiles(
             });
     }
 }
-
-fn get_hud_bundle(size: f32) -> impl Bundle {
-    let height = size / 16.;
-    SpriteBundle {
-        sprite: Sprite {
-            color: Color::GREEN,
-            custom_size: Some(Vec2::new(size, height)),
-            ..Default::default()
-        },
-        transform: Transform::from_xyz(0., -size / 2. + height / 2., 100.),
-        ..Default::default()
-    }
-}
-
 fn spawn_player_body_wear(cb: &mut ChildBuilder, player_assets: &PlayerAssets, size: f32) {
     for i in 0..player_assets.wear.len() {
         cb.spawn_bundle(SpriteBundle {

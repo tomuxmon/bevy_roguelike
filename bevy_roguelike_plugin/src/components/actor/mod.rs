@@ -96,7 +96,7 @@ impl Team {
 // TODO: fix lousy name
 #[derive(Default, Debug, Clone, Eq, PartialEq, Component, Reflect)]
 #[reflect(Component)]
-pub struct OnTopHud;
+pub struct HudHealthBar;
 
 // NOTE: a clunky component to transfer damage
 #[derive(Default, Debug, Copy, Clone, Eq, PartialEq, Hash, Component, Reflect)]

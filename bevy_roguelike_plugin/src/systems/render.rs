@@ -26,3 +26,34 @@ pub fn render_body(
             });
     }
 }
+
+pub fn render_hud_health_bar(
+    mut cmd: Commands,
+    renderables: Query<Entity, (With<HitPoints>, Without<HudHealthBar>)>,
+    map_options: Res<MapOptions>,
+) {
+    for rendity in renderables.iter() {
+        cmd.entity(rendity)
+            .insert(HudHealthBar {})
+            .with_children(|renderable| {
+                let height = map_options.tile_size / 16.;
+                renderable
+                    .spawn()
+                    .insert(Name::new("hud"))
+                    .insert(HudHealthBar {})
+                    .insert_bundle(SpriteBundle {
+                        sprite: Sprite {
+                            color: Color::GREEN,
+                            custom_size: Some(Vec2::new(map_options.tile_size, height)),
+                            ..Default::default()
+                        },
+                        transform: Transform::from_xyz(
+                            0.,
+                            -map_options.tile_size / 2. + height / 2.,
+                            100.,
+                        ),
+                        ..Default::default()
+                    });
+            });
+    }
+}
