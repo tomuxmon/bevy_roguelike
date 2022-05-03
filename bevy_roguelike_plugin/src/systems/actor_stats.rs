@@ -1,4 +1,4 @@
-use crate::components::{ActionPoints, AttackStats, Attributes, FieldOfView, HitPoints};
+use crate::components::*;
 use bevy::prelude::*;
 
 // TODO: macro for a repeating code
@@ -24,6 +24,20 @@ pub fn attributes_update_attack_stats(
 ) {
     for (atr, mut atk, _) in actors.iter_mut() {
         atk.update(atr);
+    }
+}
+pub fn attributes_update_avoid_stats(
+    mut actors: Query<(&Attributes, &mut DamageAvoidStats, Changed<Attributes>)>,
+) {
+    for (atr, mut das, _) in actors.iter_mut() {
+        das.update(atr);
+    }
+}
+pub fn attributes_update_protection_stats(
+    mut actors: Query<(&Attributes, &mut DamageProtectStats, Changed<Attributes>)>,
+) {
+    for (atr, mut prot, _) in actors.iter_mut() {
+        prot.update(atr);
     }
 }
 pub fn attributes_update_field_of_view(

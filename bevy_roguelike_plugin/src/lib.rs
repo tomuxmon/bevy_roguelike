@@ -39,6 +39,8 @@ impl<T: StateData> Plugin for RoguelikePlugin<T> {
                     .with_system(attributes_update_action_points)
                     .with_system(attributes_update_hit_points)
                     .with_system(attributes_update_attack_stats)
+                    .with_system(attributes_update_avoid_stats)
+                    .with_system(attributes_update_protection_stats)
                     .with_system(attributes_update_field_of_view)
                     .with_system(gather_action_points)
                     .with_system(turn_end_now_gather.after(gather_action_points))

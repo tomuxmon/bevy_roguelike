@@ -8,6 +8,8 @@ use std::borrow::Cow;
 pub use stats::ActionPoints;
 pub use stats::AttackStats;
 pub use stats::Attributes;
+pub use stats::DamageAvoidStats;
+pub use stats::DamageProtectStats;
 pub use stats::HitPoints;
 
 pub mod stats;
@@ -21,6 +23,8 @@ pub struct Actor {
     ap: ActionPoints,
     hp: HitPoints,
     atack: AttackStats,
+    defense: DamageAvoidStats,
+    protection: DamageProtectStats,
     // TODO: DefenceStats
     fov: FieldOfView,
     inventory: Inventory,
@@ -43,6 +47,8 @@ impl Actor {
             ap: ActionPoints::new(&attributes),
             hp: HitPoints::new(&attributes),
             atack: AttackStats::new(&attributes),
+            defense: DamageAvoidStats::new(&attributes),
+            protection: DamageProtectStats::new(&attributes),
             fov: FieldOfView::new(&attributes),
             inventory: Inventory::default(),
             position: Vector2D::from(position),
