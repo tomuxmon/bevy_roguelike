@@ -77,7 +77,7 @@ impl ActionPoints {
 #[derive(Default, Debug, Copy, Clone, Eq, PartialEq, Hash, Component, Reflect)]
 #[reflect(Component)]
 pub struct HitPoints {
-    max: i16,
+    full: i16,
     current: i16,
 
     regen_ready: i16,
@@ -85,18 +85,18 @@ pub struct HitPoints {
     regen_increment: i16,
 }
 impl HitPoints {
-    pub const MAX_MIN: i16 = 20;
+    pub const FULL_MIN: i16 = 20;
     pub const REGEN_READY_DEFAULT: i16 = 128;
     pub const REGEN_INCREMENT_MIN: i16 = 64;
 
     pub fn new(atr: &Attributes) -> Self {
-        let max = HitPoints::MAX_MIN
-            + (atr.toughness as i16) * 6
-            + (atr.strength as i16) * 2
-            + (atr.willpower as i16);
+        let full = HitPoints::FULL_MIN
+            + (atr.toughness as i16) * 4
+            + atr.strength as i16
+            + (atr.willpower as f32 / 2.) as i16;
         Self {
-            max,
-            current: max,
+            full,
+            current: full,
             regen_ready: HitPoints::REGEN_READY_DEFAULT,
             regen_current: 0,
             regen_increment: HitPoints::REGEN_INCREMENT_MIN
@@ -106,12 +106,12 @@ impl HitPoints {
         }
     }
     pub fn update(&mut self, atr: &Attributes) {
-        let current_ratio = self.current as f32 / self.max as f32;
-        self.max = HitPoints::MAX_MIN
-            + (atr.toughness as i16) * 6
-            + (atr.strength as i16) * 2
-            + (atr.willpower as i16);
-        self.current = (current_ratio * self.max as f32) as i16;
+        let current_ratio = self.current as f32 / self.full as f32;
+        self.full = HitPoints::FULL_MIN
+            + (atr.toughness as i16) * 4
+            + atr.strength as i16
+            + (atr.willpower as f32 / 2.) as i16;
+        self.current = (current_ratio * self.full as f32) as i16;
         self.regen_ready = HitPoints::REGEN_READY_DEFAULT;
         self.regen_increment = HitPoints::REGEN_INCREMENT_MIN
             + (atr.toughness as i16) * 4
@@ -120,14 +120,14 @@ impl HitPoints {
     }
 
     pub fn apply(&mut self, amount: i16) -> i16 {
-        self.current = i16::min(self.current + amount, self.max);
+        self.current = i16::min(self.current + amount, self.full);
         self.current
     }
     pub fn current(&self) -> i16 {
         self.current
     }
     pub fn percent(&self) -> f32 {
-        self.current as f32 / self.max as f32
+        self.current as f32 / self.full as f32
     }
     pub fn regen(&mut self) {
         self.regen_current = self.regen_current + self.regen_increment;
@@ -156,20 +156,20 @@ impl AttackStats {
     pub fn new(atr: &Attributes) -> Self {
         Self {
             cost: i16::max(
-                AttackStats::COST_MAX - (atr.dexterity as i16) * 4,
+                AttackStats::COST_MAX - atr.dexterity as i16,
                 AttackStats::COST_MIN,
             ),
-            damage: AttackStats::DAMAGE_MIN + (atr.strength as i16),
-            rate: AttackStats::RATE_MIN + (atr.dexterity as i16),
+            damage: AttackStats::DAMAGE_MIN + atr.strength as i16,
+            rate: AttackStats::RATE_MIN + atr.dexterity as i16,
         }
     }
     pub fn update(&mut self, atr: &Attributes) {
         self.cost = i16::max(
-            AttackStats::COST_MAX - (atr.dexterity as i16) * 4,
+            AttackStats::COST_MAX - atr.dexterity as i16,
             AttackStats::COST_MIN,
         );
-        self.damage = AttackStats::DAMAGE_MIN + (atr.strength as i16);
-        self.rate = AttackStats::RATE_MIN + (atr.dexterity as i16);
+        self.damage = AttackStats::DAMAGE_MIN + atr.strength as i16;
+        self.rate = AttackStats::RATE_MIN + atr.dexterity as i16;
     }
     pub fn cost(&self) -> i16 {
         self.cost
