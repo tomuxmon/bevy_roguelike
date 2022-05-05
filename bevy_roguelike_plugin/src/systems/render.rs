@@ -61,3 +61,5 @@ pub fn render_hud_health_bar(
             });
     }
 }
+
+// TODO: render inventory 

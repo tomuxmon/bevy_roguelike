@@ -1,19 +1,30 @@
 use super::RenderInfo;
-use bevy::{prelude::*, utils::HashSet};
+use bevy::prelude::*;
 use std::borrow::Cow;
 use std::iter::Sum;
-use std::ops::{Deref, DerefMut};
+
+pub use inventory::Inventory;
+pub use inventory::InventoryDisplay;
+pub use item_type::BodyWear;
+pub use item_type::FeetWear;
+pub use item_type::FingerWear;
+pub use item_type::HeadWear;
+pub use item_type::MainHandWeapon;
+pub use item_type::NeckWear;
+pub use item_type::OffHandShield;
+
+mod inventory;
+mod item_type;
 
 #[derive(Bundle)]
-pub struct Weapon {
+pub struct AttackItem {
     item: Item,
     name: Name,
     attack: AttackBoost,
     render_info: RenderInfo,
-    // Vector2D should be added separately if item is to be placed on the map
 }
 
-impl Weapon {
+impl AttackItem {
     pub fn new(
         name: impl Into<Cow<'static, str>>,
         attack: AttackBoost,
@@ -29,14 +40,13 @@ impl Weapon {
 }
 
 #[derive(Bundle)]
-pub struct Armor {
+pub struct DefenseItem {
     item: Item,
     name: Name,
     attack: DefenseBoost,
     render_info: RenderInfo,
-    //Vector2D should be added separately if item is to be placed on the map
 }
-impl Armor {
+impl DefenseItem {
     pub fn new(
         name: impl Into<Cow<'static, str>>,
         attack: DefenseBoost,
@@ -117,20 +127,21 @@ impl<'a> Sum<&'a Self> for DefenseBoost {
 #[reflect(Component)]
 pub struct Equiped;
 
+#[derive(Default, Debug, PartialEq, Eq, Clone, Component, Reflect)]
+#[reflect(Component)]
+pub struct ItemCarySlot {
+    index: usize,
+}
+
+impl ItemCarySlot {
+    pub fn new(index: usize) -> Self {
+        Self { index }
+    }
+    pub fn index(&self) -> usize {
+        self.index
+    }
+}
+
 #[derive(Default, Debug, Clone, Component, Reflect)]
 #[reflect(Component)]
-pub struct Inventory {
-    items: HashSet<Entity>,
-}
-impl Deref for Inventory {
-    type Target = HashSet<Entity>;
-
-    fn deref(&self) -> &Self::Target {
-        &self.items
-    }
-}
-impl DerefMut for Inventory {
-    fn deref_mut(&mut self) -> &mut Self::Target {
-        &mut self.items
-    }
-}
+pub struct ItemEquipSlot;

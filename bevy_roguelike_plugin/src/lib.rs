@@ -9,6 +9,7 @@ use crate::events::*;
 use bevy::ecs::schedule::StateData;
 use bevy::log;
 use bevy::prelude::*;
+use bevy::render::camera::Camera2d;
 use bevy_easings::*;
 use map_generator::*;
 use rand::prelude::*;
@@ -28,7 +29,7 @@ pub struct RoguelikePlugin<T> {
 impl<T: StateData> Plugin for RoguelikePlugin<T> {
     fn build(&self, app: &mut App) {
         app.add_plugin(EasingsPlugin {})
-            .add_startup_system(camera_setup)
+            .add_startup_system(setup_camera)
             .add_system_set(
                 SystemSet::on_enter(self.running_state.clone()).with_system(Self::create_map),
             )
@@ -46,6 +47,7 @@ impl<T: StateData> Plugin for RoguelikePlugin<T> {
                     .with_system(act)
                     .with_system(attack.after(act))
                     .with_system(pick_up_items)
+                    .with_system(toggle_inventory_open)
                     .with_system(drop_item)
                     .with_system(spend_ap.after(act))
                     .with_system(do_move.after(act).after(spend_ap))
@@ -112,7 +114,7 @@ impl<T> RoguelikePlugin<T> {
         player_assets: Res<PlayerAssets>,
         enemy_assets: Res<EnemyAssets>,
         item_assets: Res<ItemAssets>,
-        mut cameras: Query<&mut Transform, With<Camera>>,
+        mut cameras: Query<&mut Transform, With<Camera2d>>,
     ) {
         let options = match map_options {
             None => MapOptions::default(), // If no options is set we use the default one
@@ -174,8 +176,8 @@ impl<T> RoguelikePlugin<T> {
                 let rate = rng.gen_range(1..16);
                 let cost = rng.gen_range(4..16);
                 cmd.spawn()
-                    .insert_bundle(Weapon::new(
-                        "weapon",
+                    .insert_bundle(AttackItem::new(
+                        "attack item",
                         AttackBoost::new(damage, rate, cost),
                         item_assets.skins[rng.gen_range(0..item_assets.skins.len())].clone(),
                     ))
@@ -185,8 +187,8 @@ impl<T> RoguelikePlugin<T> {
                 let rate = rng.gen_range(1..8);
                 let cost = rng.gen_range(4..12);
                 cmd.spawn()
-                    .insert_bundle(Armor::new(
-                        "armor",
+                    .insert_bundle(DefenseItem::new(
+                        "defense item",
                         DefenseBoost::new(absorb, rate, cost),
                         item_assets.skins[rng.gen_range(0..item_assets.skins.len())].clone(),
                     ))
@@ -268,6 +270,7 @@ fn spawn_player_body_wear(cb: &mut ChildBuilder, player_assets: &PlayerAssets, s
     }
 }
 
-fn camera_setup(mut cmd: Commands) {
+fn setup_camera(mut cmd: Commands) {
     cmd.spawn_bundle(OrthographicCameraBundle::new_2d());
+    cmd.spawn_bundle(UiCameraBundle::default());
 }

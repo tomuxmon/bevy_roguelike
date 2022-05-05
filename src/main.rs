@@ -38,12 +38,9 @@ pub fn input_player(
         } else if keys.pressed(KeyCode::Comma) {
             pick_up_writer.send(PickUpItemEvent::new(id));
             IVec2::new(0, 0) // still stay put - skip turn
-        } else if keys.pressed(KeyCode::I) {
-            //TODO: open inventory
-            return;
         } else if keys.just_pressed(KeyCode::D) {
-            if let Some(ee) = inv.iter().last() {
-                drop_writer.send(DropItemEvent::new(id, *ee));
+            if let Some(ee) = inv.iter_some().last() {
+                drop_writer.send(DropItemEvent::new(id, ee));
             }
             return;
         } else {
@@ -201,6 +198,11 @@ fn rogue_setup(
             asset_server.load("sprites/item/spear.png"),
             asset_server.load("sprites/item/two_handed_sword.png"),
         ],
+    });
+
+    cmd.insert_resource(InventoryAssets {
+        slot: asset_server.load("sprites/gui/inventory/slot.png"),
+        slot_equiped: asset_server.load("sprites/gui/inventory/slot_equipped.png"),
     });
 
     state.set(AppState::InGame).unwrap();

@@ -146,8 +146,11 @@ impl HitPoints {
 #[derive(Default, Debug, Copy, Clone, Eq, PartialEq, Hash, Component, Reflect)]
 #[reflect(Component)]
 pub struct AttackStats {
+    // TODO: should only work in conjunction with a weapon (or fists / claws / tentacles ...)
     damage: i16,
+    // TODO: weapon should influence it
     cost: i16,
+    // TODO: weapon should influence it
     rate: i16,
 }
 impl AttackStats {

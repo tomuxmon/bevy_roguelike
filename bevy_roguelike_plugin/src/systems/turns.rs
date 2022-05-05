@@ -83,23 +83,22 @@ pub fn attack(
             if let Ok((defense, dpt, d_inventory)) = defenders.get(e.defender) {
                 let mut a_boosts = vec![];
                 if let Some(inv) = a_inventory {
-                    for i in inv.iter() {
-                        if let Ok(ab) = attack_boosts.get(*i) {
+                    for i in inv.iter_some() {
+                        if let Ok(ab) = attack_boosts.get(i) {
                             a_boosts.push(*ab);
                         }
                     }
                 }
                 let mut d_boosts = vec![];
                 if let Some(inv) = d_inventory {
-                    for i in inv.iter() {
-                        if let Ok(ab) = defense_boosts.get(*i) {
+                    for i in inv.iter_some() {
+                        if let Ok(ab) = defense_boosts.get(i) {
                             d_boosts.push(*ab);
                         }
                     }
                 }
                 let defense = *defense + d_boosts.iter().sum();
-                let atack = *atack + a_boosts.iter().sum();               
-
+                let atack = *atack + a_boosts.iter().sum();
 
                 if !rng.gen_ratio(defense.rate().min(atack.rate()) as u32, atack.rate() as u32) {
                     // TODO: spawn attack animation
