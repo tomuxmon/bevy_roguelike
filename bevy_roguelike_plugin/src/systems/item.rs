@@ -49,88 +49,158 @@ pub fn drop_item(
     }
 }
 
+pub fn get_gear_image_bundle(
+    tile_size: f32,
+    top_px: f32,
+    right_px: f32,
+    image: UiImage,
+) -> ImageBundle {
+    ImageBundle {
+        style: Style {
+            size: Size::new(Val::Px(tile_size), Val::Px(tile_size)),
+            position_type: PositionType::Absolute,
+            position: Rect {
+                top: Val::Px(top_px),
+                right: Val::Px(right_px),
+                ..default()
+            },
+            ..default()
+        },
+        image,
+        ..Default::default()
+    }
+}
+
 pub fn toggle_inventory_open(
     mut cmd: Commands,
     keys: Res<Input<KeyCode>>,
     inventory_assets: Res<InventoryAssets>,
     map_options: Res<MapOptions>,
     inventory_display: Query<Entity, With<InventoryDisplay>>,
-    player_inventory: Query<&Inventory, With<MovingPlayer>>,
-    items: Query<(&RenderInfo, Option<&Equiped>), With<Item>>,
 ) {
     if !keys.just_pressed(KeyCode::I) {
         return;
     }
-    let inventory = if let Ok(i) = player_inventory.get_single() {
-        i
-    } else {
-        return;
-    };
     if let Ok(inv) = inventory_display.get_single() {
         cmd.entity(inv).despawn_recursive();
     } else {
         cmd.spawn()
-            .insert(Name::new("inventory"))
+            .insert(Name::new("inventory display"))
             .insert(InventoryDisplay {})
             .insert_bundle(NodeBundle {
                 style: Style {
-                    flex_wrap: FlexWrap::WrapReverse,
-                    flex_direction: FlexDirection::Row,
-                    align_content: AlignContent::FlexStart,
-                    size: Size::new(Val::Px(200.0), Val::Px(170.0)),
+                    flex_wrap: FlexWrap::Wrap,
+                    flex_direction: FlexDirection::ColumnReverse,
+                    size: Size::new(Val::Px(256.0), Val::Auto),
                     position_type: PositionType::Absolute,
                     position: Rect {
-                        top: Val::Px(20.0),
-                        right: Val::Px(20.0),
+                        top: Val::Px(10.0),
+                        right: Val::Px(10.0),
                         ..default()
-                    },
-                    border: Rect {
-                        left: Val::Px(4.0),
-                        right: Val::Px(4.0),
-                        top: Val::Px(16.0),
-                        bottom: Val::Px(4.0),
                     },
                     ..default()
                 },
-                color: Color::rgba(0.09, 0.11, 0.1, 0.9).into(),
                 ..default()
             })
             .with_children(|parent| {
-                for i in 0..Inventory::DEFAULT_CAPACITY {
-                    let mut pcmd = parent.spawn();
-                    pcmd.insert(Name::new(format!("Slot {}", i)))
-                        .insert(ItemCarySlot::new(i))
-                        .insert_bundle(ImageBundle {
-                            style: Style {
-                                size: Size::new(
-                                    Val::Px(map_options.tile_size),
-                                    Val::Px(map_options.tile_size),
-                                ),
-                                ..default()
-                            },
-                            image: inventory_assets.slot.clone().into(),
-                            ..Default::default()
-                        });
-
-                    if let Some(item) = inventory[i] {
-                        if let Ok((info, _eqiuped)) = items.get(item) {
-                            // if eqiuped.is_some() {
-                            //     pcmd.with_children(|cb| {
-                            //         cb.spawn().insert_bundle(ImageBundle {
-                            //             style: Style {
-                            //                 size: Size::new(
-                            //                     Val::Px(map_options.tile_size),
-                            //                     Val::Px(map_options.tile_size),
-                            //                 ),
-                            //                 ..default()
-                            //             },
-                            //             image: inventory_assets.slot.clone().into(),
-                            //             ..Default::default()
-                            //         });
-                            //     });
-                            // }
-                            pcmd.with_children(|cb| {
-                                cb.spawn().insert_bundle(ImageBundle {
+                // NOTE: drag area and player gear
+                parent
+                    .spawn()
+                    .insert(Name::new("drag and gear"))
+                    .insert_bundle(NodeBundle {
+                        style: Style {
+                            size: Size::new(Val::Px(256.0), Val::Px(128.)),
+                            ..default()
+                        },
+                        // TODO: should be an image instead of a color
+                        color: Color::rgba(0.0125, 0.05, 0.025, 0.9).into(),
+                        ..default()
+                    })
+                    .with_children(|cb| {
+                        cb.spawn().insert(Name::new("body wear")).insert_bundle(
+                            get_gear_image_bundle(
+                                map_options.tile_size,
+                                64. - 16.,
+                                128. - 16.,
+                                inventory_assets.slot_body_wear.clone().into(),
+                            ),
+                        );
+                        cb.spawn().insert(Name::new("head wear")).insert_bundle(
+                            get_gear_image_bundle(
+                                map_options.tile_size,
+                                32. - 16.,
+                                128. - 16.,
+                                inventory_assets.slot_head_wear.clone().into(),
+                            ),
+                        );
+                        cb.spawn().insert(Name::new("feet wear")).insert_bundle(
+                            get_gear_image_bundle(
+                                map_options.tile_size,
+                                96. - 16.,
+                                128. - 16.,
+                                inventory_assets.slot_feet_wear.clone().into(),
+                            ),
+                        );
+                        cb.spawn()
+                            .insert(Name::new("main hand gear"))
+                            .insert_bundle(get_gear_image_bundle(
+                                map_options.tile_size,
+                                64. - 16.,
+                                160. - 16.,
+                                inventory_assets.slot_main_hand_gear.clone().into(),
+                            ));
+                        cb.spawn().insert(Name::new("finger wear")).insert_bundle(
+                            get_gear_image_bundle(
+                                map_options.tile_size,
+                                96. - 16.,
+                                160. - 16.,
+                                inventory_assets.slot_finger_wear.clone().into(),
+                            ),
+                        );
+                        cb.spawn().insert(Name::new("neck wear")).insert_bundle(
+                            get_gear_image_bundle(
+                                map_options.tile_size,
+                                32. - 16.,
+                                96. - 16.,
+                                inventory_assets.slot_neck_wear.clone().into(),
+                            ),
+                        );
+                        cb.spawn().insert(Name::new("off hand gear")).insert_bundle(
+                            get_gear_image_bundle(
+                                map_options.tile_size,
+                                64. - 16.,
+                                96. - 16.,
+                                inventory_assets.slot_off_hand_gear.clone().into(),
+                            ),
+                        );
+                        cb.spawn().insert(Name::new("finger wear")).insert_bundle(
+                            get_gear_image_bundle(
+                                map_options.tile_size,
+                                96. - 16.,
+                                96. - 16.,
+                                inventory_assets.slot_finger_wear.clone().into(),
+                            ),
+                        );
+                    });
+                // NOTE: spawn inventory with slots
+                parent
+                    .spawn()
+                    .insert(Name::new("inventory"))
+                    .insert_bundle(NodeBundle {
+                        style: Style {
+                            flex_wrap: FlexWrap::WrapReverse,
+                            flex_direction: FlexDirection::Row,
+                            size: Size::new(Val::Px(256.0), Val::Auto),
+                            ..default()
+                        },
+                        ..default()
+                    })
+                    .with_children(|cb| {
+                        for i in 0..Inventory::DEFAULT_CAPACITY {
+                            cb.spawn()
+                                .insert(Name::new(format!("Slot {}", i)))
+                                .insert(ItemCarySlot::new(i))
+                                .insert_bundle(ImageBundle {
                                     style: Style {
                                         size: Size::new(
                                             Val::Px(map_options.tile_size),
@@ -138,15 +208,49 @@ pub fn toggle_inventory_open(
                                         ),
                                         ..default()
                                     },
-                                    image: info.texture.clone().into(),
+                                    image: inventory_assets.slot.clone().into(),
                                     ..Default::default()
                                 });
-                            });
-                        } else {
-                            bevy::log::error!("item in inventory but not in the world.");
                         }
-                    }
-                }
+                    });
             });
+    }
+}
+
+pub fn inventory_update(
+    mut cmd: Commands,
+    map_options: Res<MapOptions>,
+    player_inventory: Query<&Inventory, With<MovingPlayer>>,
+    items: Query<(&RenderInfo, Option<&Equiped>), With<Item>>,
+    item_slots: Query<(Entity, &ItemCarySlot)>,
+) {
+    let inventory = if let Ok(i) = player_inventory.get_single() {
+        i
+    } else {
+        return;
+    };
+    for (ee, slot) in item_slots.iter() {
+        if let Some(item) = inventory[slot.index()] {
+            if let Ok((info, _eqiuped)) = items.get(item) {
+                // TODO: check if item already in the slot
+                // no need to rerender it
+
+                cmd.entity(ee).with_children(|cb| {
+                    cb.spawn().insert_bundle(ImageBundle {
+                        style: Style {
+                            size: Size::new(
+                                Val::Px(map_options.tile_size),
+                                Val::Px(map_options.tile_size),
+                            ),
+                            ..default()
+                        },
+                        image: info.texture.clone().into(),
+                        ..Default::default()
+                    });
+                });
+            } else {
+                bevy::log::error!("item in inventory but not in the world.");
+            }
+        }
     }
 }

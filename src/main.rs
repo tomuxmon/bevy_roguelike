@@ -202,7 +202,13 @@ fn rogue_setup(
 
     cmd.insert_resource(InventoryAssets {
         slot: asset_server.load("sprites/gui/inventory/slot.png"),
-        slot_equiped: asset_server.load("sprites/gui/inventory/slot_equipped.png"),
+        slot_head_wear: asset_server.load("sprites/gui/inventory/slot_head_wear.png"),
+        slot_body_wear: asset_server.load("sprites/gui/inventory/slot_body_wear.png"),
+        slot_main_hand_gear: asset_server.load("sprites/gui/inventory/slot_main_hand_gear.png"),
+        slot_off_hand_gear: asset_server.load("sprites/gui/inventory/slot_off_hand_gear.png"),
+        slot_finger_wear: asset_server.load("sprites/gui/inventory/slot_finger_wear.png"),
+        slot_neck_wear: asset_server.load("sprites/gui/inventory/slot_neck_wear.png"),
+        slot_feet_wear: asset_server.load("sprites/gui/inventory/slot_feet_wear.png"),
     });
 
     state.set(AppState::InGame).unwrap();

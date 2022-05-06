@@ -14,7 +14,7 @@ impl Default for Inventory {
     }
 }
 impl Inventory {
-    pub const DEFAULT_CAPACITY: usize = 30;
+    pub const DEFAULT_CAPACITY: usize = 32;
 
     pub fn add(&mut self, item: Entity) -> bool {
         let search =
