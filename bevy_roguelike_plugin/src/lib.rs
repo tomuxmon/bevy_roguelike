@@ -35,10 +35,11 @@ impl<T: StateData> Plugin for RoguelikePlugin<T> {
             .add_system_set(
                 SystemSet::on_enter(self.running_state.clone()).with_system(Self::create_map),
             )
-            .add_system_to_stage(CoreStage::PostUpdate, ui_drag_interaction)
-            .add_system_to_stage(CoreStage::PostUpdate, ui_apply_drag_pos)
+            .add_system_to_stage(CoreStage::First, ui_drag_interaction)
+            // .add_system_to_stage(CoreStage::PostUpdate, ui_apply_drag_pos)
             .add_system_set(
                 SystemSet::on_update(self.running_state.clone())
+                    .with_system(ui_apply_drag_pos)
                     .with_system(render_body)
                     .with_system(render_hud_health_bar)
                     .with_system(attributes_update_action_points)
@@ -85,8 +86,7 @@ impl<T: StateData> Plugin for RoguelikePlugin<T> {
             .register_type::<AttackBoost>()
             .register_type::<DefenseBoost>()
             .register_type::<Equiped>()
-            .register_type::<Drag>()
-            .register_type::<DragTracker>()
+            .register_type::<Dragable>()
             .add_event::<SpendAPEvent>()
             .add_event::<AttackEvent>()
             .add_event::<MoveEvent>()
@@ -94,8 +94,7 @@ impl<T: StateData> Plugin for RoguelikePlugin<T> {
             .add_event::<IdleEvent>()
             .add_event::<PickUpItemEvent>()
             .add_event::<DropItemEvent>()
-            .add_event::<CameraFocusEvent>()
-            .add_event::<DragCursorMoved>();
+            .add_event::<CameraFocusEvent>();
 
         log::info!("Loaded Roguelike Plugin");
     }
