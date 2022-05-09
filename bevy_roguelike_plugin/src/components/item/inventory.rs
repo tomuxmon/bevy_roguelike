@@ -4,7 +4,12 @@ use std::ops::Index;
 #[derive(Debug, Clone, Component, Reflect)]
 #[reflect(Component)]
 pub struct Inventory {
+    // TODO: possibly simplify bag slots
     items: Vec<Option<Entity>>,
+    // TODO: add specialized slots
+    // TODO: location in 128 height x 256 width canvas
+    // TODO: gear type
+ 
 }
 impl Default for Inventory {
     fn default() -> Self {

@@ -1,5 +1,10 @@
-use crate::{components::*, events::*, resources::*};
-use bevy::prelude::*;
+use crate::{
+    components::*,
+    dragable_ui::{Drag, DragTracker},
+    events::*,
+    resources::*,
+};
+use bevy::{prelude::*, ui::*};
 
 pub fn pick_up_items(
     mut cmd: Commands,
@@ -87,6 +92,9 @@ pub fn toggle_inventory_open(
         cmd.spawn()
             .insert(Name::new("inventory display"))
             .insert(InventoryDisplay {})
+            .insert(Drag::default())
+            .insert(DragTracker::default())
+            .insert(Interaction::default())
             .insert_bundle(NodeBundle {
                 style: Style {
                     flex_wrap: FlexWrap::Wrap,
@@ -108,6 +116,7 @@ pub fn toggle_inventory_open(
                     .spawn()
                     .insert(Name::new("drag and gear"))
                     .insert_bundle(NodeBundle {
+                        focus_policy: FocusPolicy::Pass,
                         style: Style {
                             size: Size::new(Val::Px(256.0), Val::Px(128.)),
                             ..default()
@@ -128,7 +137,7 @@ pub fn toggle_inventory_open(
                         cb.spawn().insert(Name::new("head wear")).insert_bundle(
                             get_gear_image_bundle(
                                 map_options.tile_size,
-                                32. - 16.,
+                                32. - 16. - 8.,
                                 128. - 16.,
                                 inventory_assets.slot_head_wear.clone().into(),
                             ),
@@ -136,7 +145,7 @@ pub fn toggle_inventory_open(
                         cb.spawn().insert(Name::new("feet wear")).insert_bundle(
                             get_gear_image_bundle(
                                 map_options.tile_size,
-                                96. - 16.,
+                                96. - 16. + 8.,
                                 128. - 16.,
                                 inventory_assets.slot_feet_wear.clone().into(),
                             ),
@@ -146,22 +155,22 @@ pub fn toggle_inventory_open(
                             .insert_bundle(get_gear_image_bundle(
                                 map_options.tile_size,
                                 64. - 16.,
-                                160. - 16.,
+                                160. - 16. + 8.,
                                 inventory_assets.slot_main_hand_gear.clone().into(),
                             ));
                         cb.spawn().insert(Name::new("finger wear")).insert_bundle(
                             get_gear_image_bundle(
                                 map_options.tile_size,
-                                96. - 16.,
-                                160. - 16.,
+                                96. - 16. + 8.,
+                                160. - 16. + 8.,
                                 inventory_assets.slot_finger_wear.clone().into(),
                             ),
                         );
                         cb.spawn().insert(Name::new("neck wear")).insert_bundle(
                             get_gear_image_bundle(
                                 map_options.tile_size,
-                                32. - 16.,
-                                96. - 16.,
+                                32. - 16. - 8.,
+                                96. - 16. - 8.,
                                 inventory_assets.slot_neck_wear.clone().into(),
                             ),
                         );
@@ -169,15 +178,15 @@ pub fn toggle_inventory_open(
                             get_gear_image_bundle(
                                 map_options.tile_size,
                                 64. - 16.,
-                                96. - 16.,
+                                96. - 16. - 8.,
                                 inventory_assets.slot_off_hand_gear.clone().into(),
                             ),
                         );
                         cb.spawn().insert(Name::new("finger wear")).insert_bundle(
                             get_gear_image_bundle(
                                 map_options.tile_size,
-                                96. - 16.,
-                                96. - 16.,
+                                96. - 16. + 8.,
+                                96. - 16. - 8.,
                                 inventory_assets.slot_finger_wear.clone().into(),
                             ),
                         );

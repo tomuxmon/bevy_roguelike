@@ -9,9 +9,9 @@ pub use item_type::BodyWear;
 pub use item_type::FeetWear;
 pub use item_type::FingerWear;
 pub use item_type::HeadWear;
-pub use item_type::MainHandWeapon;
+pub use item_type::MainHandGear;
 pub use item_type::NeckWear;
-pub use item_type::OffHandShield;
+pub use item_type::OffHandGear;
 
 mod inventory;
 mod item_type;

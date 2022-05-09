@@ -2,11 +2,11 @@ use bevy::prelude::*;
 
 #[derive(Default, Debug, Clone, Component, Reflect)]
 #[reflect(Component)]
-pub struct MainHandWeapon;
+pub struct MainHandGear;
 
 #[derive(Default, Debug, Clone, Component, Reflect)]
 #[reflect(Component)]
-pub struct OffHandShield;
+pub struct OffHandGear;
 
 #[derive(Default, Debug, Clone, Component, Reflect)]
 #[reflect(Component)]
