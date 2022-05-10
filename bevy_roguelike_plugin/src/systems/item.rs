@@ -1,4 +1,4 @@
-use crate::{components::*, dragable_ui::Dragable, events::*, resources::*};
+use crate::{components::*, dragable_ui::DragableUI, events::*, resources::*};
 use bevy::{prelude::*, ui::*};
 
 pub fn pick_up_items(
@@ -87,7 +87,7 @@ pub fn toggle_inventory_open(
         cmd.spawn()
             .insert(Name::new("inventory display"))
             .insert(InventoryDisplay {})
-            .insert(Dragable::default())
+            .insert(DragableUI::default())
             .insert(Interaction::default())
             .insert_bundle(NodeBundle {
                 style: Style {

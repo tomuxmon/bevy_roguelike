@@ -2,7 +2,7 @@ use bevy::prelude::*;
 
 #[derive(Default, Debug, Clone, Component, Reflect)]
 #[reflect(Component)]
-pub struct Dragable {
+pub struct DragableUI {
     is_started: bool,
     current_cursor_position: Vec2,
     last_ui_position: Rect<Val>,
@@ -11,7 +11,7 @@ pub struct Dragable {
 
 pub fn ui_drag_interaction(
     mut cursor_moved_reader: EventReader<CursorMoved>,
-    mut interactive_dragables: Query<(&Interaction, &Style, &mut Dragable)>,
+    mut interactive_dragables: Query<(&Interaction, &Style, &mut DragableUI)>,
 ) {
     for mm in cursor_moved_reader.iter() {
         for (i, s, mut d) in interactive_dragables.iter_mut() {
@@ -36,7 +36,7 @@ pub fn ui_drag_interaction(
     }
 }
 
-pub fn ui_apply_drag_pos(mut dragables: Query<(&mut Style, &Dragable)>) {
+pub fn ui_apply_drag_pos(mut dragables: Query<(&mut Style, &DragableUI)>) {
     for (mut style, d) in dragables.iter_mut().filter(|(_, d)| d.is_started) {
         let delta = d.last_cursor_position - d.current_cursor_position;
         let top = if let Val::Px(i) = d.last_ui_position.top {

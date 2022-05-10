@@ -85,7 +85,7 @@ impl<T: StateData> Plugin for RoguelikePlugin<T> {
             .register_type::<AttackBoost>()
             .register_type::<DefenseBoost>()
             .register_type::<Equiped>()
-            .register_type::<Dragable>()
+            .register_type::<DragableUI>()
             .add_event::<SpendAPEvent>()
             .add_event::<AttackEvent>()
             .add_event::<MoveEvent>()
