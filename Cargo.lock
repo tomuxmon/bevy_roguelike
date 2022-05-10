@@ -612,6 +612,7 @@ dependencies = [
  "colored",
  "getrandom",
  "line_drawing",
+ "map_generator",
  "rand",
  "serde",
 ]
@@ -1741,6 +1742,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "map_generator"
+version = "0.1.0"
+dependencies = [
+ "glam",
+ "line_drawing",
+ "rand",
+]
+
+[[package]]
 name = "matchers"
 version = "0.1.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2371,6 +2381,7 @@ dependencies = [
  "bevy-inspector-egui",
  "bevy_roguelike_plugin",
  "line_drawing",
+ "map_generator",
  "rand",
 ]
 

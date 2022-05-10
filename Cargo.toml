@@ -13,6 +13,7 @@ debug = ["bevy_roguelike_plugin/debug", "bevy-inspector-egui"]
 rand = "~0.8"
 line_drawing = "~1.0"
 bevy_roguelike_plugin = { path = "bevy_roguelike_plugin" }
+map_generator = { path = "map_generator" }
 bevy-inspector-egui = { version = "~0.10", optional = true }
 
 [dependencies.bevy]
@@ -27,7 +28,7 @@ default-features = false
 features = ["wayland"]
 
 [workspace]
-members = ["bevy_roguelike_plugin"]
+members = ["bevy_roguelike_plugin", "map_generator"]
 
 # Enable optimizations for dependencies (incl. Bevy), but not for our code:
 [profile.dev.package."*"]

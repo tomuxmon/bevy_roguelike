@@ -10,8 +10,7 @@ mod prelude {
     pub use super::map::Tile;
     pub use super::rect::Rect;
     pub use super::MapGenerator;
-    pub use bevy::log;
-    pub use bevy::math::IVec2;
+    pub use glam::IVec2;
     pub use line_drawing::WalkGrid;
     pub use rand::prelude::*;
 }
@@ -29,7 +28,6 @@ pub trait MapGenerator {
     fn gen(&self, rng: &mut StdRng, size: IVec2) -> Map;
 }
 
-// TODO: separate as a separate lib not depending on bevy
 // TODO: implement possibility to do map generation composition (mix multiple generators)
 // TODO: implement space straversal and room detector
 // TODO: dijkstra plotting to determine distinct not connected rooms

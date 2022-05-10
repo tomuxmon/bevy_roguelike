@@ -1,4 +1,4 @@
-use bevy::math::IVec2;
+use glam::IVec2;
 
 #[derive(Debug, Copy, Clone, Eq, PartialEq)]
 pub struct Rect {

@@ -1,0 +1,9 @@
+[package]
+name = "map_generator"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+rand = "~0.8"
+glam = "~0.20"
+line_drawing = "~1.0"

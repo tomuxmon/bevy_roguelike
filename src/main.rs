@@ -1,9 +1,9 @@
 use bevy::prelude::*;
 use bevy_roguelike_plugin::{
-    components::*, events::*, map_generator::*, resources::*, systems::turns::gather_action_points,
-    RoguelikePlugin,
+    components::*, events::*, resources::*, systems::turns::gather_action_points, RoguelikePlugin,
 };
 use line_drawing::WalkGrid;
+use map_generator::*;
 use rand::prelude::*;
 
 #[cfg(feature = "debug")]

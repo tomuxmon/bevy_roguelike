@@ -1,6 +1,7 @@
-use crate::{components::*, map_generator::*, resources::MapOptions};
+use crate::{components::*, resources::MapOptions};
 use bevy::{prelude::*, tasks::*, utils::HashSet};
 use line_drawing::{BresenhamCircle, Supercover};
+use map_generator::*;
 
 pub fn field_of_view_set_visibility(
     players: Query<&FieldOfView, With<MovingPlayer>>,

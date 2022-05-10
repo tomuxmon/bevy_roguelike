@@ -1,5 +1,5 @@
 use crate::components::Team;
-use crate::map_generator::Map;
+use map_generator::Map;
 use bevy::prelude::*;
 use std::ops::{Index, IndexMut};
 

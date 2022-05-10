@@ -1,7 +1,6 @@
 pub mod components;
 pub mod dragable_ui;
 pub mod events;
-pub mod map_generator;
 pub mod resources;
 pub mod systems;
 

@@ -1,5 +1,5 @@
-use crate::map_generator::*;
 use bevy::math::IVec2;
+use map_generator::*;
 use rand::prelude::*;
 
 #[cfg(feature = "debug")]
@@ -55,9 +55,13 @@ impl MapInfo {
     }
 }
 
-impl Tile {
-    #[cfg(feature = "debug")]
-    pub fn to_colorized_string(&self) -> String {
+pub trait Colorized {
+    fn to_colorized_string(&self) -> String;
+}
+
+#[cfg(feature = "debug")]
+impl Colorized for Tile {
+    fn to_colorized_string(&self) -> String {
         format!(
             "{}",
             match self {
@@ -68,9 +72,9 @@ impl Tile {
     }
 }
 
-impl Map {
-    #[cfg(feature = "debug")]
-    pub(crate) fn to_colorized_string(&self) -> String {
+#[cfg(feature = "debug")]
+impl Colorized for Map {
+    fn to_colorized_string(&self) -> String {
         let mut buffer = format!("Map (w: {}, h: {})\n", self.size().x, self.size().y);
         let line: String = (0..(self.size().x + 2)).into_iter().map(|_| '-').collect();
         buffer = format!("{}{}\n", buffer, line);

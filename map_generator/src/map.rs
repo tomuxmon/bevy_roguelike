@@ -1,4 +1,4 @@
-use bevy::math::IVec2;
+use glam::IVec2;
 use rand::prelude::*;
 use std::ops::{Index, IndexMut};
 use std::slice::Iter;
