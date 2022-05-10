@@ -117,20 +117,16 @@ impl<'a> Sum<&'a Self> for DefenseBoost {
     }
 }
 
-// #[derive(Default, Debug, Copy, Clone, Component, Reflect)]
-// #[reflect(Component)]
-// pub struct Equiped;
-
-// UI Specific
 #[derive(Default, Debug, PartialEq, Eq, Clone, Component, Reflect)]
 #[reflect(Component)]
 pub struct ItemDisplaySlot {
     index: usize,
+    pub item: Option<Entity>,
 }
 
 impl ItemDisplaySlot {
     pub fn new(index: usize) -> Self {
-        Self { index }
+        Self { index, item: None }
     }
     pub fn index(&self) -> usize {
         self.index

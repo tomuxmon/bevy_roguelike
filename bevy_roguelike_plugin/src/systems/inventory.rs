@@ -38,10 +38,16 @@ pub fn drop_item(
     mut cmd: Commands,
     mut drop_reader: EventReader<DropItemEvent>,
     mut actors: Query<(&Vector2D, &mut Inventory)>,
+    mut display_slots: Query<&mut ItemDisplaySlot>,
 ) {
     for e in drop_reader.iter() {
         if let Ok((pt, mut inventory)) = actors.get_mut(e.droper) {
             if let Some(_) = inventory.take(e.item) {
+                display_slots.for_each_mut(|mut slot| {
+                    if slot.item.is_some() && slot.item.unwrap() == e.item {
+                        slot.item = None;
+                    }
+                });
                 cmd.entity(e.item).insert(*pt);
             }
         }
@@ -226,40 +232,52 @@ pub fn inventory_update(
     mut cmd: Commands,
     map_options: Res<MapOptions>,
     player_inventory: Query<&Inventory, With<MovingPlayer>>,
-    // items: Query<(&RenderInfo, Option<&Equiped>), With<Item>>,
     items: Query<&RenderInfo, With<Item>>,
-    item_slots: Query<(Entity, &ItemDisplaySlot)>,
+    mut item_slots: Query<(Entity, &mut ItemDisplaySlot)>,
 ) {
     let inventory = if let Ok(i) = player_inventory.get_single() {
         i
     } else {
         return;
     };
-    for (ee, slot) in item_slots.iter() {
+    for (ee, mut slot) in item_slots.iter_mut() {
         let mut slot_cmd = cmd.entity(ee);
-        slot_cmd.despawn_descendants();
-
         if let Some(item) = inventory[slot.index()] {
-            if let Ok(info) = items.get(item) {
-                // TODO: check if item already in the slot
-                // no need to rerender it
-                slot_cmd.with_children(|cb| {
-                    cb.spawn().insert_bundle(ImageBundle {
-                        style: Style {
-                            size: Size::new(
-                                Val::Px(map_options.tile_size),
-                                Val::Px(map_options.tile_size),
-                            ),
-                            ..default()
-                        },
-                        image: info.texture.clone().into(),
-                        ..Default::default()
-                    });
-                });
+            let render = if let Some(slot_item) = slot.item {
+                if item != slot_item {
+                    slot_cmd.despawn_descendants();
+                    true
+                } else {
+                    false
+                }
             } else {
-                bevy::log::error!("item in inventory but not in the world.");
+                slot.item = Some(item);
+                true
+            };
+            if render {
+                if let Ok(info) = items.get(item) {
+                    slot_cmd.with_children(|cb| {
+                        cb.spawn()
+                            .insert(DragableUI::default())
+                            .insert(Interaction::default())
+                            .insert_bundle(ImageBundle {
+                                style: Style {
+                                    size: Size::new(
+                                        Val::Px(map_options.tile_size),
+                                        Val::Px(map_options.tile_size),
+                                    ),
+                                    ..default()
+                                },
+                                image: info.texture.clone().into(),
+                                ..Default::default()
+                            });
+                    });
+                } else {
+                    bevy::log::error!("item in inventory but not in the world.");
+                }
             }
         } else {
+            slot_cmd.despawn_descendants();
         }
     }
 }
