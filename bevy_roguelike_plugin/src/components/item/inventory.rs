@@ -1,5 +1,18 @@
 use bevy::prelude::*;
 use std::ops::Index;
+use super::ItemType;
+
+#[derive(Debug, Clone, Component)]
+pub struct Equipment {
+    //ItemType
+    items: Vec<Option<(ItemType, Entity)>>,
+    // TODO: visual positioning of equipment display
+
+    // TODO: add specialized slots
+    // TODO: location in 128 height x 256 width canvas
+    // TODO: gear type
+    //equiped_items: Vec<>
+}
 
 #[derive(Debug, Clone, Component, Reflect)]
 #[reflect(Component)]
@@ -9,7 +22,7 @@ pub struct Inventory {
     // TODO: add specialized slots
     // TODO: location in 128 height x 256 width canvas
     // TODO: gear type
- 
+    //equiped_items: Vec<>
 }
 impl Default for Inventory {
     fn default() -> Self {

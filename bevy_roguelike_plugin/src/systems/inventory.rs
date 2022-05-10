@@ -17,6 +17,7 @@ pub fn pick_up_items(
 ) {
     for e in pick_up_item_reader.iter() {
         if let Ok((actor_pt, mut inventory)) = actors.get_mut(e.picker) {
+            // check if it can be equiped immediately
             for (item_entity, _, children) in items.iter().filter(|(_, pt, _)| **pt == *actor_pt) {
                 if inventory.add(item_entity) {
                     for c in children.iter() {
@@ -26,9 +27,7 @@ pub fn pick_up_items(
                         .remove::<Vector2D>()
                         .remove::<Transform>()
                         .remove::<GlobalTransform>()
-                        .remove::<VisibilityToggle>()
-                        // TODO: remove when inventory handling implemented
-                        .insert(Equiped {});
+                        .remove::<VisibilityToggle>();
                 }
             }
         }
@@ -52,7 +51,7 @@ pub fn drop_item(
 pub fn get_gear_image_bundle(
     tile_size: f32,
     top_px: f32,
-    right_px: f32,
+    left_px: f32,
     image: UiImage,
 ) -> ImageBundle {
     ImageBundle {
@@ -61,7 +60,7 @@ pub fn get_gear_image_bundle(
             position_type: PositionType::Absolute,
             position: Rect {
                 top: Val::Px(top_px),
-                right: Val::Px(right_px),
+                left: Val::Px(left_px),
                 ..default()
             },
             ..default()
@@ -100,15 +99,18 @@ pub fn toggle_inventory_open(
                         right: Val::Px(10.0),
                         ..default()
                     },
+
                     ..default()
                 },
+                color: Color::rgba(0., 0., 0., 0.).into(),
                 ..default()
             })
             .with_children(|parent| {
                 // NOTE: drag area and player gear
                 parent
                     .spawn()
-                    .insert(Name::new("drag and gear"))
+                    // equipment display
+                    .insert(Name::new("equipment"))
                     .insert_bundle(NodeBundle {
                         focus_policy: FocusPolicy::Pass,
                         style: Style {
@@ -116,72 +118,72 @@ pub fn toggle_inventory_open(
                             ..default()
                         },
                         // TODO: should be an image instead of a color
-                        color: Color::rgba(0.0125, 0.05, 0.025, 0.9).into(),
+                        color: Color::rgba(0.015, 0.04, 0.025, 0.96).into(),
                         ..default()
                     })
                     .with_children(|cb| {
-                        cb.spawn().insert(Name::new("body wear")).insert_bundle(
-                            get_gear_image_bundle(
-                                map_options.tile_size,
-                                64. - 16.,
-                                128. - 16.,
-                                inventory_assets.slot_body_wear.clone().into(),
-                            ),
-                        );
-                        cb.spawn().insert(Name::new("head wear")).insert_bundle(
-                            get_gear_image_bundle(
-                                map_options.tile_size,
-                                32. - 16. - 8.,
-                                128. - 16.,
-                                inventory_assets.slot_head_wear.clone().into(),
-                            ),
-                        );
-                        cb.spawn().insert(Name::new("feet wear")).insert_bundle(
-                            get_gear_image_bundle(
-                                map_options.tile_size,
-                                96. - 16. + 8.,
-                                128. - 16.,
-                                inventory_assets.slot_feet_wear.clone().into(),
-                            ),
-                        );
                         cb.spawn()
-                            .insert(Name::new("main hand gear"))
+                            .insert(Name::new("body"))
                             .insert_bundle(get_gear_image_bundle(
                                 map_options.tile_size,
                                 64. - 16.,
-                                160. - 16. + 8.,
-                                inventory_assets.slot_main_hand_gear.clone().into(),
+                                128. - 16.,
+                                inventory_assets.slot_body.clone().into(),
                             ));
-                        cb.spawn().insert(Name::new("finger wear")).insert_bundle(
-                            get_gear_image_bundle(
-                                map_options.tile_size,
-                                96. - 16. + 8.,
-                                160. - 16. + 8.,
-                                inventory_assets.slot_finger_wear.clone().into(),
-                            ),
-                        );
-                        cb.spawn().insert(Name::new("neck wear")).insert_bundle(
-                            get_gear_image_bundle(
+                        cb.spawn()
+                            .insert(Name::new("head"))
+                            .insert_bundle(get_gear_image_bundle(
                                 map_options.tile_size,
                                 32. - 16. - 8.,
-                                96. - 16. - 8.,
-                                inventory_assets.slot_neck_wear.clone().into(),
-                            ),
-                        );
-                        cb.spawn().insert(Name::new("off hand gear")).insert_bundle(
+                                128. - 16.,
+                                inventory_assets.slot_head.clone().into(),
+                            ));
+                        cb.spawn()
+                            .insert(Name::new("feet"))
+                            .insert_bundle(get_gear_image_bundle(
+                                map_options.tile_size,
+                                96. - 16. + 8.,
+                                128. - 16.,
+                                inventory_assets.slot_feet.clone().into(),
+                            ));
+                        cb.spawn().insert(Name::new("main hand")).insert_bundle(
                             get_gear_image_bundle(
                                 map_options.tile_size,
                                 64. - 16.,
-                                96. - 16. - 8.,
-                                inventory_assets.slot_off_hand_gear.clone().into(),
+                                128. - 32. - 16. - 8.,
+                                inventory_assets.slot_main_hand.clone().into(),
                             ),
                         );
-                        cb.spawn().insert(Name::new("finger wear")).insert_bundle(
+                        cb.spawn().insert(Name::new("finger")).insert_bundle(
                             get_gear_image_bundle(
                                 map_options.tile_size,
                                 96. - 16. + 8.,
-                                96. - 16. - 8.,
-                                inventory_assets.slot_finger_wear.clone().into(),
+                                128. - 32. - 16. - 8.,
+                                inventory_assets.slot_finger.clone().into(),
+                            ),
+                        );
+                        cb.spawn()
+                            .insert(Name::new("neck"))
+                            .insert_bundle(get_gear_image_bundle(
+                                map_options.tile_size,
+                                32. - 16. - 8.,
+                                128. + 32. - 16. + 8.,
+                                inventory_assets.slot_neck.clone().into(),
+                            ));
+                        cb.spawn().insert(Name::new("off hand")).insert_bundle(
+                            get_gear_image_bundle(
+                                map_options.tile_size,
+                                64. - 16.,
+                                128. + 32. - 16. + 8.,
+                                inventory_assets.slot_off_hand.clone().into(),
+                            ),
+                        );
+                        cb.spawn().insert(Name::new("finger")).insert_bundle(
+                            get_gear_image_bundle(
+                                map_options.tile_size,
+                                96. - 16. + 8.,
+                                128. + 32. - 16. + 8.,
+                                inventory_assets.slot_finger.clone().into(),
                             ),
                         );
                     });
@@ -202,7 +204,7 @@ pub fn toggle_inventory_open(
                         for i in 0..Inventory::DEFAULT_CAPACITY {
                             cb.spawn()
                                 .insert(Name::new(format!("Slot {}", i)))
-                                .insert(ItemCarySlot::new(i))
+                                .insert(ItemDisplaySlot::new(i))
                                 .insert_bundle(ImageBundle {
                                     style: Style {
                                         size: Size::new(
@@ -224,8 +226,9 @@ pub fn inventory_update(
     mut cmd: Commands,
     map_options: Res<MapOptions>,
     player_inventory: Query<&Inventory, With<MovingPlayer>>,
-    items: Query<(&RenderInfo, Option<&Equiped>), With<Item>>,
-    item_slots: Query<(Entity, &ItemCarySlot)>,
+    // items: Query<(&RenderInfo, Option<&Equiped>), With<Item>>,
+    items: Query<&RenderInfo, With<Item>>,
+    item_slots: Query<(Entity, &ItemDisplaySlot)>,
 ) {
     let inventory = if let Ok(i) = player_inventory.get_single() {
         i
@@ -233,12 +236,14 @@ pub fn inventory_update(
         return;
     };
     for (ee, slot) in item_slots.iter() {
+        let mut slot_cmd = cmd.entity(ee);
+        slot_cmd.despawn_descendants();
+
         if let Some(item) = inventory[slot.index()] {
-            if let Ok((info, _eqiuped)) = items.get(item) {
+            if let Ok(info) = items.get(item) {
                 // TODO: check if item already in the slot
                 // no need to rerender it
-
-                cmd.entity(ee).with_children(|cb| {
+                slot_cmd.with_children(|cb| {
                     cb.spawn().insert_bundle(ImageBundle {
                         style: Style {
                             size: Size::new(
@@ -254,6 +259,7 @@ pub fn inventory_update(
             } else {
                 bevy::log::error!("item in inventory but not in the world.");
             }
+        } else {
         }
     }
 }

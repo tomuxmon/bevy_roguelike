@@ -5,13 +5,7 @@ use std::iter::Sum;
 
 pub use inventory::Inventory;
 pub use inventory::InventoryDisplay;
-pub use item_type::BodyWear;
-pub use item_type::FeetWear;
-pub use item_type::FingerWear;
-pub use item_type::HeadWear;
-pub use item_type::MainHandGear;
-pub use item_type::NeckWear;
-pub use item_type::OffHandGear;
+pub use item_type::ItemType;
 
 mod inventory;
 mod item_type;
@@ -123,17 +117,18 @@ impl<'a> Sum<&'a Self> for DefenseBoost {
     }
 }
 
-#[derive(Default, Debug, Copy, Clone, Component, Reflect)]
-#[reflect(Component)]
-pub struct Equiped;
+// #[derive(Default, Debug, Copy, Clone, Component, Reflect)]
+// #[reflect(Component)]
+// pub struct Equiped;
 
+// UI Specific
 #[derive(Default, Debug, PartialEq, Eq, Clone, Component, Reflect)]
 #[reflect(Component)]
-pub struct ItemCarySlot {
+pub struct ItemDisplaySlot {
     index: usize,
 }
 
-impl ItemCarySlot {
+impl ItemDisplaySlot {
     pub fn new(index: usize) -> Self {
         Self { index }
     }
@@ -145,3 +140,4 @@ impl ItemCarySlot {
 #[derive(Default, Debug, Clone, Component, Reflect)]
 #[reflect(Component)]
 pub struct ItemEquipSlot;
+// Item type?
