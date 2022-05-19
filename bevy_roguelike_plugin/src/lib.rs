@@ -11,6 +11,7 @@ use bevy::ecs::schedule::StateData;
 use bevy::log;
 use bevy::prelude::*;
 use bevy::render::camera::Camera2d;
+use bevy::utils::HashSet;
 use bevy_easings::*;
 use map_generator::*;
 use rand::prelude::*;
@@ -52,6 +53,7 @@ impl<T: StateData> Plugin for RoguelikePlugin<T> {
                     .with_system(attack.after(act))
                     .with_system(pick_up_items)
                     .with_system(toggle_inventory_open)
+                    .with_system(equipment_update)
                     .with_system(inventory_update)
                     .with_system(drop_item)
                     .with_system(spend_ap.after(act))
@@ -82,11 +84,15 @@ impl<T: StateData> Plugin for RoguelikePlugin<T> {
             .register_type::<MovingRandom>()
             .register_type::<MovingFovRandom>()
             .register_type::<FieldOfView>()
-            .register_type::<Item>()
+            .register_type::<ItemType>()
             .register_type::<AttackBoost>()
             .register_type::<DefenseBoost>()
-            // .register_type::<Equiped>()
+            .register_type::<ItemEquipSlot>()
+            .register_type::<ItemDisplaySlot>()
+            .register_type::<EquipmentDisplay>()
+            .register_type::<Equipment>()
             .register_type::<DragableUI>()
+            .register_type::<HashSet<IVec2>>()
             .add_event::<SpendAPEvent>()
             .add_event::<AttackEvent>()
             .add_event::<MoveEvent>()
@@ -184,6 +190,7 @@ impl<T> RoguelikePlugin<T> {
                 cmd.spawn()
                     .insert_bundle(AttackItem::new(
                         "attack item",
+                        ItemType::MainHand,
                         AttackBoost::new(damage, rate, cost),
                         item_assets.skins[rng.gen_range(0..item_assets.skins.len())].clone(),
                     ))
@@ -195,6 +202,7 @@ impl<T> RoguelikePlugin<T> {
                 cmd.spawn()
                     .insert_bundle(DefenseItem::new(
                         "defense item",
+                        ItemType::OffHand,
                         DefenseBoost::new(absorb, rate, cost),
                         item_assets.skins[rng.gen_range(0..item_assets.skins.len())].clone(),
                     ))
@@ -212,6 +220,7 @@ impl<T> RoguelikePlugin<T> {
                 plr_atr,
                 info.player_start,
                 player_assets.body.clone(),
+                get_player_equipment_slots(),
             ))
             .with_children(|player| {
                 // TODO: instead should be equiped inventory
@@ -246,6 +255,15 @@ impl<T> RoguelikePlugin<T> {
                             mon_atr,
                             mpt,
                             enemy_assets.skins[rng.gen_range(0..enemy_assets.skins.len())].clone(),
+                            vec![(
+                                ItemType::MainHand,
+                                0,
+                                Rect {
+                                    top: Val::Px(58.),
+                                    left: Val::Px(72.),
+                                    ..default()
+                                },
+                            )],
                         ));
 
                     team_map[mpt] = Some(Team::new(team_monster));
@@ -279,4 +297,81 @@ fn spawn_player_body_wear(cb: &mut ChildBuilder, player_assets: &PlayerAssets, s
 fn setup_camera(mut cmd: Commands) {
     cmd.spawn_bundle(OrthographicCameraBundle::new_2d());
     cmd.spawn_bundle(UiCameraBundle::default());
+}
+
+pub fn get_player_equipment_slots() -> Vec<(ItemType, u8, Rect<Val>)> {
+    vec![
+        (
+            ItemType::MainHand,
+            0,
+            Rect {
+                top: Val::Px(64. - 16.),
+                left: Val::Px(128. - 32. - 16. - 8.),
+                ..default()
+            },
+        ),
+        (
+            ItemType::OffHand,
+            0,
+            Rect {
+                top: Val::Px(64. - 16.),
+                left: Val::Px(128. + 32. - 16. + 8.),
+                ..default()
+            },
+        ),
+        (
+            ItemType::Head,
+            0,
+            Rect {
+                top: Val::Px(32. - 16. - 8.),
+                left: Val::Px(128. - 16.),
+                ..default()
+            },
+        ),
+        (
+            ItemType::Neck,
+            0,
+            Rect {
+                top: Val::Px(32. - 16. - 8.),
+                left: Val::Px(128. + 32. - 16. + 8.),
+                ..default()
+            },
+        ),
+        (
+            ItemType::Body,
+            0,
+            Rect {
+                top: Val::Px(64. - 16.),
+                left: Val::Px(128. - 16.),
+                ..default()
+            },
+        ),
+        (
+            ItemType::Feet,
+            0,
+            Rect {
+                top: Val::Px(96. - 16. + 8.),
+                left: Val::Px(128. - 16.),
+                ..default()
+            },
+        ),
+        (
+            ItemType::Finger,
+            0,
+            Rect {
+                top: Val::Px(96. - 16. + 8.),
+                left: Val::Px(128. - 32. - 16. - 8.),
+                ..default()
+            },
+        ),
+        (
+            ItemType::Finger,
+            1,
+            Rect {
+                top: Val::Px(96. - 16. + 8.),
+                left: Val::Px(128. + 32. - 16. + 8.),
+                ..default()
+            },
+        ),
+    ]
 }

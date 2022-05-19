@@ -19,12 +19,15 @@ pub enum AppState {
 
 pub fn input_player(
     keys: Res<Input<KeyCode>>,
-    players: Query<(Entity, &TurnState, &Inventory), With<MovingPlayer>>,
+    players: Query<(Entity, &TurnState, &Inventory, &Equipment), With<MovingPlayer>>,
     mut act_writer: EventWriter<ActEvent>,
     mut pick_up_writer: EventWriter<PickUpItemEvent>,
     mut drop_writer: EventWriter<DropItemEvent>,
 ) {
-    for (id, _, inv) in players.iter().filter(|(_, ts, _)| **ts == TurnState::Act) {
+    for (id, _, inv, eqv) in players
+        .iter()
+        .filter(|(_, ts, _, _)| **ts == TurnState::Act)
+    {
         let delta = if keys.just_pressed(KeyCode::Up) {
             IVec2::new(0, 1)
         } else if keys.just_pressed(KeyCode::Down) {
@@ -41,6 +44,10 @@ pub fn input_player(
         } else if keys.just_pressed(KeyCode::D) {
             if let Some(ee) = inv.iter_some().last() {
                 drop_writer.send(DropItemEvent::new(id, ee));
+            } else {
+                if let Some((_, ee)) = eqv.iter_some().last() {
+                    drop_writer.send(DropItemEvent::new(id, ee));
+                }
             }
             return;
         } else {
@@ -202,13 +209,13 @@ fn rogue_setup(
 
     cmd.insert_resource(InventoryAssets {
         slot: asset_server.load("sprites/gui/inventory/slot.png"),
-        slot_head: asset_server.load("sprites/gui/inventory/slot_head_wear.png"),
-        slot_body: asset_server.load("sprites/gui/inventory/slot_body_wear.png"),
-        slot_main_hand: asset_server.load("sprites/gui/inventory/slot_main_hand_gear.png"),
-        slot_off_hand: asset_server.load("sprites/gui/inventory/slot_off_hand_gear.png"),
-        slot_finger: asset_server.load("sprites/gui/inventory/slot_finger_wear.png"),
-        slot_neck: asset_server.load("sprites/gui/inventory/slot_neck_wear.png"),
-        slot_feet: asset_server.load("sprites/gui/inventory/slot_feet_wear.png"),
+        head_wear: asset_server.load("sprites/gui/inventory/head_wear.png"),
+        body_wear: asset_server.load("sprites/gui/inventory/body_wear.png"),
+        main_hand_gear: asset_server.load("sprites/gui/inventory/main_hand_gear.png"),
+        off_hand_gear: asset_server.load("sprites/gui/inventory/off_hand_gear.png"),
+        finger_wear: asset_server.load("sprites/gui/inventory/finger_wear.png"),
+        neck_wear: asset_server.load("sprites/gui/inventory/neck_wear.png"),
+        feet_wear: asset_server.load("sprites/gui/inventory/feet_wear.png"),
     });
 
     state.set(AppState::InGame).unwrap();

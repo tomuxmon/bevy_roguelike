@@ -51,5 +51,6 @@ pub fn ui_apply_drag_pos(mut dragables: Query<(&mut Style, &DragableUI)>) {
         };
         style.position.top = Val::Px(top + delta.y);
         style.position.right = Val::Px(right + delta.x);
+        // update z? 
     }
 }

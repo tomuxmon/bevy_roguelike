@@ -4,11 +4,10 @@ use bevy::{prelude::*, ui::*};
 pub fn pick_up_items(
     mut cmd: Commands,
     mut pick_up_item_reader: EventReader<PickUpItemEvent>,
-    mut actors: Query<(&Vector2D, &mut Inventory)>,
+    mut actors: Query<(&Vector2D, &mut Inventory, &mut Equipment)>,
     items: Query<
-        (Entity, &Vector2D, &Children),
+        (Entity, &Vector2D, &ItemType, &Children),
         (
-            With<Item>,
             With<Transform>,
             With<GlobalTransform>,
             With<VisibilityToggle>,
@@ -16,10 +15,11 @@ pub fn pick_up_items(
     >,
 ) {
     for e in pick_up_item_reader.iter() {
-        if let Ok((actor_pt, mut inventory)) = actors.get_mut(e.picker) {
-            // check if it can be equiped immediately
-            for (item_entity, _, children) in items.iter().filter(|(_, pt, _)| **pt == *actor_pt) {
-                if inventory.add(item_entity) {
+        if let Ok((actor_pt, mut inventory, mut equipment)) = actors.get_mut(e.picker) {
+            for (item_entity, _, item_type, children) in
+                items.iter().filter(|(_, pt, _, _)| **pt == *actor_pt)
+            {
+                if equipment.add(item_entity, item_type) || inventory.add(item_entity) {
                     for c in children.iter() {
                         cmd.entity(*c).despawn_recursive();
                     }
@@ -37,17 +37,25 @@ pub fn pick_up_items(
 pub fn drop_item(
     mut cmd: Commands,
     mut drop_reader: EventReader<DropItemEvent>,
-    mut actors: Query<(&Vector2D, &mut Inventory)>,
-    mut display_slots: Query<&mut ItemDisplaySlot>,
+    mut actors: Query<(&Vector2D, &mut Inventory, &mut Equipment)>,
+    // mut display_slots: Query<&mut ItemDisplaySlot>,
+    // mut equip_slots: Query<&mut ItemEquipSlot>,
 ) {
     for e in drop_reader.iter() {
-        if let Ok((pt, mut inventory)) = actors.get_mut(e.droper) {
-            if let Some(_) = inventory.take(e.item) {
-                display_slots.for_each_mut(|mut slot| {
-                    if slot.item.is_some() && slot.item.unwrap() == e.item {
-                        slot.item = None;
-                    }
-                });
+        if let Ok((pt, mut inventory, mut equipment)) = actors.get_mut(e.droper) {
+            if inventory.take(e.item) {
+                // display_slots.for_each_mut(|mut slot| {
+                //     if slot.item.is_some() && slot.item.unwrap() == e.item {
+                //         slot.item = None;
+                //     }
+                // });
+                cmd.entity(e.item).insert(*pt);
+            } else if equipment.take(e.item) {
+                // equip_slots.for_each_mut(|mut slot| {
+                //     if slot.item.is_some() && slot.item.unwrap() == e.item {
+                //         slot.item = None;
+                //     }
+                // });
                 cmd.entity(e.item).insert(*pt);
             }
         }
@@ -81,11 +89,17 @@ pub fn toggle_inventory_open(
     keys: Res<Input<KeyCode>>,
     inventory_assets: Res<InventoryAssets>,
     map_options: Res<MapOptions>,
+    players: Query<(&EquipmentDisplay, &Inventory), With<MovingPlayer>>,
     inventory_display: Query<Entity, With<InventoryDisplay>>,
 ) {
     if !keys.just_pressed(KeyCode::I) {
         return;
     }
+    let (equipment_display, inventory) = if let Ok(player) = players.get_single() {
+        player
+    } else {
+        return;
+    };
     if let Ok(inv) = inventory_display.get_single() {
         cmd.entity(inv).despawn_recursive();
     } else {
@@ -128,70 +142,23 @@ pub fn toggle_inventory_open(
                         ..default()
                     })
                     .with_children(|cb| {
-                        cb.spawn()
-                            .insert(Name::new("body"))
-                            .insert_bundle(get_gear_image_bundle(
-                                map_options.tile_size,
-                                64. - 16.,
-                                128. - 16.,
-                                inventory_assets.slot_body.clone().into(),
-                            ));
-                        cb.spawn()
-                            .insert(Name::new("head"))
-                            .insert_bundle(get_gear_image_bundle(
-                                map_options.tile_size,
-                                32. - 16. - 8.,
-                                128. - 16.,
-                                inventory_assets.slot_head.clone().into(),
-                            ));
-                        cb.spawn()
-                            .insert(Name::new("feet"))
-                            .insert_bundle(get_gear_image_bundle(
-                                map_options.tile_size,
-                                96. - 16. + 8.,
-                                128. - 16.,
-                                inventory_assets.slot_feet.clone().into(),
-                            ));
-                        cb.spawn().insert(Name::new("main hand")).insert_bundle(
-                            get_gear_image_bundle(
-                                map_options.tile_size,
-                                64. - 16.,
-                                128. - 32. - 16. - 8.,
-                                inventory_assets.slot_main_hand.clone().into(),
-                            ),
-                        );
-                        cb.spawn().insert(Name::new("finger")).insert_bundle(
-                            get_gear_image_bundle(
-                                map_options.tile_size,
-                                96. - 16. + 8.,
-                                128. - 32. - 16. - 8.,
-                                inventory_assets.slot_finger.clone().into(),
-                            ),
-                        );
-                        cb.spawn()
-                            .insert(Name::new("neck"))
-                            .insert_bundle(get_gear_image_bundle(
-                                map_options.tile_size,
-                                32. - 16. - 8.,
-                                128. + 32. - 16. + 8.,
-                                inventory_assets.slot_neck.clone().into(),
-                            ));
-                        cb.spawn().insert(Name::new("off hand")).insert_bundle(
-                            get_gear_image_bundle(
-                                map_options.tile_size,
-                                64. - 16.,
-                                128. + 32. - 16. + 8.,
-                                inventory_assets.slot_off_hand.clone().into(),
-                            ),
-                        );
-                        cb.spawn().insert(Name::new("finger")).insert_bundle(
-                            get_gear_image_bundle(
-                                map_options.tile_size,
-                                96. - 16. + 8.,
-                                128. + 32. - 16. + 8.,
-                                inventory_assets.slot_finger.clone().into(),
-                            ),
-                        );
+                        for ((item_type, idx), &position) in equipment_display.iter() {
+                            cb.spawn()
+                                .insert(ItemEquipSlot::new((*item_type, *idx)))
+                                .insert_bundle(ImageBundle {
+                                    style: Style {
+                                        size: Size::new(
+                                            Val::Px(map_options.tile_size),
+                                            Val::Px(map_options.tile_size),
+                                        ),
+                                        position_type: PositionType::Absolute,
+                                        position,
+                                        ..default()
+                                    },
+                                    image: inventory_assets.slot.clone().into(),
+                                    ..Default::default()
+                                });
+                        }
                     });
                 // NOTE: spawn inventory with slots
                 parent
@@ -207,7 +174,7 @@ pub fn toggle_inventory_open(
                         ..default()
                     })
                     .with_children(|cb| {
-                        for i in 0..Inventory::DEFAULT_CAPACITY {
+                        for i in 0..inventory.len() {
                             cb.spawn()
                                 .insert(Name::new(format!("Slot {}", i)))
                                 .insert(ItemDisplaySlot::new(i))
@@ -228,11 +195,118 @@ pub fn toggle_inventory_open(
     }
 }
 
+pub fn equipment_update(
+    mut cmd: Commands,
+    map_options: Res<MapOptions>,
+    inventory_assets: Res<InventoryAssets>,
+    player_equipment: Query<&Equipment, With<MovingPlayer>>,
+    items: Query<&RenderInfo, With<ItemType>>,
+    mut item_slots: Query<(Entity, &mut ItemEquipSlot)>,
+) {
+    let equipment = if let Ok(i) = player_equipment.get_single() {
+        i
+    } else {
+        return;
+    };
+    for (ee, mut slot) in item_slots.iter_mut() {
+        let mut slot_cmd = cmd.entity(ee);
+        let mut render_item = false;
+        let mut render_dummy = false;
+        let mut ui_image = None;
+        if let Some(equiped_item) = equipment[slot.index()] {
+            if slot.is_dummy_rendered {
+                slot_cmd.despawn_descendants();
+                slot.is_dummy_rendered = false;
+            }
+            render_item = if let Some(slot_item) = slot.item {
+                if equiped_item != slot_item {
+                    slot_cmd.despawn_descendants();
+                    slot.item = Some(equiped_item);
+                    true
+                } else {
+                    false
+                }
+            } else {
+                slot.item = Some(equiped_item);
+                true
+            };
+            if let Ok(info) = items.get(equiped_item) {
+                ui_image = Some(info.texture.clone().into());
+            }
+        } else {
+            if let Some(_slot_item) = slot.item {
+                slot.item = None;
+                slot_cmd.despawn_descendants();
+                render_dummy = true;
+                slot.is_dummy_rendered = true;
+            } else {
+            }
+            if !slot.is_dummy_rendered {
+                slot_cmd.despawn_descendants();
+                render_dummy = true;
+                slot.is_dummy_rendered = true;
+            }
+
+            let (item_type, _) = slot.index();
+            ui_image = Some(
+                match item_type {
+                    ItemType::MainHand => inventory_assets.main_hand_gear.clone(),
+                    ItemType::OffHand => inventory_assets.off_hand_gear.clone(),
+                    ItemType::Head => inventory_assets.head_wear.clone(),
+                    ItemType::Neck => inventory_assets.neck_wear.clone(),
+                    ItemType::Body => inventory_assets.body_wear.clone(),
+                    ItemType::Feet => inventory_assets.feet_wear.clone(),
+                    ItemType::Finger => inventory_assets.finger_wear.clone(),
+                }
+                .into(),
+            );
+        }
+        if render_dummy {
+            if let Some(image) = ui_image {
+                slot_cmd.with_children(|cb| {
+                    cb.spawn().insert_bundle(ImageBundle {
+                        style: Style {
+                            size: Size::new(
+                                Val::Px(map_options.tile_size),
+                                Val::Px(map_options.tile_size),
+                            ),
+                            ..default()
+                        },
+                        image,
+                        color: Color::rgba(1., 1., 1., 0.5).into(),
+                        ..Default::default()
+                    });
+                });
+            } else {
+                bevy::log::error!("dummy item has no ui image.");
+            }
+        } else if render_item {
+            if let Some(image) = ui_image {
+                slot_cmd.with_children(|cb| {
+                    cb.spawn().insert_bundle(ImageBundle {
+                        style: Style {
+                            size: Size::new(
+                                Val::Px(map_options.tile_size),
+                                Val::Px(map_options.tile_size),
+                            ),
+                            ..default()
+                        },
+                        image,
+                        ..Default::default()
+                    });
+                });
+            } else {
+                bevy::log::error!("item in Equipment but not in the world.");
+            }
+        }
+    }
+}
+
 pub fn inventory_update(
     mut cmd: Commands,
     map_options: Res<MapOptions>,
     player_inventory: Query<&Inventory, With<MovingPlayer>>,
-    items: Query<&RenderInfo, With<Item>>,
+    items: Query<&RenderInfo, With<ItemType>>,
     mut item_slots: Query<(Entity, &mut ItemDisplaySlot)>,
 ) {
     let inventory = if let Ok(i) = player_inventory.get_single() {

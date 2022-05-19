@@ -1,5 +1,8 @@
+use super::Equipment;
+use super::EquipmentDisplay;
 use super::FieldOfView;
 use super::Inventory;
+use super::ItemType;
 use super::RenderInfo;
 use super::Vector2D;
 use bevy::prelude::*;
@@ -18,16 +21,20 @@ pub struct Actor {
     name: Name,
     team: Team,
     state: TurnState,
+
     attributes: Attributes,
     ap: ActionPoints,
     hp: HitPoints,
     atack: AttackStats,
     defense: DefenseStats,
-    // TODO: DefenceStats
     fov: FieldOfView,
-    inventory: Inventory,
+
     position: Vector2D,
     render_info: RenderInfo,
+
+    equipment_display: EquipmentDisplay,
+    equipment: Equipment,
+    inventory: Inventory,
 }
 impl Actor {
     pub fn new(
@@ -36,7 +43,9 @@ impl Actor {
         attributes: Attributes,
         position: IVec2,
         texture: Handle<Image>,
+        equipment_slots: Vec<(ItemType, u8, Rect<Val>)>,
     ) -> Self {
+        let equipment_display = EquipmentDisplay::new(equipment_slots);
         Self {
             name: Name::new(name),
             team: Team::new(team),
@@ -48,6 +57,8 @@ impl Actor {
             defense: DefenseStats::new(&attributes),
             fov: FieldOfView::new(&attributes),
             inventory: Inventory::default(),
+            equipment_display: equipment_display.clone(),
+            equipment: (&equipment_display).into(),
             position: Vector2D::from(position),
             render_info: RenderInfo { texture, z: 2. },
         }

@@ -3,16 +3,16 @@ use bevy::prelude::*;
 use std::borrow::Cow;
 use std::iter::Sum;
 
+pub use inventory::Equipment;
+pub use inventory::EquipmentDisplay;
 pub use inventory::Inventory;
 pub use inventory::InventoryDisplay;
-pub use item_type::ItemType;
 
 mod inventory;
-mod item_type;
 
 #[derive(Bundle)]
 pub struct AttackItem {
-    item: Item,
+    item_type: ItemType,
     name: Name,
     attack: AttackBoost,
     render_info: RenderInfo,
@@ -21,11 +21,12 @@ pub struct AttackItem {
 impl AttackItem {
     pub fn new(
         name: impl Into<Cow<'static, str>>,
+        item_type: ItemType,
         attack: AttackBoost,
         texture: Handle<Image>,
     ) -> Self {
         Self {
-            item: Item {},
+            item_type,
             name: Name::new(name),
             attack,
             render_info: RenderInfo { texture, z: 1. },
@@ -35,7 +36,7 @@ impl AttackItem {
 
 #[derive(Bundle)]
 pub struct DefenseItem {
-    item: Item,
+    item_type: ItemType,
     name: Name,
     attack: DefenseBoost,
     render_info: RenderInfo,
@@ -43,11 +44,12 @@ pub struct DefenseItem {
 impl DefenseItem {
     pub fn new(
         name: impl Into<Cow<'static, str>>,
+        item_type: ItemType,
         attack: DefenseBoost,
         texture: Handle<Image>,
     ) -> Self {
         Self {
-            item: Item {},
+            item_type,
             name: Name::new(name),
             attack,
             render_info: RenderInfo { texture, z: 1. },
@@ -55,9 +57,22 @@ impl DefenseItem {
     }
 }
 
-#[derive(Default, Debug, Copy, Clone, Component, Reflect)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Component, Reflect)]
 #[reflect(Component)]
-pub struct Item;
+pub enum ItemType {
+    MainHand,
+    OffHand,
+    Head,
+    Neck,
+    Body,
+    Feet,
+    Finger,
+}
+impl Default for ItemType {
+    fn default() -> Self {
+        Self::MainHand
+    }
+}
 
 #[derive(Default, Debug, Copy, Clone, Component, Reflect)]
 #[reflect(Component)]
@@ -135,5 +150,20 @@ impl ItemDisplaySlot {
 
 #[derive(Default, Debug, Clone, Component, Reflect)]
 #[reflect(Component)]
-pub struct ItemEquipSlot;
-// Item type?
+pub struct ItemEquipSlot {
+    index: (ItemType, u8),
+    pub item: Option<Entity>,
+    pub is_dummy_rendered: bool,
+}
+impl ItemEquipSlot {
+    pub fn new(index: (ItemType, u8)) -> Self {
+        Self {
+            index,
+            item: None,
+            is_dummy_rendered: false,
+        }
+    }
+    pub fn index(&self) -> (ItemType, u8) {
+        self.index
+    }
+}

@@ -1,28 +1,119 @@
-use bevy::prelude::*;
-use std::ops::Index;
 use super::ItemType;
+use bevy::{
+    prelude::*,
+    utils::{hashbrown::hash_map::Iter, HashMap},
+};
+use std::ops::{Index, IndexMut};
 
-#[derive(Debug, Clone, Component)]
+#[derive(Debug, Clone, Component, Reflect)]
+#[reflect(Component)]
 pub struct Equipment {
-    //ItemType
-    items: Vec<Option<(ItemType, Entity)>>,
-    // TODO: visual positioning of equipment display
+    items: HashMap<(ItemType, u8), Option<Entity>>,
+}
+impl Equipment {
+    pub fn add(&mut self, item: Entity, item_type: &ItemType) -> bool {
+        if let Some((_, item_slot)) = self
+            .items
+            .iter_mut()
+            .find(|((t, _), b)| t == item_type && b.is_none())
+        {
+            *item_slot = Some(item);
+            true
+        } else {
+            false
+        }
+    }
+    pub fn take(&mut self, item: Entity) -> bool {
+        if let Some((_, e)) = self
+            .items
+            .iter_mut()
+            .find(|(_, b)| b.is_some() && b.unwrap() == item)
+        {
+            *e = None;
+            true
+        } else {
+            false
+        }
+    }
 
-    // TODO: add specialized slots
-    // TODO: location in 128 height x 256 width canvas
-    // TODO: gear type
-    //equiped_items: Vec<>
+    pub fn iter_some(&self) -> impl Iterator<Item = ((ItemType, u8), Entity)> + '_ {
+        self.items
+            .iter()
+            .filter(|(_, i)| i.is_some())
+            .map(move |(a, i)| (*a, i.unwrap()))
+    }
+}
+impl Default for Equipment {
+    fn default() -> Self {
+        Self {
+            items: Default::default(),
+        }
+    }
+}
+impl From<&EquipmentDisplay> for Equipment {
+    fn from(display: &EquipmentDisplay) -> Self {
+        let mut items = HashMap::default();
+        for (t, _) in display.items.iter() {
+            items.entry(*t).insert(None);
+        }
+        Self { items }
+    }
+}
+impl Index<(ItemType, u8)> for Equipment {
+    type Output = Option<Entity>;
+
+    fn index(&self, index: (ItemType, u8)) -> &Self::Output {
+        if let Some(item) = self.items.get(&index) {
+            return item;
+        }
+        &None
+    }
+}
+impl IndexMut<(ItemType, u8)> for Equipment {
+    fn index_mut(&mut self, index: (ItemType, u8)) -> &mut Self::Output {
+        if let Some(ee) = self.items.get_mut(&index) {
+            return ee;
+        }
+        panic!("No item with index {:?}", index);
+    }
+}
+
+/// equipment display locations in 128 height x 256 width canvas
+#[derive(Debug, Clone, Component, Reflect)]
+#[reflect(Component)]
+pub struct EquipmentDisplay {
+    items: HashMap<(ItemType, u8), Rect<Val>>,
+}
+impl EquipmentDisplay {
+    pub fn new(list: Vec<(ItemType, u8, Rect<Val>)>) -> Self {
+        let mut items = HashMap::default();
+        for (t, i, r) in list {
+            items.entry((t, i)).insert(r);
+        }
+        Self { items }
+    }
+    pub fn iter(&self) -> Iter<(ItemType, u8), Rect<Val>> {
+        self.items.iter()
+    }
+}
+impl Default for EquipmentDisplay {
+    fn default() -> Self {
+        EquipmentDisplay::new(vec![(
+            ItemType::MainHand,
+            0,
+            Rect {
+                top: Val::Px(58.),
+                left: Val::Px(72.),
+                ..default()
+            },
+        )])
+    }
 }
 
 #[derive(Debug, Clone, Component, Reflect)]
 #[reflect(Component)]
 pub struct Inventory {
-    // TODO: possibly simplify bag slots
     items: Vec<Option<Entity>>,
-    // TODO: add specialized slots
-    // TODO: location in 128 height x 256 width canvas
-    // TODO: gear type
-    //equiped_items: Vec<>
 }
 impl Default for Inventory {
     fn default() -> Self {
@@ -35,37 +126,25 @@ impl Inventory {
     pub const DEFAULT_CAPACITY: usize = 32;
 
     pub fn add(&mut self, item: Entity) -> bool {
-        let search =
-            if let Some((idx, _)) = self.items.iter().enumerate().find(|(_, b)| b.is_none()) {
-                Some(idx)
-            } else {
-                None
-            };
-
-        if let Some(idx) = search {
-            self.items[idx] = Some(item);
+        if let Some((_, e)) = self.items.iter_mut().enumerate().find(|(_, b)| b.is_none()) {
+            *e = Some(item);
             true
         } else {
             false
         }
     }
 
-    pub fn take(&mut self, item: Entity) -> Option<Entity> {
-        let search = if let Some((idx, item)) = self
+    pub fn take(&mut self, item: Entity) -> bool {
+        if let Some((_, e)) = self
             .items
-            .iter()
+            .iter_mut()
             .enumerate()
             .find(|(_, b)| b.is_some() && b.unwrap() == item)
         {
-            Some((idx, *item))
+            *e = None;
+            true
         } else {
-            None
-        };
-        if let Some((idx, item)) = search {
-            self.items[idx] = None;
-            item
-        } else {
-            None
+            false
         }
     }
     pub fn iter_some(&self) -> impl Iterator<Item = Entity> + '_ {
@@ -73,6 +152,10 @@ impl Inventory {
             .iter()
             .filter(|i| i.is_some())
             .map(move |i| i.unwrap())
+    }
+
+    pub fn len(&self) -> usize {
+        self.items.len()
     }
 }
 impl Index<usize> for Inventory {

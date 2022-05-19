@@ -18,12 +18,13 @@ pub use item::AttackBoost;
 pub use item::AttackItem;
 pub use item::DefenseBoost;
 pub use item::DefenseItem;
-// pub use item::Equiped;
+pub use item::Equipment;
+pub use item::EquipmentDisplay;
 pub use item::Inventory;
 pub use item::InventoryDisplay;
-pub use item::Item;
 pub use item::ItemDisplaySlot;
 pub use item::ItemEquipSlot;
+pub use item::ItemType;
 pub use render_info::RenderInfo;
 pub use vector2d::Vector2D;
 
