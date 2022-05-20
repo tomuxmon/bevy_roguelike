@@ -1,14 +1,14 @@
-use map_generator::*;
 use crate::resources::TeamMap;
 use crate::{components::*, events::*};
 use bevy::log;
 use bevy::prelude::*;
 use bevy::tasks::ComputeTaskPool;
 use bevy::utils::HashMap;
+use map_generator::*;
 use rand::prelude::*;
 
 pub fn act(
-    actors: Query<(&Team, &AttackStats, &Vector2D)>,
+    actors: Query<(&Team, &Damage, &Attributes, &Vector2D)>,
     enemies: Query<(Entity, &Team, &Vector2D)>,
     // TODO: ActComponent instead of ActEvent
     mut act_reader: EventReader<ActEvent>,
@@ -36,7 +36,7 @@ pub fn act(
             idle_writer.send(IdleEvent::new(e.id));
             continue;
         }
-        if let Ok((team, atk, pt)) = actors.get(e.id) {
+        if let Ok((team, atk, atrib, pt)) = actors.get(e.id) {
             let dest = **pt + e.delta;
             if !map.is_in_bounds(dest) || map[dest] != Tile::Floor {
                 ap_spend_writer.send(SpendAPEvent::new(e.id, delta_costs[&IVec2::new(0, 0)]));
@@ -53,7 +53,7 @@ pub fn act(
                     if let Some((enemy_entity, _, _)) =
                         enemies.iter().find(|(_, t, p)| *t != team && ***p == dest)
                     {
-                        ap_spend_writer.send(SpendAPEvent::new(e.id, atk.cost()));
+                        ap_spend_writer.send(SpendAPEvent::new(e.id, atk.hit_cost.compute(atrib)));
                         attack_writer.send(AttackEvent::new(e.id, enemy_entity))
                     } else {
                         log::error!("nothing to attack at {:?} (TeamMap has bugs).", dest);
@@ -69,18 +69,16 @@ pub fn act(
 }
 
 pub fn attack(
-    attackers: Query<(&AttackStats, &Vector2D, Option<&Inventory>)>,
-    defenders: Query<(&DefenseStats, &Vector2D, Option<&Inventory>)>,
-    // attack_boosts: Query<&AttackBoost, (With<Item>, With<Equiped>)>,
-    // defense_boosts: Query<&DefenseBoost, (With<Item>, With<Equiped>)>,
+    attackers: Query<(&Damage, &Vector2D, Option<&Equipment>)>,
+    defenders: Query<(&Protections, &Vector2D, Option<&Equipment>)>,
     mut cmd: Commands,
     mut attack_reader: EventReader<AttackEvent>,
     mut ap_spend_writer: EventWriter<SpendAPEvent>,
     mut rng: ResMut<StdRng>,
 ) {
     for e in attack_reader.iter() {
-        if let Ok((atack, _apt, a_inventory)) = attackers.get(e.attacker) {
-            if let Ok((defense, dpt, d_inventory)) = defenders.get(e.defender) {
+        if let Ok((atack, _apt, a_eqv)) = attackers.get(e.attacker) {
+            if let Ok((defense, dpt, d_eqv)) = defenders.get(e.defender) {
                 // let mut a_boosts = vec![];
                 // if let Some(inv) = a_inventory {
                 //     for i in inv.iter_some() {
@@ -100,17 +98,19 @@ pub fn attack(
                 // let defense = *defense + d_boosts.iter().sum();
                 // let atack = *atack + a_boosts.iter().sum();
 
-                if !rng.gen_ratio(defense.rate().min(atack.rate()) as u32, atack.rate() as u32) {
-                    // TODO: spawn attack animation
-                    cmd.spawn().insert(ModifyHP::new(
-                        **dpt,
-                        -i16::max(atack.damage() - defense.absorb(), 0),
-                    ));
-                } else {
-                    // TODO: spawn miss animation
-                    ap_spend_writer.send(SpendAPEvent::new(e.defender, defense.cost()));
-                    log::info!("attack miss at {}", dpt);
-                }
+                // TODO: fix me
+
+                // if !rng.gen_ratio(defense.rate().min(atack.rate()) as u32, atack.rate() as u32) {
+                //     // TODO: spawn attack animation
+                //     cmd.spawn().insert(ModifyHP::new(
+                //         **dpt,
+                //         -i16::max(atack.damage() - defense.absorb(), 0),
+                //     ));
+                // } else {
+                //     // TODO: spawn miss animation
+                //     ap_spend_writer.send(SpendAPEvent::new(e.defender, defense.cost()));
+                //     log::info!("attack miss at {}", dpt);
+                // }
             } else {
                 log::error!("no defender found.");
             }

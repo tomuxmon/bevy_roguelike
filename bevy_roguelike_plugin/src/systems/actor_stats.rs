@@ -19,21 +19,6 @@ pub fn attributes_update_hit_points(
         hp.update(atr);
     }
 }
-pub fn attributes_update_attack_stats(
-    mut actors: Query<(&Attributes, &mut AttackStats, Changed<Attributes>)>,
-) {
-    for (atr, mut atk, _) in actors.iter_mut() {
-        atk.update(atr);
-    }
-}
-pub fn attributes_update_defense_stats(
-    mut actors: Query<(&Attributes, &mut DefenseStats, Changed<Attributes>)>,
-) {
-    for (atr, mut das, _) in actors.iter_mut() {
-        das.update(atr);
-    }
-}
-
 pub fn attributes_update_field_of_view(
     mut actors: Query<(&Attributes, &mut FieldOfView, Changed<Attributes>)>,
 ) {

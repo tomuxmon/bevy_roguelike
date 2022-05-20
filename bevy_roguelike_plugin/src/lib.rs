@@ -44,8 +44,8 @@ impl<T: StateData> Plugin for RoguelikePlugin<T> {
                     .with_system(render_hud_health_bar)
                     .with_system(attributes_update_action_points)
                     .with_system(attributes_update_hit_points)
-                    .with_system(attributes_update_attack_stats)
-                    .with_system(attributes_update_defense_stats)
+                    // .with_system(attributes_update_attack_stats)
+                    // .with_system(attributes_update_defense_stats)
                     .with_system(attributes_update_field_of_view)
                     .with_system(gather_action_points)
                     .with_system(turn_end_now_gather.after(gather_action_points))
@@ -74,8 +74,6 @@ impl<T: StateData> Plugin for RoguelikePlugin<T> {
             .register_type::<MapTile>()
             .register_type::<Attributes>()
             .register_type::<ActionPoints>()
-            .register_type::<AttackStats>()
-            .register_type::<DefenseStats>()
             .register_type::<HitPoints>()
             .register_type::<TurnState>()
             .register_type::<ModifyHP>()
@@ -84,9 +82,10 @@ impl<T: StateData> Plugin for RoguelikePlugin<T> {
             .register_type::<MovingRandom>()
             .register_type::<MovingFovRandom>()
             .register_type::<FieldOfView>()
+            .register_type::<Damage>()
+            .register_type::<DamageKind>()
+            .register_type::<Evasion>()
             .register_type::<ItemType>()
-            .register_type::<AttackBoost>()
-            .register_type::<DefenseBoost>()
             .register_type::<ItemEquipSlot>()
             .register_type::<ItemDisplaySlot>()
             .register_type::<EquipmentDisplay>()
@@ -183,34 +182,37 @@ impl<T> RoguelikePlugin<T> {
             .id();
 
         for ipt in info.item_spawns.clone() {
-            if rng.gen_bool(0.5) {
-                let damage = rng.gen_range(1..16);
-                let rate = rng.gen_range(1..16);
-                let cost = rng.gen_range(4..16);
-                cmd.spawn()
-                    .insert_bundle(AttackItem::new(
-                        "attack item",
-                        ItemType::MainHand,
-                        AttackBoost::new(damage, rate, cost),
-                        item_assets.skins[rng.gen_range(0..item_assets.skins.len())].clone(),
-                    ))
-                    .insert(Vector2D::from(ipt));
-            } else {
-                let absorb = rng.gen_range(1..8);
-                let rate = rng.gen_range(1..8);
-                let cost = rng.gen_range(4..12);
-                cmd.spawn()
-                    .insert_bundle(DefenseItem::new(
-                        "defense item",
-                        ItemType::OffHand,
-                        DefenseBoost::new(absorb, rate, cost),
-                        item_assets.skins[rng.gen_range(0..item_assets.skins.len())].clone(),
-                    ))
-                    .insert(Vector2D::from(ipt));
-            }
+            // TODO: fix item spawning
+            // if rng.gen_bool(0.5) {
+            //     let damage = rng.gen_range(1..16);
+            //     let rate = rng.gen_range(1..16);
+            //     let cost = rng.gen_range(4..16);
+            //     cmd.spawn()
+            //         .insert_bundle(AttackItem::new(
+            //             "attack item",
+            //             ItemType::MainHand,
+            //             AttackBoost::new(damage, rate, cost),
+            //             item_assets.skins[rng.gen_range(0..item_assets.skins.len())].clone(),
+            //         ))
+            //         .insert(Vector2D::from(ipt));
+            // } else {
+            //     let absorb = rng.gen_range(1..8);
+            //     let rate = rng.gen_range(1..8);
+            //     let cost = rng.gen_range(4..12);
+            //     cmd.spawn()
+            //         .insert_bundle(DefenseItem::new(
+            //             "defense item",
+            //             ItemType::OffHand,
+            //             DefenseBoost::new(absorb, rate, cost),
+            //             item_assets.skins[rng.gen_range(0..item_assets.skins.len())].clone(),
+            //         ))
+            //         .insert(Vector2D::from(ipt));
+            // }
         }
 
         let plr_atr = Attributes::new(11, 11, 11, 11, 11, 11);
+        // DefaultAttack
+        // DefaultDefense
         let team_player = 1;
         cmd.spawn()
             .insert(MovingPlayer {})
