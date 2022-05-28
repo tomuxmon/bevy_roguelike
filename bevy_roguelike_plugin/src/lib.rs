@@ -1,8 +1,11 @@
 pub mod components;
 pub mod dragable_ui;
 pub mod events;
+pub mod quality;
 pub mod resources;
 pub mod systems;
+
+use std::ops::Range;
 
 use crate::components::*;
 use crate::dragable_ui::*;
@@ -10,6 +13,7 @@ use crate::events::*;
 use bevy::ecs::schedule::StateData;
 use bevy::log;
 use bevy::prelude::*;
+use bevy::reflect::TypeRegistry;
 use bevy::render::camera::Camera2d;
 use bevy::utils::HashSet;
 use bevy_easings::*;
@@ -25,18 +29,39 @@ use systems::render::*;
 use systems::turns::*;
 
 pub struct RoguelikePlugin<T> {
+    /// Asset loading happens in this state. When it finishes it transitions to [`RoguelikePlugin::game_construct_state`]
+    pub asset_load_state: T,
+    pub game_construct_state: T,
     pub running_state: T,
 }
 
-impl<T: StateData> Plugin for RoguelikePlugin<T> {
+pub trait StateNext: StateData {
+    fn next(&self) -> Option<Self>;
+}
+
+#[derive(Default)]
+pub struct AssetsLoading(pub Vec<HandleUntyped>);
+
+#[derive(Debug)]
+pub struct MapEntities {
+    map_id: Entity,
+    enemies_id: Entity,
+}
+
+impl<T: StateNext> Plugin for RoguelikePlugin<T> {
     fn build(&self, app: &mut App) {
         app.add_plugin(EasingsPlugin {})
+            .insert_resource(AssetsLoading::default())
             .add_startup_system(setup_camera)
             .add_system_set(
-                SystemSet::on_enter(self.running_state.clone()).with_system(Self::create_map),
+                SystemSet::on_update(self.asset_load_state.clone())
+                    .with_system(Self::check_assets_ready),
+            )
+            .add_system_set(
+                SystemSet::on_enter(self.game_construct_state.clone())
+                    .with_system(Self::create_map),
             )
             .add_system_to_stage(CoreStage::First, ui_drag_interaction)
-            // .add_system_to_stage(CoreStage::PostUpdate, ui_apply_drag_pos)
             .add_system_set(
                 SystemSet::on_update(self.running_state.clone())
                     .with_system(ui_apply_drag_pos)
@@ -44,8 +69,6 @@ impl<T: StateData> Plugin for RoguelikePlugin<T> {
                     .with_system(render_hud_health_bar)
                     .with_system(attributes_update_action_points)
                     .with_system(attributes_update_hit_points)
-                    // .with_system(attributes_update_attack_stats)
-                    // .with_system(attributes_update_defense_stats)
                     .with_system(attributes_update_field_of_view)
                     .with_system(gather_action_points)
                     .with_system(turn_end_now_gather.after(gather_action_points))
@@ -73,6 +96,7 @@ impl<T: StateData> Plugin for RoguelikePlugin<T> {
             .register_type::<RenderInfo>()
             .register_type::<MapTile>()
             .register_type::<Attributes>()
+            .register_type::<AttributeType>()
             .register_type::<ActionPoints>()
             .register_type::<HitPoints>()
             .register_type::<TurnState>()
@@ -82,8 +106,18 @@ impl<T: StateData> Plugin for RoguelikePlugin<T> {
             .register_type::<MovingRandom>()
             .register_type::<MovingFovRandom>()
             .register_type::<FieldOfView>()
-            .register_type::<Damage>()
             .register_type::<DamageKind>()
+            .register_type::<AttributeMultiplier>()
+            .register_type::<Formula>()
+            .register_type::<Rate>()
+            .register_type::<ActionCost>()
+            .register_type::<Damage>()
+            .register_type::<Protect>()
+            .register_type::<Resist>()
+            .register_type::<Protection>()
+            .register_type::<Resistance>()
+            .register_type::<Evasion>()
+            .register_type::<Block>()
             .register_type::<Evasion>()
             .register_type::<ItemType>()
             .register_type::<ItemEquipSlot>()
@@ -92,6 +126,10 @@ impl<T: StateData> Plugin for RoguelikePlugin<T> {
             .register_type::<Equipment>()
             .register_type::<DragableUI>()
             .register_type::<HashSet<IVec2>>()
+            .register_type::<Vec<DamageKind>>()
+            .register_type::<Vec<Protect>>()
+            .register_type::<HashSet<Resist>>()
+            .register_type::<Range<i32>>()
             .add_event::<SpendAPEvent>()
             .add_event::<AttackEvent>()
             .add_event::<MoveEvent>()
@@ -105,13 +143,35 @@ impl<T: StateData> Plugin for RoguelikePlugin<T> {
     }
 }
 
-#[derive(Debug)]
-pub struct MapEntities {
-    map_id: Entity,
-    enemies_id: Entity,
-}
+impl<T: StateNext> RoguelikePlugin<T> {
+    fn check_assets_ready(
+        mut commands: Commands,
+        server: Res<AssetServer>,
+        loading: Res<AssetsLoading>,
+        mut state: ResMut<State<T>>,
+    ) {
+        use bevy::asset::LoadState;
 
-impl<T> RoguelikePlugin<T> {
+        match server.get_group_load_state(loading.0.iter().map(|h| h.id)) {
+            LoadState::Failed => {
+                bevy::log::error!("Asset load failed. Validate path's.");
+            }
+            LoadState::Loaded => {
+                if let Some(next_state) = state.current().next() {
+                    state.set(next_state).unwrap();
+                } else {
+                    bevy::log::error!("no next state.");
+                }
+                commands.remove_resource::<AssetsLoading>();
+                // (note: if you don't have any other handles to the assets
+                // elsewhere, they will get unloaded after this)
+            }
+            _ => {
+                bevy::log::info!("loading assets...");
+            }
+        }
+    }
+
     fn cleanup_map(map_id: Res<MapEntities>, mut cmd: Commands) {
         cmd.entity(map_id.map_id).despawn_recursive();
         cmd.entity(map_id.enemies_id).despawn_recursive();
@@ -120,11 +180,16 @@ impl<T> RoguelikePlugin<T> {
 
     pub fn create_map(
         mut cmd: Commands,
+        mut state: ResMut<State<T>>,
         map_options: Option<Res<MapOptions>>,
         map_assets: Res<MapAssets>,
         player_assets: Res<PlayerAssets>,
         enemy_assets: Res<EnemyAssets>,
         item_assets: Res<ItemAssets>,
+        type_registry: Res<TypeRegistry>,
+        prefabs: Res<Prefabs>,
+        dyn_scenes: Res<Assets<DynamicScene>>,
+        // mut scene_spawner: ResMut<SceneSpawner>,
         mut cameras: Query<&mut Transform, With<Camera2d>>,
     ) {
         let options = match map_options {
@@ -151,6 +216,66 @@ impl<T> RoguelikePlugin<T> {
             let z = c.translation.z;
             let new_pos = options.to_world_position(info.camera_focus).extend(z);
             c.translation = new_pos;
+        }
+
+        // TODO: experiment with dynamic scene
+        let mut prefab_world = World::new();
+
+        prefab_world.spawn().insert_bundle((
+            ItemType::MainHand,
+            Damage {
+                kind: DamageKind::Slash,
+                amount: 5..9,
+                amount_multiplier: Formula::new(vec![AttributeMultiplier {
+                    multiplier: 100,
+                    attribute: AttributeType::Strength,
+                }]),
+                hit_cost: ActionCost {
+                    cost: 128,
+                    cost_multiplier: Formula::new(vec![AttributeMultiplier {
+                        multiplier: 100,
+                        attribute: AttributeType::Dexterity,
+                    }]),
+                },
+                hit_chance: Rate {
+                    amount: 90,
+                    multiplier: Formula::new(vec![AttributeMultiplier {
+                        multiplier: 110,
+                        attribute: AttributeType::Dexterity,
+                    }]),
+                },
+            },
+            Protection::new(vec![Protect {
+                amount: 2,
+                kind: DamageKind::Slash,
+                amount_multiplier: Formula::new(vec![AttributeMultiplier {
+                    multiplier: 100,
+                    attribute: AttributeType::Dexterity,
+                }]),
+            }]),
+        ));
+
+        let scene = DynamicScene::from_world(&prefab_world, &*type_registry);
+        info!("{}", scene.serialize_ron(&*type_registry).unwrap());
+
+        info!("len {}", dyn_scenes.len());
+
+        if let Some(scn) = dyn_scenes.get(prefabs.ron_scene.clone()) {
+            // scn.write_to_world(world, entity_map);
+
+            for dyn_entity in scn.entities.iter() {
+                // TODO: first component should be a marker component describinf if it is an item or something else.
+                // let first = dyn_entity.components.iter().nth(0);
+
+                // let mut item_cmd = cmd.spawn();
+                // let item = item_cmd.insert(Name::new("item")).id();
+                for reflect_component in dyn_entity.components.iter() {
+                    // let comp = reflect_component.downcast::<dyn Component>();
+
+                    //item_cmd.insert(reflect_component);
+                    info!("component: {:?}", reflect_component);
+                }
+            }
         }
 
         let map_id = cmd
@@ -278,6 +403,12 @@ impl<T> RoguelikePlugin<T> {
         cmd.insert_resource(rng);
         cmd.insert_resource(team_map);
         cmd.insert_resource(MapEntities { map_id, enemies_id });
+
+        if let Some(next_state) = state.current().next() {
+            state.set(next_state).unwrap();
+        } else {
+            bevy::log::error!("no next state.");
+        }
     }
 }
 

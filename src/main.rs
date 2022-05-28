@@ -1,6 +1,7 @@
 use bevy::prelude::*;
 use bevy_roguelike_plugin::{
-    components::*, events::*, resources::*, systems::turns::gather_action_points, RoguelikePlugin,
+    components::*, events::*, resources::*, systems::turns::gather_action_points, AssetsLoading,
+    RoguelikePlugin, StateNext,
 };
 use line_drawing::WalkGrid;
 use map_generator::*;
@@ -11,10 +12,25 @@ use bevy_inspector_egui::WorldInspectorPlugin;
 
 #[derive(Debug, Clone, Eq, PartialEq, Hash)]
 pub enum AppState {
+    Setup,
+    AssetLoad,
+    Construct,
     InGame,
-    Reseting,
     Pause,
-    Out,
+    Reseting,
+}
+
+impl StateNext for AppState {
+    fn next(&self) -> Option<Self> {
+        match self {
+            AppState::Setup => Some(AppState::AssetLoad),
+            AppState::AssetLoad => Some(AppState::Construct),
+            AppState::Construct => Some(AppState::InGame),
+            AppState::InGame => Some(AppState::Pause),
+            AppState::Pause => Some(AppState::InGame),
+            AppState::Reseting => Some(AppState::Construct),
+        }
+    }
 }
 
 pub fn input_player(
@@ -114,7 +130,7 @@ pub fn input_fov_rand(
 
 fn main() {
     let mut app = App::new();
-    app.add_state(AppState::Out)
+    app.add_state(AppState::Setup)
         .insert_resource(ClearColor(Color::BLACK))
         .insert_resource(WindowDescriptor {
             title: "rogue bevy".to_string(),
@@ -124,6 +140,8 @@ fn main() {
         })
         .add_plugins(DefaultPlugins {})
         .add_plugin(RoguelikePlugin {
+            asset_load_state: AppState::AssetLoad,
+            game_construct_state: AppState::Construct,
             running_state: AppState::InGame,
         })
         .add_system_set(
@@ -136,10 +154,6 @@ fn main() {
     #[cfg(feature = "debug")]
     app.add_plugin(WorldInspectorPlugin::new());
 
-    // #[cfg(feature = "debug")]
-    // app.add_plugin(bevy::diagnostic::FrameTimeDiagnosticsPlugin)
-    //     .add_plugin(bevy::diagnostic::LogDiagnosticsPlugin::default());
-
     app.run();
 }
 
@@ -147,12 +161,14 @@ fn rogue_setup(
     mut cmd: Commands,
     asset_server: Res<AssetServer>,
     mut state: ResMut<State<AppState>>,
+    mut loading: ResMut<AssetsLoading>,
 ) {
     cmd.insert_resource(MapOptions {
         map_size: IVec2::new(20, 15),
         tile_size: 32.0,
     });
-    cmd.insert_resource(MapAssets {
+
+    let map_assets = MapAssets {
         floor: vec![
             asset_server.load("sprites/floor/pebble_brown_0.png"),
             asset_server.load("sprites/floor/pebble_brown_1.png"),
@@ -174,15 +190,29 @@ fn rogue_setup(
             asset_server.load("sprites/walls/brick_brown_6.png"),
             asset_server.load("sprites/walls/brick_brown_7.png"),
         ],
-    });
-    cmd.insert_resource(PlayerAssets {
+    };
+    loading
+        .0
+        .extend(map_assets.floor.iter().map(|a| a.clone_untyped()));
+    loading
+        .0
+        .extend(map_assets.wall.iter().map(|a| a.clone_untyped()));
+    cmd.insert_resource(map_assets);
+
+    let player_assets = PlayerAssets {
         body: asset_server.load("sprites/player/human_male.png"),
         wear: vec![
             asset_server.load("sprites/player/jacket_2.png"),
             asset_server.load("sprites/player/pants_black.png"),
         ],
-    });
-    cmd.insert_resource(EnemyAssets {
+    };
+    loading
+        .0
+        .extend(player_assets.wear.iter().map(|a| a.clone_untyped()));
+    loading.0.push(player_assets.body.clone_untyped());
+    cmd.insert_resource(player_assets);
+
+    let enemy_assets = EnemyAssets {
         skins: vec![
             asset_server.load("sprites/enemy/cyclops.png"),
             asset_server.load("sprites/enemy/ettin.png"),
@@ -194,8 +224,13 @@ fn rogue_setup(
             asset_server.load("sprites/enemy/orc.png"),
             asset_server.load("sprites/enemy/stone_giant.png"),
         ],
-    });
-    cmd.insert_resource(ItemAssets {
+    };
+    loading
+        .0
+        .extend(enemy_assets.skins.iter().map(|a| a.clone_untyped()));
+    cmd.insert_resource(enemy_assets);
+
+    let item_assets = ItemAssets {
         skins: vec![
             asset_server.load("sprites/item/buckler_1.png"),
             asset_server.load("sprites/item/club.png"),
@@ -205,9 +240,13 @@ fn rogue_setup(
             asset_server.load("sprites/item/spear.png"),
             asset_server.load("sprites/item/two_handed_sword.png"),
         ],
-    });
+    };
+    loading
+        .0
+        .extend(item_assets.skins.iter().map(|a| a.clone_untyped()));
+    cmd.insert_resource(item_assets);
 
-    cmd.insert_resource(InventoryAssets {
+    let inventory_assets = InventoryAssets {
         slot: asset_server.load("sprites/gui/inventory/slot.png"),
         head_wear: asset_server.load("sprites/gui/inventory/head_wear.png"),
         body_wear: asset_server.load("sprites/gui/inventory/body_wear.png"),
@@ -216,7 +255,26 @@ fn rogue_setup(
         finger_wear: asset_server.load("sprites/gui/inventory/finger_wear.png"),
         neck_wear: asset_server.load("sprites/gui/inventory/neck_wear.png"),
         feet_wear: asset_server.load("sprites/gui/inventory/feet_wear.png"),
-    });
+    };
+    loading.0.push(inventory_assets.slot.clone_untyped());
+    loading.0.push(inventory_assets.head_wear.clone_untyped());
+    loading.0.push(inventory_assets.body_wear.clone_untyped());
+    loading
+        .0
+        .push(inventory_assets.main_hand_gear.clone_untyped());
+    loading
+        .0
+        .push(inventory_assets.off_hand_gear.clone_untyped());
+    loading.0.push(inventory_assets.finger_wear.clone_untyped());
+    loading.0.push(inventory_assets.neck_wear.clone_untyped());
+    loading.0.push(inventory_assets.feet_wear.clone_untyped());
+    cmd.insert_resource(inventory_assets);
 
-    state.set(AppState::InGame).unwrap();
+    let prefabs = Prefabs {
+        ron_scene: asset_server.load("prefabs/prefabs.scn.ron"),
+    };
+    loading.0.push(prefabs.ron_scene.clone_untyped());
+    cmd.insert_resource(prefabs);
+
+    state.set(AppState::AssetLoad).unwrap();
 }

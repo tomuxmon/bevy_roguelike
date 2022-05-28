@@ -1,9 +1,11 @@
-// use crate::components::{AttackBoost, DefenseBoost};
-use bevy::prelude::*;
-// use std::ops::Add;
+use bevy::{prelude::*, reflect::FromReflect};
+use serde::{Deserialize, Serialize};
 
-#[derive(Debug, Copy, Clone, Eq, PartialEq, Hash, Component, Reflect)]
+#[derive(
+    Debug, Clone, Copy, PartialEq, Eq, Hash, Component, Reflect, FromReflect, Serialize, Deserialize,
+)]
 #[reflect(Component)]
+#[reflect_value(PartialEq, Serialize, Deserialize)]
 pub enum AttributeType {
     Strength,
     Dexterity,
@@ -88,6 +90,7 @@ impl ActionPoints {
     }
     pub fn current_minus(&mut self, cost: i16) -> i16 {
         //TODO: Too much of defending overflows it into negative side. fix it
+        //TODO: defending evading can not happen when current is negative
         self.current -= cost;
         self.current
     }
@@ -158,116 +161,3 @@ impl HitPoints {
         }
     }
 }
-
-// #[derive(Default, Debug, Copy, Clone, Eq, PartialEq, Hash, Component, Reflect)]
-// #[reflect(Component)]
-// pub struct AttackStats {
-//     // TODO: should only work in conjunction with a weapon (or fists / claws / tentacles ...)
-//     default_damage: i16,
-//     // TODO: weapon should influence it
-//     default_cost: i16,
-//     // TODO: weapon should influence it
-//     rate: i16,
-// }
-// impl AttackStats {
-//     pub const COST_MAX: i16 = 128;
-//     pub const COST_MIN: i16 = 36;
-//     pub const DAMAGE_MIN: i16 = 1;
-//     pub const RATE_MIN: i16 = 8;
-
-//     pub fn new(atr: &Attributes) -> Self {
-//         Self {
-//             default_cost: i16::max(
-//                 AttackStats::COST_MAX - atr.dexterity as i16,
-//                 AttackStats::COST_MIN,
-//             ),
-//             default_damage: AttackStats::DAMAGE_MIN + atr.strength as i16,
-//             rate: AttackStats::RATE_MIN + atr.dexterity as i16,
-//         }
-//     }
-//     pub fn update(&mut self, atr: &Attributes) {
-//         self.default_cost = i16::max(
-//             AttackStats::COST_MAX - atr.dexterity as i16,
-//             AttackStats::COST_MIN,
-//         );
-//         self.default_damage = AttackStats::DAMAGE_MIN + atr.strength as i16;
-//         self.rate = AttackStats::RATE_MIN + atr.dexterity as i16;
-//     }
-//     pub fn damage(&self) -> i16 {
-//         self.default_damage
-//     }
-//     pub fn cost(&self) -> i16 {
-//         self.default_cost
-//     }
-//     pub fn rate(&self) -> i16 {
-//         self.rate
-//     }
-// }
-// impl Add<AttackBoost> for AttackStats {
-//     type Output = AttackStats;
-
-//     fn add(self, rhs: AttackBoost) -> Self::Output {
-//         AttackStats {
-//             default_damage: self.default_damage + rhs.damage(),
-//             default_cost: self.default_cost + rhs.cost(),
-//             rate: self.rate + rhs.rate(),
-//         }
-//     }
-// }
-
-// #[derive(Default, Debug, Copy, Clone, Eq, PartialEq, Hash, Component, Reflect)]
-// #[reflect(Component)]
-// pub struct DefaultDefense {
-//     absorb: i16,
-//     cost: i16,
-//     rate: i16,
-// }
-// impl DefaultDefense {
-//     pub const ABSORB_MIN: i16 = 0;
-//     pub const COST_MAX: i16 = 36;
-//     pub const COST_MIN: i16 = 8;
-//     pub const RATE_MIN: i16 = 2;
-
-//     pub fn new(atr: &Attributes) -> Self {
-//         Self {
-//             absorb: DefaultDefense::ABSORB_MIN
-//                 + (atr.toughness as f32 / 4. + atr.willpower as f32 / 16.) as i16,
-//             cost: i16::max(
-//                 DefaultDefense::COST_MAX - atr.dexterity as i16,
-//                 DefaultDefense::COST_MIN,
-//             ),
-//             rate: DefaultDefense::RATE_MIN
-//                 + (atr.dexterity as f32 / 4. + atr.willpower as f32 / 16.) as i16,
-//         }
-//     }
-//     pub fn update(&mut self, atr: &Attributes) {
-//         self.absorb = DefaultDefense::ABSORB_MIN
-//             + (atr.toughness as f32 / 4. + atr.willpower as f32 / 16.) as i16;
-//         self.cost = i16::max(
-//             DefaultDefense::COST_MAX - atr.dexterity as i16,
-//             DefaultDefense::COST_MIN,
-//         );
-//         self.rate = DefaultDefense::RATE_MIN
-//             + (atr.dexterity as f32 / 4. + atr.willpower as f32 / 16.) as i16;
-//     }
-//     pub fn absorb(&self) -> i16 {
-//         self.absorb
-//     }
-//     pub fn cost(&self) -> i16 {
-//         self.cost
-//     }
-//     pub fn rate(&self) -> i16 {
-//         self.rate
-//     }
-// }
-// impl Add<DefenseBoost> for DefaultDefense {
-//     type Output = DefaultDefense;
-
-//     fn add(self, rhs: DefenseBoost) -> Self::Output {
-//         DefaultDefense {
-//             absorb: self.absorb + rhs.absorb(),
-//             cost: self.cost() + rhs.cost(),
-//             rate: self.rate + rhs.rate(),
-//         }
-//     }
-// }

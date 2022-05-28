@@ -70,7 +70,7 @@ pub fn act(
 
 pub fn attack(
     attackers: Query<(&Damage, &Vector2D, Option<&Equipment>)>,
-    defenders: Query<(&Protections, &Vector2D, Option<&Equipment>)>,
+    defenders: Query<(&Protection, &Vector2D, Option<&Equipment>)>,
     mut cmd: Commands,
     mut attack_reader: EventReader<AttackEvent>,
     mut ap_spend_writer: EventWriter<SpendAPEvent>,

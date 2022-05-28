@@ -1,3 +1,5 @@
+use super::ActionCost;
+use super::AttributeMultiplier;
 use super::Damage;
 use super::DamageKind;
 use super::Equipment;
@@ -7,10 +9,11 @@ use super::FieldOfView;
 use super::Formula;
 use super::Inventory;
 use super::ItemType;
+use super::Protect;
 use super::Protection;
-use super::Protections;
+use super::Rate;
 use super::RenderInfo;
-use super::Resistances;
+use super::Resistance;
 use super::Vector2D;
 use bevy::prelude::*;
 use std::borrow::Cow;
@@ -33,8 +36,8 @@ pub struct Actor {
     hp: HitPoints,
 
     base_damage: Damage,
-    base_protection: Protections,
-    base_resistance: Resistances,
+    base_protection: Protection,
+    base_resistance: Resistance,
     evasion: Evasion,
 
     // NOTE: no blocking by default. need shield to do that.
@@ -66,39 +69,73 @@ impl Actor {
             hp: HitPoints::new(&attributes),
 
             // TODO: properly construct it
-            base_damage: Damage::new(
-                DamageKind::Blunt,
-                8..19,
-                Formula::new(AttributeType::Strength, 100),
-                128,
-                Formula::new(AttributeType::Dexterity, 80),
-                128,
-                Formula::new(AttributeType::Dexterity, 128),
-            ),
-            base_protection: Protections::new(vec![
-                Protection::new(
-                    DamageKind::Blunt,
-                    Formula::new(AttributeType::Toughness, 100),
-                    1,
-                ),
-                Protection::new(
-                    DamageKind::Pierce,
-                    Formula::new(AttributeType::Toughness, 100),
-                    1,
-                ),
-                Protection::new(
-                    DamageKind::Slash,
-                    Formula::new(AttributeType::Toughness, 100),
-                    1,
-                ),
+            base_damage: {
+                Damage {
+                    kind: DamageKind::Blunt,
+                    amount: 8..19,
+                    amount_multiplier: Formula::new(vec![AttributeMultiplier {
+                        multiplier: 100,
+                        attribute: AttributeType::Strength,
+                    }]),
+                    hit_cost: ActionCost {
+                        cost: 128,
+                        cost_multiplier: Formula::new(vec![AttributeMultiplier {
+                            multiplier: 80,
+                            attribute: AttributeType::Dexterity,
+                        }]),
+                    },
+                    hit_chance: Rate {
+                        amount: 128,
+                        multiplier: Formula::new(vec![AttributeMultiplier {
+                            multiplier: 128,
+                            attribute: AttributeType::Dexterity,
+                        }]),
+                    },
+                }
+            },
+            base_protection: Protection::new(vec![
+                Protect {
+                    kind: DamageKind::Blunt,
+                    amount: 1,
+                    amount_multiplier: Formula::new(vec![AttributeMultiplier {
+                        attribute: AttributeType::Toughness,
+                        multiplier: 100,
+                    }]),
+                },
+                Protect {
+                    kind: DamageKind::Pierce,
+                    amount: 1,
+                    amount_multiplier: Formula::new(vec![AttributeMultiplier {
+                        attribute: AttributeType::Toughness,
+                        multiplier: 100,
+                    }]),
+                },
+                Protect {
+                    kind: DamageKind::Slash,
+                    amount: 1,
+                    amount_multiplier: Formula::new(vec![AttributeMultiplier {
+                        attribute: AttributeType::Toughness,
+                        multiplier: 100,
+                    }]),
+                },
             ]),
-            evasion: Evasion::new(
-                32,
-                Formula::new(AttributeType::Dexterity, 80),
-                96,
-                Formula::new(AttributeType::Dexterity, 100),
-            ),
-            base_resistance: Resistances::new(vec![]),
+            evasion: Evasion {
+                cost: ActionCost {
+                    cost: 32,
+                    cost_multiplier: Formula::new(vec![AttributeMultiplier {
+                        multiplier: 80,
+                        attribute: AttributeType::Dexterity,
+                    }]),
+                },
+                chance: Rate {
+                    amount: 96,
+                    multiplier: Formula::new(vec![AttributeMultiplier {
+                        multiplier: 100,
+                        attribute: AttributeType::Dexterity,
+                    }]),
+                },
+            },
+            base_resistance: Resistance::new(vec![]),
 
             fov: FieldOfView::new(&attributes),
             inventory: Inventory::default(),

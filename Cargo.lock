@@ -611,6 +611,7 @@ dependencies = [
  "line_drawing",
  "map_generator",
  "rand",
+ "ron",
  "serde",
 ]
 

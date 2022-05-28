@@ -1,8 +1,5 @@
-use super::Damage;
-use super::Protections;
-use super::RenderInfo;
 use bevy::prelude::*;
-use std::borrow::Cow;
+use serde::{Deserialize, Serialize};
 
 pub use inventory::Equipment;
 pub use inventory::EquipmentDisplay;
@@ -11,55 +8,8 @@ pub use inventory::InventoryDisplay;
 
 mod inventory;
 
-#[derive(Bundle)]
-pub struct AttackItem {
-    item_type: ItemType,
-    name: Name,
-    attack: Damage,
-    render_info: RenderInfo,
-}
-
-impl AttackItem {
-    pub fn new(
-        name: impl Into<Cow<'static, str>>,
-        item_type: ItemType,
-        attack: Damage,
-        texture: Handle<Image>,
-    ) -> Self {
-        Self {
-            item_type,
-            name: Name::new(name),
-            attack,
-            render_info: RenderInfo { texture, z: 1. },
-        }
-    }
-}
-
-#[derive(Bundle)]
-pub struct DefenseItem {
-    item_type: ItemType,
-    name: Name,
-    attack: Protections,
-    render_info: RenderInfo,
-}
-impl DefenseItem {
-    pub fn new(
-        name: impl Into<Cow<'static, str>>,
-        item_type: ItemType,
-        attack: Protections,
-        texture: Handle<Image>,
-    ) -> Self {
-        Self {
-            item_type,
-            name: Name::new(name),
-            attack,
-            render_info: RenderInfo { texture, z: 1. },
-        }
-    }
-}
-
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Component, Reflect)]
-#[reflect(Component)]
+#[derive(Reflect, Copy, Clone, PartialEq, Eq, Hash, Serialize, Deserialize, Component, Debug)]
+#[reflect_value(PartialEq, Serialize, Deserialize)]
 pub enum ItemType {
     MainHand,
     OffHand,
@@ -74,64 +24,6 @@ impl Default for ItemType {
         Self::MainHand
     }
 }
-
-// #[derive(Default, Debug, Copy, Clone, Component, Reflect)]
-// #[reflect(Component)]
-// pub struct AttackBoost {
-//     damage: i16,
-//     rate: i16,
-//     cost: i16,
-// }
-// impl AttackBoost {
-//     pub fn new(damage: i16, rate: i16, cost: i16) -> Self {
-//         Self { damage, rate, cost }
-//     }
-//     pub fn damage(&self) -> i16 {
-//         self.damage
-//     }
-//     pub fn rate(&self) -> i16 {
-//         self.rate
-//     }
-//     pub fn cost(&self) -> i16 {
-//         self.cost
-//     }
-// }
-// impl<'a> Sum<&'a Self> for AttackBoost {
-//     fn sum<I: Iterator<Item = &'a Self>>(iter: I) -> Self {
-//         iter.fold(AttackBoost::new(0, 0, 0), |a, b| {
-//             Self::new(a.damage + b.damage, a.rate + b.rate, a.cost + b.cost)
-//         })
-//     }
-// }
-
-// #[derive(Default, Debug, Copy, Clone, Component, Reflect)]
-// #[reflect(Component)]
-// pub struct DefenseBoost {
-//     absorb: i16,
-//     rate: i16,
-//     cost: i16,
-// }
-// impl DefenseBoost {
-//     pub fn new(absorb: i16, rate: i16, cost: i16) -> Self {
-//         Self { absorb, rate, cost }
-//     }
-//     pub fn absorb(&self) -> i16 {
-//         self.absorb
-//     }
-//     pub fn rate(&self) -> i16 {
-//         self.rate
-//     }
-//     pub fn cost(&self) -> i16 {
-//         self.cost
-//     }
-// }
-// impl<'a> Sum<&'a Self> for DefenseBoost {
-//     fn sum<I: Iterator<Item = &'a Self>>(iter: I) -> Self {
-//         iter.fold(DefenseBoost::new(0, 0, 0), |a, b| {
-//             Self::new(a.absorb + b.absorb, a.rate + b.rate, a.cost + b.cost)
-//         })
-//     }
-// }
 
 #[derive(Default, Debug, PartialEq, Eq, Clone, Component, Reflect)]
 #[reflect(Component)]
@@ -151,7 +43,7 @@ impl ItemDisplaySlot {
 
 #[derive(Default, Debug, Clone, Component, Reflect)]
 #[reflect(Component)]
-pub struct ItemEquipSlot {
+pub struct ItemEquipSlot {    
     index: (ItemType, u8),
     pub item: Option<Entity>,
     pub is_dummy_rendered: bool,

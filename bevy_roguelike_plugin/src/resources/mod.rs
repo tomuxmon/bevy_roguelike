@@ -5,6 +5,7 @@ pub use map_assets::MapAssets;
 pub use map_info::*;
 pub use map_options::*;
 pub use player_assets::PlayerAssets;
+pub use prefabs::Prefabs;
 pub use team_map::TeamMap;
 
 mod enemy_assets;
@@ -14,4 +15,5 @@ mod map_assets;
 mod map_info;
 mod map_options;
 mod player_assets;
+mod prefabs;
 mod team_map;

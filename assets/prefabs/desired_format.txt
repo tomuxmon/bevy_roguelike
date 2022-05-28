@@ -1,0 +1,27 @@
+// desired format of item definition:
+item {
+    Name "rusty short sword",
+    ItemType MainHand,
+    Damage {
+        amount: Slash 3..8 (80% str + 20% Dex),
+        cost: 100 (100% Dex),
+        rate: 110 (100% Dex),
+    },
+    Render "sprites/item/orcish_dagger.png",
+    RenderEquiped "sprites/item/equiped/dagger.png" ,
+},
+item {
+    Name "wooden buckler",
+    ItemType OffHand,
+    Protection {
+        amounts: [Blunt 4, Pierce 4, Slash 4, ],
+    },
+    Block {
+        block_type: [Blunt, Pierce, Slash, ],
+        cost: 100 (100% Dex),
+        rate: 110 (100% Dex),
+    },
+    Render "sprites/item/buckler_1.png",
+    RenderEquiped "sprites/item/equiped/shield.png" ,
+},
+
