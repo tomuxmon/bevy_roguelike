@@ -54,7 +54,7 @@ impl Actor {
     pub fn new(
         name: impl Into<Cow<'static, str>>,
         team: u32,
-        attributes: Attributes,
+        attributes: &Attributes,
         position: IVec2,
         texture: Handle<Image>,
         equipment_slots: Vec<(ItemType, u8, Rect<Val>)>,
@@ -64,7 +64,7 @@ impl Actor {
             name: Name::new(name),
             team: Team::new(team),
             state: TurnState::default(),
-            attributes,
+            attributes: attributes.clone(),
             ap: ActionPoints::new(&attributes),
             hp: HitPoints::new(&attributes),
 
@@ -79,7 +79,7 @@ impl Actor {
                     }]),
                     hit_cost: ActionCost {
                         cost: 128,
-                        cost_multiplier: Formula::new(vec![AttributeMultiplier {
+                        multiplier_inverted: Formula::new(vec![AttributeMultiplier {
                             multiplier: 80,
                             attribute: AttributeType::Dexterity,
                         }]),
@@ -97,32 +97,32 @@ impl Actor {
                 Protect {
                     kind: DamageKind::Blunt,
                     amount: 1,
-                    amount_multiplier: Formula::new(vec![AttributeMultiplier {
+                    amount_multiplier: Some(Formula::new(vec![AttributeMultiplier {
                         attribute: AttributeType::Toughness,
                         multiplier: 100,
-                    }]),
+                    }])),
                 },
                 Protect {
                     kind: DamageKind::Pierce,
                     amount: 1,
-                    amount_multiplier: Formula::new(vec![AttributeMultiplier {
+                    amount_multiplier: Some(Formula::new(vec![AttributeMultiplier {
                         attribute: AttributeType::Toughness,
                         multiplier: 100,
-                    }]),
+                    }])),
                 },
                 Protect {
                     kind: DamageKind::Slash,
                     amount: 1,
-                    amount_multiplier: Formula::new(vec![AttributeMultiplier {
+                    amount_multiplier: Some(Formula::new(vec![AttributeMultiplier {
                         attribute: AttributeType::Toughness,
                         multiplier: 100,
-                    }]),
+                    }])),
                 },
             ]),
             evasion: Evasion {
                 cost: ActionCost {
                     cost: 32,
-                    cost_multiplier: Formula::new(vec![AttributeMultiplier {
+                    multiplier_inverted: Formula::new(vec![AttributeMultiplier {
                         multiplier: 80,
                         attribute: AttributeType::Dexterity,
                     }]),

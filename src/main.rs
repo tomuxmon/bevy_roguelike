@@ -230,21 +230,17 @@ fn rogue_setup(
         .extend(enemy_assets.skins.iter().map(|a| a.clone_untyped()));
     cmd.insert_resource(enemy_assets);
 
-    let item_assets = ItemAssets {
-        skins: vec![
-            asset_server.load("sprites/item/buckler_1.png"),
-            asset_server.load("sprites/item/club.png"),
-            asset_server.load("sprites/item/gold_green.png"),
-            asset_server.load("sprites/item/orcish_dagger.png"),
-            asset_server.load("sprites/item/ring_mail_1.png"),
-            asset_server.load("sprites/item/spear.png"),
-            asset_server.load("sprites/item/two_handed_sword.png"),
-        ],
-    };
-    loading
-        .0
-        .extend(item_assets.skins.iter().map(|a| a.clone_untyped()));
-    cmd.insert_resource(item_assets);
+    if let Ok(handles) = asset_server.load_folder("sprites/item_equiped") {
+        loading.0.extend(handles);
+    }
+
+    if let Ok(handles) = asset_server.load_folder("sprites/item") {
+        loading.0.extend(handles);
+    }
+
+    if let Ok(handles) = asset_server.load_folder("items") {
+        loading.0.extend(handles);
+    }
 
     let inventory_assets = InventoryAssets {
         slot: asset_server.load("sprites/gui/inventory/slot.png"),
@@ -270,11 +266,11 @@ fn rogue_setup(
     loading.0.push(inventory_assets.feet_wear.clone_untyped());
     cmd.insert_resource(inventory_assets);
 
-    let prefabs = Prefabs {
-        ron_scene: asset_server.load("prefabs/prefabs.scn.ron"),
-    };
-    loading.0.push(prefabs.ron_scene.clone_untyped());
-    cmd.insert_resource(prefabs);
+    // let prefabs = Prefabs {
+    //     ron_scene: asset_server.load("prefabs/prefabs.scn.ron"),
+    // };
+    // loading.0.push(prefabs.ron_scene.clone_untyped());
+    // cmd.insert_resource(prefabs);
 
     state.set(AppState::AssetLoad).unwrap();
 }

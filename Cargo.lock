@@ -274,6 +274,18 @@ dependencies = [
 ]
 
 [[package]]
+name = "bevy_asset_ron"
+version = "0.4.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "095f32d5f5a852e6e09e9b499d0d2818673e60b35d0913529c0a6a72c991dcde"
+dependencies = [
+ "anyhow",
+ "bevy",
+ "ron",
+ "serde",
+]
+
+[[package]]
 name = "bevy_core"
 version = "0.7.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -605,6 +617,7 @@ version = "0.1.0"
 dependencies = [
  "bevy",
  "bevy-inspector-egui",
+ "bevy_asset_ron",
  "bevy_easings",
  "colored",
  "getrandom",

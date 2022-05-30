@@ -13,6 +13,7 @@ debug = ["colored", "bevy-inspector-egui"]
 # TODO: migrate to bevy_tweening
 map_generator = { path = "../map_generator" }
 bevy_easings = "~0.7"
+bevy_asset_ron = "~0.4"
 line_drawing = "~1.0"
 rand = "~0.8"
 serde = "~1.0"

@@ -5,21 +5,22 @@ pub mod quality;
 pub mod resources;
 pub mod systems;
 
-use std::ops::Range;
-
 use crate::components::*;
 use crate::dragable_ui::*;
 use crate::events::*;
+use crate::quality::*;
 use bevy::ecs::schedule::StateData;
+use bevy::ecs::system::EntityCommands;
 use bevy::log;
 use bevy::prelude::*;
-use bevy::reflect::TypeRegistry;
 use bevy::render::camera::Camera2d;
 use bevy::utils::HashSet;
+use bevy_asset_ron::RonAssetPlugin;
 use bevy_easings::*;
 use map_generator::*;
 use rand::prelude::*;
 use resources::*;
+use std::ops::Range;
 use systems::actor_stats::*;
 use systems::camera::*;
 use systems::fov::*;
@@ -38,6 +39,21 @@ pub struct RoguelikePlugin<T> {
 pub trait StateNext: StateData {
     fn next(&self) -> Option<Self>;
 }
+pub trait StateSetNext {
+    fn set_next(&mut self);
+}
+impl<T: StateNext> StateSetNext for State<T> {
+    fn set_next(&mut self) {
+        let current = self.current();
+        if let Some(next) = current.next() {
+            if let Err(error) = self.set(next) {
+                bevy::log::error!("Error setting next state. {}", error);
+            }
+        } else {
+            bevy::log::error!("no next state for {:?}.", current);
+        }
+    }
+}
 
 #[derive(Default)]
 pub struct AssetsLoading(pub Vec<HandleUntyped>);
@@ -51,6 +67,7 @@ pub struct MapEntities {
 impl<T: StateNext> Plugin for RoguelikePlugin<T> {
     fn build(&self, app: &mut App) {
         app.add_plugin(EasingsPlugin {})
+            .add_plugin(RonAssetPlugin::<ItemTemplate>::new(&["item.ron"]))
             .insert_resource(AssetsLoading::default())
             .add_startup_system(setup_camera)
             .add_system_set(
@@ -94,6 +111,7 @@ impl<T: StateNext> Plugin for RoguelikePlugin<T> {
             )
             .register_type::<Vector2D>()
             .register_type::<RenderInfo>()
+            .register_type::<RenderInfoEquiped>()
             .register_type::<MapTile>()
             .register_type::<Attributes>()
             .register_type::<AttributeType>()
@@ -154,14 +172,11 @@ impl<T: StateNext> RoguelikePlugin<T> {
 
         match server.get_group_load_state(loading.0.iter().map(|h| h.id)) {
             LoadState::Failed => {
-                bevy::log::error!("Asset load failed. Validate path's.");
+                bevy::log::error!("Asset load failed. Check preceding warnings for more info. Transitioning to next state anyway (feeling adventurous).");
+                state.set_next();
             }
             LoadState::Loaded => {
-                if let Some(next_state) = state.current().next() {
-                    state.set(next_state).unwrap();
-                } else {
-                    bevy::log::error!("no next state.");
-                }
+                state.set_next();
                 commands.remove_resource::<AssetsLoading>();
                 // (note: if you don't have any other handles to the assets
                 // elsewhere, they will get unloaded after this)
@@ -185,11 +200,8 @@ impl<T: StateNext> RoguelikePlugin<T> {
         map_assets: Res<MapAssets>,
         player_assets: Res<PlayerAssets>,
         enemy_assets: Res<EnemyAssets>,
-        item_assets: Res<ItemAssets>,
-        type_registry: Res<TypeRegistry>,
-        prefabs: Res<Prefabs>,
-        dyn_scenes: Res<Assets<DynamicScene>>,
-        // mut scene_spawner: ResMut<SceneSpawner>,
+        asset_server: Res<AssetServer>,
+        item_templates: Res<Assets<ItemTemplate>>,
         mut cameras: Query<&mut Transform, With<Camera2d>>,
     ) {
         let options = match map_options {
@@ -218,65 +230,58 @@ impl<T: StateNext> RoguelikePlugin<T> {
             c.translation = new_pos;
         }
 
-        // TODO: experiment with dynamic scene
-        let mut prefab_world = World::new();
+        // let aaa = ItemTemplate::Shield(Shield {
+        //     name: "buckler".to_string(),
+        //     render: ItemRenderInfo {
+        //         render_path: "buckler_1.png".to_string(),
+        //         render_equiped_path: Some("buckler_round_3.png".to_string()),
+        //     },
+        //     protection: Protection {
+        //         amounts: vec![
+        //             Protect {
+        //                 kind: DamageKind::Blunt,
+        //                 amount_multiplier: None,
+        //                 amount: 2,
+        //             },
+        //             Protect {
+        //                 kind: DamageKind::Pierce,
+        //                 amount_multiplier: None,
+        //                 amount: 2,
+        //             },
+        //             Protect {
+        //                 kind: DamageKind::Slash,
+        //                 amount_multiplier: None,
+        //                 amount: 2,
+        //             },
+        //         ],
+        //     },
+        //     block: Block {
+        //         block_type: vec![DamageKind::Blunt, DamageKind::Pierce, DamageKind::Slash],
+        //         cost: ActionCost {
+        //             cost: 45,
+        //             multiplier_inverted: Formula::new(vec![AttributeMultiplier {
+        //                 multiplier: 128,
+        //                 attribute: AttributeType::Dexterity,
+        //             }]),
+        //         },
+        //         chance: Rate {
+        //             amount: 50,
+        //             multiplier: Formula::new(vec![AttributeMultiplier {
+        //                 multiplier: 100,
+        //                 attribute: AttributeType::Dexterity,
+        //             }]),
+        //         },
+        //     },
+        // });
 
-        prefab_world.spawn().insert_bundle((
-            ItemType::MainHand,
-            Damage {
-                kind: DamageKind::Slash,
-                amount: 5..9,
-                amount_multiplier: Formula::new(vec![AttributeMultiplier {
-                    multiplier: 100,
-                    attribute: AttributeType::Strength,
-                }]),
-                hit_cost: ActionCost {
-                    cost: 128,
-                    cost_multiplier: Formula::new(vec![AttributeMultiplier {
-                        multiplier: 100,
-                        attribute: AttributeType::Dexterity,
-                    }]),
-                },
-                hit_chance: Rate {
-                    amount: 90,
-                    multiplier: Formula::new(vec![AttributeMultiplier {
-                        multiplier: 110,
-                        attribute: AttributeType::Dexterity,
-                    }]),
-                },
-            },
-            Protection::new(vec![Protect {
-                amount: 2,
-                kind: DamageKind::Slash,
-                amount_multiplier: Formula::new(vec![AttributeMultiplier {
-                    multiplier: 100,
-                    attribute: AttributeType::Dexterity,
-                }]),
-            }]),
-        ));
-
-        let scene = DynamicScene::from_world(&prefab_world, &*type_registry);
-        info!("{}", scene.serialize_ron(&*type_registry).unwrap());
-
-        info!("len {}", dyn_scenes.len());
-
-        if let Some(scn) = dyn_scenes.get(prefabs.ron_scene.clone()) {
-            // scn.write_to_world(world, entity_map);
-
-            for dyn_entity in scn.entities.iter() {
-                // TODO: first component should be a marker component describinf if it is an item or something else.
-                // let first = dyn_entity.components.iter().nth(0);
-
-                // let mut item_cmd = cmd.spawn();
-                // let item = item_cmd.insert(Name::new("item")).id();
-                for reflect_component in dyn_entity.components.iter() {
-                    // let comp = reflect_component.downcast::<dyn Component>();
-
-                    //item_cmd.insert(reflect_component);
-                    info!("component: {:?}", reflect_component);
-                }
-            }
-        }
+        // let my_config = ron::ser::PrettyConfig::new()
+        //     .depth_limit(4)
+        //     .indentor(" ".to_owned());
+        // if let Ok(ron_str) = ron::ser::to_string_pretty(&aaa, my_config) {
+        //     info!("ron: {}", ron_str);
+        // } else {
+        //     bevy::log::error!("no ron string huh..");
+        // }
 
         let map_id = cmd
             .spawn()
@@ -306,33 +311,19 @@ impl<T: StateNext> RoguelikePlugin<T> {
             })
             .id();
 
+        let item_templates: Vec<_> = item_templates.iter().map(|(_, it)| it).collect();
         for ipt in info.item_spawns.clone() {
-            // TODO: fix item spawning
-            // if rng.gen_bool(0.5) {
-            //     let damage = rng.gen_range(1..16);
-            //     let rate = rng.gen_range(1..16);
-            //     let cost = rng.gen_range(4..16);
-            //     cmd.spawn()
-            //         .insert_bundle(AttackItem::new(
-            //             "attack item",
-            //             ItemType::MainHand,
-            //             AttackBoost::new(damage, rate, cost),
-            //             item_assets.skins[rng.gen_range(0..item_assets.skins.len())].clone(),
-            //         ))
-            //         .insert(Vector2D::from(ipt));
-            // } else {
-            //     let absorb = rng.gen_range(1..8);
-            //     let rate = rng.gen_range(1..8);
-            //     let cost = rng.gen_range(4..12);
-            //     cmd.spawn()
-            //         .insert_bundle(DefenseItem::new(
-            //             "defense item",
-            //             ItemType::OffHand,
-            //             DefenseBoost::new(absorb, rate, cost),
-            //             item_assets.skins[rng.gen_range(0..item_assets.skins.len())].clone(),
-            //         ))
-            //         .insert(Vector2D::from(ipt));
-            // }
+            let template = item_templates[rng.gen_range(0..item_templates.len())];
+            let quality = Quality::roll(&mut rng);
+            let mut ecmd = cmd.spawn();
+            ecmd.insert(Vector2D::from(ipt));
+            spawn_item(
+                &mut ecmd,
+                asset_server.clone(),
+                template,
+                &quality,
+                &mut rng,
+            );
         }
 
         let plr_atr = Attributes::new(11, 11, 11, 11, 11, 11);
@@ -344,7 +335,7 @@ impl<T: StateNext> RoguelikePlugin<T> {
             .insert_bundle(Actor::new(
                 "Player",
                 team_player,
-                plr_atr,
+                &plr_atr,
                 info.player_start,
                 player_assets.body.clone(),
                 get_player_equipment_slots(),
@@ -379,7 +370,7 @@ impl<T: StateNext> RoguelikePlugin<T> {
                         .insert_bundle(Actor::new(
                             "Enemy",
                             team_monster,
-                            mon_atr,
+                            &mon_atr,
                             mpt,
                             enemy_assets.skins[rng.gen_range(0..enemy_assets.skins.len())].clone(),
                             vec![(
@@ -404,11 +395,120 @@ impl<T: StateNext> RoguelikePlugin<T> {
         cmd.insert_resource(team_map);
         cmd.insert_resource(MapEntities { map_id, enemies_id });
 
-        if let Some(next_state) = state.current().next() {
-            state.set(next_state).unwrap();
-        } else {
-            bevy::log::error!("no next state.");
+        state.set_next();
+    }
+}
+
+fn spawn_item(
+    ecmd: &mut EntityCommands,
+    asset_server: AssetServer,
+    template: &ItemTemplate,
+    quality: &Quality,
+    rng: &mut StdRng,
+) {
+    match template {
+        ItemTemplate::Weapon(Weapon { render, damage }) => {
+            insert_render(ecmd, asset_server, render, quality);
+
+            ecmd.insert(damage.mutate(quality, rng));
         }
+        ItemTemplate::Shield(Shield {
+            render,
+            protection,
+            block,
+        }) => {
+            insert_render(ecmd, asset_server, render, quality);
+            ecmd.insert(protection.mutate(quality, rng))
+                .insert(block.mutate(quality, rng));
+        }
+        ItemTemplate::Helm(Helm {
+            render,
+            defense,
+            enchantment,
+        }) => {
+            insert_render(ecmd, asset_server, render, quality);
+            insert_defense(ecmd, defense, quality, rng);
+            insert_enchantment(ecmd, enchantment, quality, rng);
+        }
+        ItemTemplate::Armor(Armor {
+            render,
+            defense,
+            enchantment,
+        }) => {
+            insert_render(ecmd, asset_server, render, quality);
+            insert_defense(ecmd, defense, quality, rng);
+            insert_enchantment(ecmd, enchantment, quality, rng);
+        }
+        ItemTemplate::Boots(Boots {
+            render,
+            defense,
+            enchantment,
+        }) => {
+            insert_render(ecmd, asset_server, render, quality);
+            insert_defense(ecmd, defense, quality, rng);
+            insert_enchantment(ecmd, enchantment, quality, rng);
+        }
+        ItemTemplate::Amulet(Amulet {
+            render,
+            defense,
+            enchantment,
+        }) => {
+            insert_render(ecmd, asset_server, render, quality);
+            insert_defense(ecmd, defense, quality, rng);
+            insert_enchantment(ecmd, enchantment, quality, rng);
+        }
+        ItemTemplate::Ring(Ring {
+            render,
+            defense,
+            enchantment,
+        }) => {
+            insert_render(ecmd, asset_server, render, quality);
+            insert_defense(ecmd, defense, quality, rng);
+            insert_enchantment(ecmd, enchantment, quality, rng);
+        }
+    }
+}
+
+fn insert_defense(
+    ecmd: &mut EntityCommands,
+    defense: &ItemDefense,
+    quality: &Quality,
+    rng: &mut StdRng,
+) {
+    if let Some(prot) = defense.protection.clone() {
+        ecmd.insert(prot.mutate(quality, rng));
+    }
+    if let Some(res) = defense.resistance.clone() {
+        ecmd.insert(res.mutate(quality, rng));
+    }
+}
+fn insert_enchantment(
+    ecmd: &mut EntityCommands,
+    enchantment: &ItemEnchantment,
+    quality: &Quality,
+    rng: &mut StdRng,
+) {
+    if let Some(attributes) = enchantment.attributes.clone() {
+        ecmd.insert(attributes.mutate(quality, rng));
+    }
+}
+
+fn insert_render(
+    ecmd: &mut EntityCommands,
+    asset_server: AssetServer,
+    render: &ItemRenderInfo,
+    quality: &Quality,
+) {
+    ecmd.insert(Name::new(format!("{} {}", quality, render.name.clone())))
+        .insert(RenderInfo {
+            texture: asset_server.load(render.texture_path.as_str()),
+            z: 1.,
+        });
+    if let Some(path_equiped) = render.texture_equiped_path.clone() {
+        ecmd.insert(RenderInfoEquiped {
+            texture: asset_server.load(path_equiped.as_str()),
+            z: 4.,
+        });
     }
 }
 

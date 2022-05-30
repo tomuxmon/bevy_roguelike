@@ -33,6 +33,7 @@ pub use item::ItemDisplaySlot;
 pub use item::ItemEquipSlot;
 pub use item::ItemType;
 pub use render_info::RenderInfo;
+pub use render_info::RenderInfoEquiped;
 pub use vector2d::Vector2D;
 
 mod actor;

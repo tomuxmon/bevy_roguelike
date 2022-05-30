@@ -1,0 +1,45 @@
+Shield(( 
+ render: (
+  name: "Buckler",
+  texture_path: "sprites/item/buckler_1.png",
+  texture_equiped_path: Some("sprites/item_equiped/buckler_round_3.png"),
+ ),
+ protection: (
+  amounts: [
+   (
+    kind: Blunt,
+    amount_multiplier: None,
+    amount: 2,
+   ),
+   (
+    kind: Pierce,
+    amount_multiplier: None,
+    amount: 2,
+   ),
+   (
+    kind: Slash,
+    amount_multiplier: None,
+    amount: 2,
+   ),
+  ],
+ ),
+ block: (
+  block_type: [
+   Blunt,
+   Pierce,
+   Slash,
+  ],
+  cost: (
+   cost: 45,
+   multiplier_inverted: (
+    multipliers: [(multiplier:128,attribute:Dexterity)],
+   ),
+  ),
+  chance: (
+   amount: 50,
+   multiplier: (
+    multipliers: [(multiplier:100,attribute:Dexterity)],
+   ),
+  ),
+ ),
+))

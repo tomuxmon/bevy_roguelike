@@ -20,9 +20,12 @@ impl Default for AttributeType {
     }
 }
 
-#[derive(Default, Debug, Copy, Clone, Eq, PartialEq, Hash, Component, Reflect)]
+#[derive(
+    Default, Debug, Clone, Eq, PartialEq, Hash, Component, Reflect, Serialize, Deserialize,
+)]
 #[reflect(Component)]
 pub struct Attributes {
+    // TODO: investigate HashMap<AttributeType, u8> ?
     pub strength: u8,
     pub dexterity: u8,
     pub inteligence: u8,

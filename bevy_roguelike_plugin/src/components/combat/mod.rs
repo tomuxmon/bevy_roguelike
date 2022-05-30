@@ -62,6 +62,17 @@ impl AttributeMultiplier {
         };
         amount as f32 * self.multiplier as f32 / 1000.
     }
+    pub fn compute_inverted(&self, attributes: &Attributes) -> f32 {
+        let amount = match self.attribute {
+            AttributeType::Strength => attributes.strength,
+            AttributeType::Dexterity => attributes.dexterity,
+            AttributeType::Inteligence => attributes.inteligence,
+            AttributeType::Toughness => attributes.toughness,
+            AttributeType::Perception => attributes.perception,
+            AttributeType::Willpower => attributes.willpower,
+        };
+        amount as f32 * (u8::MAX - self.multiplier) as f32 / 1000.
+    }
 }
 
 #[derive(
@@ -84,10 +95,18 @@ impl Formula {
             .map(|m| m.compute(attributes))
             .sum::<f32>()
     }
+    pub fn compute_inverted(&self, attributes: &Attributes) -> f32 {
+        self.multipliers
+            .iter()
+            .map(|m| m.compute_inverted(attributes))
+            .sum::<f32>()
+    }
 }
 
 /// applies to action being performed
-#[derive(Debug, Default, Clone, PartialEq, Eq, Component, Reflect, FromReflect)]
+#[derive(
+    Debug, Default, Clone, PartialEq, Eq, Component, Reflect, FromReflect, Serialize, Deserialize,
+)]
 #[reflect(Component)]
 pub struct Rate {
     /// A chance to perform action modifier where 100 means a normal chance.
@@ -101,22 +120,24 @@ impl Rate {
     }
 }
 
-#[derive(Debug, Default, Clone, PartialEq, Eq, Component, Reflect, FromReflect)]
+#[derive(
+    Debug, Default, Clone, PartialEq, Eq, Component, Reflect, FromReflect, Serialize, Deserialize,
+)]
 #[reflect(Component)]
 pub struct ActionCost {
     /// cost in action points, [`super::ActionPoints::TURN_READY_DEFAULT`] being one single turn
     pub cost: i16,
-    // TODO: should be inverted formula where more of attribute means smaller multiplier
-    pub cost_multiplier: Formula,
+    /// formula to compute the multiplier. using inverted compute.
+    pub multiplier_inverted: Formula,
 }
 impl ActionCost {
     pub fn compute(&self, attributes: &Attributes) -> i16 {
-        (self.cost_multiplier.compute(attributes) * self.cost as f32) as i16
+        (self.multiplier_inverted.compute_inverted(attributes) * self.cost as f32) as i16
     }
 }
 
 /// Information about damage that can be calculated based on actor attributes.
-#[derive(Debug, Default, Clone, PartialEq, Eq, Component, Reflect)]
+#[derive(Debug, Default, Clone, PartialEq, Eq, Component, Reflect, Serialize, Deserialize)]
 #[reflect(Component)]
 pub struct Damage {
     pub kind: DamageKind,
@@ -131,10 +152,8 @@ pub struct Damage {
 )]
 pub struct Protect {
     pub kind: DamageKind,
-    // Option<Formula> and no need for additional struct?
-    pub amount_multiplier: Formula,
+    pub amount_multiplier: Option<Formula>,
     pub amount: i32,
-    // TODO: also include static protect without multiplier
 }
 
 /// Protective Value (PV) or the amount of direct damage negated
@@ -167,12 +186,12 @@ impl Protection {
 )]
 #[reflect(Component)]
 pub struct Resist {
-    kind: DamageKind,
+    pub kind: DamageKind,
     /// Resistance amount in percents. 100 means fully resists specified [`DamageKind`].
-    percent: u8,
+    pub percent: u8,
 }
 
-#[derive(Debug, Default, Clone, PartialEq, Eq, Component, Reflect)]
+#[derive(Debug, Default, Clone, PartialEq, Eq, Component, Reflect, Serialize, Deserialize)]
 #[reflect(Component)]
 pub struct Resistance {
     /// defines resistance in percents per damage kind.
@@ -199,7 +218,10 @@ pub struct Evasion {
 }
 
 /// Block works on specified damage types. Works together with [Rate].
-#[derive(Debug, Default, Clone, PartialEq, Eq, Component, Reflect, FromReflect)]
+#[derive(
+    Debug, Default, Clone, PartialEq, Eq, Component, Reflect, FromReflect, Serialize, Deserialize,
+)]
+#[reflect(Component)]
 pub struct Block {
     // blocks specific damage type?
     pub block_type: Vec<DamageKind>,
