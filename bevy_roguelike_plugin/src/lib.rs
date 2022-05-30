@@ -138,6 +138,7 @@ impl<T: StateNext> Plugin for RoguelikePlugin<T> {
             .register_type::<Block>()
             .register_type::<Evasion>()
             .register_type::<ItemType>()
+            .register_type::<Quality>()
             .register_type::<ItemEquipSlot>()
             .register_type::<ItemDisplaySlot>()
             .register_type::<EquipmentDisplay>()
@@ -408,8 +409,8 @@ fn spawn_item(
 ) {
     match template {
         ItemTemplate::Weapon(Weapon { render, damage }) => {
+            ecmd.insert(ItemType::MainHand);
             insert_render(ecmd, asset_server, render, quality);
-
             ecmd.insert(damage.mutate(quality, rng));
         }
         ItemTemplate::Shield(Shield {
@@ -417,6 +418,7 @@ fn spawn_item(
             protection,
             block,
         }) => {
+            ecmd.insert(ItemType::OffHand);
             insert_render(ecmd, asset_server, render, quality);
             ecmd.insert(protection.mutate(quality, rng))
                 .insert(block.mutate(quality, rng));
@@ -426,6 +428,7 @@ fn spawn_item(
             defense,
             enchantment,
         }) => {
+            ecmd.insert(ItemType::Head);
             insert_render(ecmd, asset_server, render, quality);
             insert_defense(ecmd, defense, quality, rng);
             insert_enchantment(ecmd, enchantment, quality, rng);
@@ -435,6 +438,7 @@ fn spawn_item(
             defense,
             enchantment,
         }) => {
+            ecmd.insert(ItemType::Body);
             insert_render(ecmd, asset_server, render, quality);
             insert_defense(ecmd, defense, quality, rng);
             insert_enchantment(ecmd, enchantment, quality, rng);
@@ -444,6 +448,7 @@ fn spawn_item(
             defense,
             enchantment,
         }) => {
+            ecmd.insert(ItemType::Feet);
             insert_render(ecmd, asset_server, render, quality);
             insert_defense(ecmd, defense, quality, rng);
             insert_enchantment(ecmd, enchantment, quality, rng);
@@ -453,6 +458,7 @@ fn spawn_item(
             defense,
             enchantment,
         }) => {
+            ecmd.insert(ItemType::Neck);
             insert_render(ecmd, asset_server, render, quality);
             insert_defense(ecmd, defense, quality, rng);
             insert_enchantment(ecmd, enchantment, quality, rng);
@@ -462,6 +468,7 @@ fn spawn_item(
             defense,
             enchantment,
         }) => {
+            ecmd.insert(ItemType::Finger);
             insert_render(ecmd, asset_server, render, quality);
             insert_defense(ecmd, defense, quality, rng);
             insert_enchantment(ecmd, enchantment, quality, rng);
@@ -500,6 +507,7 @@ fn insert_render(
     quality: &Quality,
 ) {
     ecmd.insert(Name::new(format!("{} {}", quality, render.name.clone())))
+        .insert(quality.clone())
         .insert(RenderInfo {
             texture: asset_server.load(render.texture_path.as_str()),
             z: 1.,

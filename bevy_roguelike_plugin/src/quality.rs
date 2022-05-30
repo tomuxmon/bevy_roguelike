@@ -5,7 +5,8 @@ use rand::prelude::*;
 use std::fmt::Display;
 use std::ops::Range;
 
-#[derive(Component, Clone)]
+#[derive(Component, Clone, Reflect)]
+#[reflect(Component)]
 pub enum Quality {
     Broken,
     Damaged,
@@ -54,6 +55,20 @@ impl Quality {
             Quality::Artifact => 140..200,
         }
     }
+    /// broken (140% .. 200%),
+    /// damaged (110% .. 140%),
+    /// normal (90 .. 110%),
+    /// masterwork (60% .. 90%),
+    /// artifact (20% .. 60%),
+    pub fn get_multiplier_inverse(&self) -> Range<u8> {
+        match self {
+            Quality::Broken => 140..200,
+            Quality::Damaged => 110..140,
+            Quality::Normal => 90..110,
+            Quality::Masterwork => 60..90,
+            Quality::Artifact => 20..60,
+        }
+    }
 }
 impl Default for Quality {
     fn default() -> Self {
@@ -62,11 +77,21 @@ impl Default for Quality {
 }
 
 pub trait MutableQuality {
-    fn mutate(&self, quality: &Quality, rng: &mut StdRng) -> Self;
+    fn mutate(&self, quality: &Quality, rng: &mut StdRng) -> Self
+    where
+        Self: Sized,
+    {
+        self.mutate_extended(true, quality, rng)
+    }
+    fn mutate_extended(&self, is_direct: bool, quality: &Quality, rng: &mut StdRng) -> Self;
 }
 impl MutableQuality for u8 {
-    fn mutate(&self, quality: &Quality, rng: &mut StdRng) -> Self {
-        let Range { start, end } = quality.get_multiplier();
+    fn mutate_extended(&self, is_direct: bool, quality: &Quality, rng: &mut StdRng) -> Self {
+        let Range { start, end } = if is_direct {
+            quality.get_multiplier()
+        } else {
+            quality.get_multiplier_inverse()
+        };
         let t_start = (*self as f32 * start as f32 / 100 as f32) as u8;
         let t_end = (*self as f32 * end as f32 / 100 as f32) as u8;
         let range = t_start..t_end;
@@ -78,8 +103,12 @@ impl MutableQuality for u8 {
     }
 }
 impl MutableQuality for i16 {
-    fn mutate(&self, quality: &Quality, rng: &mut StdRng) -> Self {
-        let Range { start, end } = quality.get_multiplier();
+    fn mutate_extended(&self, is_direct: bool, quality: &Quality, rng: &mut StdRng) -> Self {
+        let Range { start, end } = if is_direct {
+            quality.get_multiplier()
+        } else {
+            quality.get_multiplier_inverse()
+        };
         let t_start = (*self as f32 * start as f32 / 100 as f32) as i16;
         let t_end = (*self as f32 * end as f32 / 100 as f32) as i16;
         let range = t_start..t_end;
@@ -91,8 +120,12 @@ impl MutableQuality for i16 {
     }
 }
 impl MutableQuality for i32 {
-    fn mutate(&self, quality: &Quality, rng: &mut StdRng) -> Self {
-        let Range { start, end } = quality.get_multiplier();
+    fn mutate_extended(&self, is_direct: bool, quality: &Quality, rng: &mut StdRng) -> Self {
+        let Range { start, end } = if is_direct {
+            quality.get_multiplier()
+        } else {
+            quality.get_multiplier_inverse()
+        };
         let t_start = (*self as f32 * start as f32 / 100 as f32) as i32;
         let t_end = (*self as f32 * end as f32 / 100 as f32) as i32;
         let range = t_start..t_end;
@@ -104,10 +137,10 @@ impl MutableQuality for i32 {
     }
 }
 impl MutableQuality for Range<i32> {
-    fn mutate(&self, quality: &Quality, rng: &mut StdRng) -> Self {
+    fn mutate_extended(&self, is_direct: bool, quality: &Quality, rng: &mut StdRng) -> Self {
         let Range { start, end } = *self;
-        let start_new = start.mutate(quality, rng);
-        let end_new = end.mutate(quality, rng);
+        let start_new = start.mutate_extended(is_direct, quality, rng);
+        let end_new = end.mutate_extended(is_direct, quality, rng);
         if start_new > end_new {
             Range {
                 start: end_new,
@@ -122,26 +155,28 @@ impl MutableQuality for Range<i32> {
     }
 }
 impl MutableQuality for AttributeMultiplier {
-    fn mutate(&self, quality: &Quality, rng: &mut StdRng) -> Self {
+    fn mutate_extended(&self, is_direct: bool, quality: &Quality, rng: &mut StdRng) -> Self {
         Self {
-            multiplier: self.multiplier.mutate(quality, rng),
+            multiplier: self.multiplier.mutate_extended(is_direct, quality, rng),
             attribute: self.attribute,
         }
     }
 }
 impl MutableQuality for Formula {
-    fn mutate(&self, quality: &Quality, rng: &mut StdRng) -> Self {
+    fn mutate_extended(&self, inverted: bool, quality: &Quality, rng: &mut StdRng) -> Self {
         Self {
             multipliers: HashSet::from_iter(
-                self.multipliers.iter().map(|m| m.mutate(quality, rng)),
+                self.multipliers
+                    .iter()
+                    .map(|m| m.mutate_extended(inverted, quality, rng)),
             ),
         }
     }
 }
 impl MutableQuality for Option<Formula> {
-    fn mutate(&self, quality: &Quality, rng: &mut StdRng) -> Self {
+    fn mutate_extended(&self, is_direct: bool, quality: &Quality, rng: &mut StdRng) -> Self {
         if let Some(f) = self {
-            Some(f.mutate(quality, rng))
+            Some(f.mutate_extended(is_direct, quality, rng))
         } else {
             None
         }
@@ -149,93 +184,103 @@ impl MutableQuality for Option<Formula> {
 }
 
 impl MutableQuality for Rate {
-    fn mutate(&self, quality: &Quality, rng: &mut StdRng) -> Self {
+    fn mutate_extended(&self, is_direct: bool, quality: &Quality, rng: &mut StdRng) -> Self {
         Self {
-            amount: self.amount.mutate(quality, rng),
-            multiplier: self.multiplier.mutate(quality, rng),
+            amount: self.amount.mutate_extended(is_direct, quality, rng),
+            multiplier: self.multiplier.mutate_extended(is_direct, quality, rng),
         }
     }
 }
 impl MutableQuality for ActionCost {
-    fn mutate(&self, quality: &Quality, rng: &mut StdRng) -> Self {
+    fn mutate_extended(&self, is_direct: bool, quality: &Quality, rng: &mut StdRng) -> Self {
         Self {
-            cost: self.cost.mutate(quality, rng),
-            multiplier_inverted: self.multiplier_inverted.mutate(quality, rng),
+            cost: self.cost.mutate_extended(!is_direct, quality, rng),
+            multiplier_inverted: self
+                .multiplier_inverted
+                .mutate_extended(!is_direct, quality, rng),
         }
     }
 }
 impl MutableQuality for Damage {
-    fn mutate(&self, quality: &Quality, rng: &mut StdRng) -> Self {
+    fn mutate_extended(&self, is_direct: bool, quality: &Quality, rng: &mut StdRng) -> Self {
         Self {
             kind: self.kind,
-            amount: self.amount.mutate(quality, rng),
-            amount_multiplier: self.amount_multiplier.mutate(quality, rng),
-            hit_cost: self.hit_cost.mutate(quality, rng),
-            hit_chance: self.hit_chance.mutate(quality, rng),
+            amount: self.amount.mutate_extended(is_direct, quality, rng),
+            amount_multiplier: self
+                .amount_multiplier
+                .mutate_extended(is_direct, quality, rng),
+            hit_cost: self.hit_cost.mutate_extended(is_direct, quality, rng),
+            hit_chance: self.hit_chance.mutate_extended(is_direct, quality, rng),
         }
     }
 }
 impl MutableQuality for Protect {
-    fn mutate(&self, quality: &Quality, rng: &mut StdRng) -> Self {
+    fn mutate_extended(&self, is_direct: bool, quality: &Quality, rng: &mut StdRng) -> Self {
         Self {
             kind: self.kind,
-            amount_multiplier: self.amount_multiplier.mutate(quality, rng),
-            amount: self.amount.mutate(quality, rng),
+            amount_multiplier: self
+                .amount_multiplier
+                .mutate_extended(is_direct, quality, rng),
+            amount: self.amount.mutate_extended(is_direct, quality, rng),
         }
     }
 }
 impl MutableQuality for Protection {
-    fn mutate(&self, quality: &Quality, rng: &mut StdRng) -> Self {
+    fn mutate_extended(&self, is_direct: bool, quality: &Quality, rng: &mut StdRng) -> Self {
         Self {
             amounts: self
                 .amounts
                 .iter()
-                .map(|a| a.mutate(quality, rng))
+                .map(|a| a.mutate_extended(is_direct, quality, rng))
                 .collect(),
         }
     }
 }
 impl MutableQuality for Resist {
-    fn mutate(&self, quality: &Quality, rng: &mut StdRng) -> Self {
+    fn mutate_extended(&self, is_direct: bool, quality: &Quality, rng: &mut StdRng) -> Self {
         Self {
             kind: self.kind,
-            percent: self.percent.mutate(quality, rng),
+            percent: self.percent.mutate_extended(is_direct, quality, rng),
         }
     }
 }
 impl MutableQuality for Resistance {
-    fn mutate(&self, quality: &Quality, rng: &mut StdRng) -> Self {
+    fn mutate_extended(&self, is_direct: bool, quality: &Quality, rng: &mut StdRng) -> Self {
         Self {
-            amounts: HashSet::from_iter(self.amounts.iter().map(|p| p.mutate(quality, rng))),
+            amounts: HashSet::from_iter(
+                self.amounts
+                    .iter()
+                    .map(|p| p.mutate_extended(is_direct, quality, rng)),
+            ),
         }
     }
 }
 impl MutableQuality for Evasion {
-    fn mutate(&self, quality: &Quality, rng: &mut StdRng) -> Self {
+    fn mutate_extended(&self, is_direct: bool, quality: &Quality, rng: &mut StdRng) -> Self {
         Self {
-            cost: self.cost.mutate(quality, rng),
-            chance: self.chance.mutate(quality, rng),
+            cost: self.cost.mutate_extended(is_direct, quality, rng),
+            chance: self.chance.mutate_extended(is_direct, quality, rng),
         }
     }
 }
 impl MutableQuality for Block {
-    fn mutate(&self, quality: &Quality, rng: &mut StdRng) -> Self {
+    fn mutate_extended(&self, is_direct: bool, quality: &Quality, rng: &mut StdRng) -> Self {
         Self {
             block_type: self.block_type.clone(),
-            cost: self.cost.mutate(quality, rng),
-            chance: self.chance.mutate(quality, rng),
+            cost: self.cost.mutate_extended(is_direct, quality, rng),
+            chance: self.chance.mutate_extended(is_direct, quality, rng),
         }
     }
 }
 impl MutableQuality for Attributes {
-    fn mutate(&self, quality: &Quality, rng: &mut StdRng) -> Self {
+    fn mutate_extended(&self, is_direct: bool, quality: &Quality, rng: &mut StdRng) -> Self {
         Self {
-            strength: self.strength.mutate(quality, rng),
-            dexterity: self.dexterity.mutate(quality, rng),
-            inteligence: self.inteligence.mutate(quality, rng),
-            toughness: self.toughness.mutate(quality, rng),
-            perception: self.perception.mutate(quality, rng),
-            willpower: self.willpower.mutate(quality, rng),
+            strength: self.strength.mutate_extended(is_direct, quality, rng),
+            dexterity: self.dexterity.mutate_extended(is_direct, quality, rng),
+            inteligence: self.inteligence.mutate_extended(is_direct, quality, rng),
+            toughness: self.toughness.mutate_extended(is_direct, quality, rng),
+            perception: self.perception.mutate_extended(is_direct, quality, rng),
+            willpower: self.willpower.mutate_extended(is_direct, quality, rng),
         }
     }
 }

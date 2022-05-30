@@ -10,6 +10,7 @@ mod inventory;
 
 #[derive(Reflect, Copy, Clone, PartialEq, Eq, Hash, Serialize, Deserialize, Component, Debug)]
 #[reflect_value(PartialEq, Serialize, Deserialize)]
+#[reflect(Component)]
 pub enum ItemType {
     MainHand,
     OffHand,
@@ -43,7 +44,7 @@ impl ItemDisplaySlot {
 
 #[derive(Default, Debug, Clone, Component, Reflect)]
 #[reflect(Component)]
-pub struct ItemEquipSlot {    
+pub struct ItemEquipSlot {
     index: (ItemType, u8),
     pub item: Option<Entity>,
     pub is_dummy_rendered: bool,
