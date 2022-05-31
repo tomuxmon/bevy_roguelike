@@ -1,0 +1,31 @@
+Weapon((
+ render: (
+  name: "Big Sword",
+  texture_path: "sprites/item/two_handed_sword.png",
+  texture_equiped_path: Some("sprites/item_equiped/heavy_sword.png"),
+ ),
+ damage: (
+  kind: Slash,
+  amount: (
+   start: 8,
+   end: 15,
+  ),
+  amount_multiplier: (
+   multipliers: [
+    (multiplier:90,attribute:Strength),
+   ],
+  ),
+  hit_cost: (
+   cost: 180,
+   multiplier_inverted: (
+    multipliers: [(multiplier:110,attribute:Dexterity)],
+   ),
+  ),
+  hit_chance: (
+   amount: 120,
+   multiplier: (
+    multipliers: [(multiplier:100,attribute:Dexterity)],
+   ),
+  ),
+ ),
+))

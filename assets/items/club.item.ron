@@ -1,0 +1,31 @@
+Weapon((
+ render: (
+  name: "Club",
+  texture_path: "sprites/item/club.png",
+  texture_equiped_path: Some("sprites/item_equiped/club_slant.png"),
+ ),
+ damage: (
+  kind: Blunt,
+  amount: (
+   start: 3,
+   end: 5,
+  ),
+  amount_multiplier: (
+   multipliers: [
+    (multiplier:80,attribute:Strength),
+   ],
+  ),
+  hit_cost: (
+   cost: 140,
+   multiplier_inverted: (
+    multipliers: [(multiplier:90,attribute:Dexterity)],
+   ),
+  ),
+  hit_chance: (
+   amount: 120,
+   multiplier: (
+    multipliers: [(multiplier:120,attribute:Dexterity)],
+   ),
+  ),
+ ),
+))

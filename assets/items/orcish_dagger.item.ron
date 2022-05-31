@@ -1,18 +1,19 @@
 Weapon((
  render: (
-  name: "Short sword",
+  name: "Orcish dagger",
   texture_path: "sprites/item/orcish_dagger.png",
   texture_equiped_path: Some("sprites/item_equiped/dagger_slant.png"),
  ),
  damage: (
   kind: Slash,
   amount: (
-   start: 5,
-   end: 9,
+   start: 2,
+   end: 6,
   ),
   amount_multiplier: (
    multipliers: [
-    (multiplier:100,attribute:Strength),
+    (multiplier:60,attribute:Strength),
+    (multiplier:20,attribute:Dexterity),
    ],
   ),
   hit_cost: (

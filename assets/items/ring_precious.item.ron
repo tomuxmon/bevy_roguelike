@@ -1,0 +1,33 @@
+Ring((
+ render: (
+  name: "Myn precious",
+  texture_path: "sprites/item/gold_green.png",
+  texture_equiped_path: None,
+ ),
+ defense: (
+  protection: Some((
+   amounts: [
+    (kind:Fire,amount_multiplier:None,amount:3),
+    (kind:Lightning,amount_multiplier:None,amount:3),
+    (kind:Cold,amount_multiplier:None,amount:3),
+   ],
+  )),
+  resistance: Some((
+   amounts: [
+    (kind:Fire,percent:5),
+    (kind:Cold,percent:5),
+    (kind:Lightning,percent:5),
+   ],
+  )),
+ ),
+ enchantment: (
+  attributes: Some((
+   strength: 3,
+   dexterity: 3,
+   inteligence: 3,
+   toughness: 3,
+   perception: 3,
+   willpower: 3,
+  )),
+ ),
+))
