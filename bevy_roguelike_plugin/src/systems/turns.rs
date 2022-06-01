@@ -73,19 +73,18 @@ pub fn attack(
         };
 
         if attacker_stats.damage.len() == 0 {
-            log::error!("attacker has no attack.");
+            log::error!("attacker has no damage.");
             return;
         }
 
         let same_rng = &mut *rng;
         // TODO: if more then one damage pick random damage but not the one that was used before (multiple weapons , hydra , multiple claws...)
-
         let damage = &attacker_stats.damage[0];
 
         // NOTE: attacker should spend AP regardles of outcome
         let attack_cost = damage.hit_cost.compute(&attacker_stats.attributes);
         ap_spend_writer.send(SpendAPEvent::new(e.attacker, attack_cost));
-        log::info!("attacking from {} with cost {}", attacker_pt, attack_cost);
+        log::trace!("attacking from {} with cost {}", attacker_pt, attack_cost);
 
         let (evaded, evade_cost) = defender_stats.evasion.try_evade(
             damage,
@@ -97,7 +96,7 @@ pub fn attack(
         if evaded {
             // TODO: and AP > 0
             ap_spend_writer.send(SpendAPEvent::new(e.defender, evade_cost));
-            log::info!("attack evaded {} with cost {}", defender_pt, evade_cost);
+            log::trace!("attack evaded {} with cost {}", defender_pt, evade_cost);
             return;
         }
 
@@ -111,13 +110,13 @@ pub fn attack(
             if blocked {
                 // TODO: and AP > 0
                 ap_spend_writer.send(SpendAPEvent::new(e.defender, block_cost));
-                log::info!("attack blocked {} with cost {}", defender_pt, block_cost);
+                log::trace!("attack blocked {} with cost {}", defender_pt, block_cost);
                 return;
             }
         }
 
         let mut true_damage = damage.compute(&attacker_stats.attributes, same_rng);
-        log::info!(
+        log::trace!(
             "attack damage raw {} (roll from {:?})",
             true_damage,
             damage.amount
@@ -133,7 +132,7 @@ pub fn attack(
             true_damage -= protect.compute(&defender_stats.attributes);
         }
         if true_damage < 1 {
-            log::info!(
+            log::trace!(
                 "damage negated with protection. damage after protection {}",
                 true_damage
             );
@@ -153,14 +152,9 @@ pub fn attack(
         true_damage = (true_damage as f32 * (1. - resist)) as i32;
 
         // TODO: spawn attack animation
-        cmd.spawn().insert(ModifyHP::new(
-            **defender_pt,
-            -i16::max(true_damage as i16, 0),
-        ));
-        log::info!(
-            "attack damage after protection and resistance {}",
-            true_damage
-        );
+        cmd.spawn()
+            .insert(ModifyHP::new(**defender_pt, -true_damage as i16));
+        log::trace!("attack damage {}", true_damage);
     }
 }
 

@@ -251,7 +251,7 @@ impl Evasion {
         let rate_evade = self.chance.compute(self_attributes);
         let rate_hit = damage.hit_chance.compute(attacker_attributes);
         let evaded = rng.gen_ratio(rate_evade.min(rate_hit) as u32, rate_hit as u32);
-        bevy::log::info!(
+        bevy::log::trace!(
             "evade rate {}, hit rate {}, evaded {}",
             rate_evade,
             rate_hit,
@@ -294,7 +294,7 @@ impl Block {
         let rate_block = self.chance.compute(self_attributes);
         let rate_hit = damage.hit_chance.compute(attacker_attributes);
         let blocked = rng.gen_ratio(rate_block.min(rate_hit) as u32, rate_hit as u32);
-        bevy::log::info!(
+        bevy::log::trace!(
             "block rate {}, hit rate {}, blocked {}",
             rate_block,
             rate_hit,
