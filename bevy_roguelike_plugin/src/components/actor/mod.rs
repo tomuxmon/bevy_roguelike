@@ -130,7 +130,7 @@ impl Actor {
                     }]),
                 },
                 chance: Rate {
-                    amount: 96,
+                    amount: 20,
                     multiplier: Formula::new(vec![AttributeMultiplier {
                         multiplier: 100,
                         attribute: AttributeType::Dexterity,
