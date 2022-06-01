@@ -248,9 +248,15 @@ impl Evasion {
         attacker_attributes: &Attributes,
         rng: &mut StdRng,
     ) -> (bool, i16) {
-        let chance_evade = self.chance.compute(self_attributes);
-        let chance_hit = damage.hit_chance.compute(attacker_attributes);
-        let evaded = rng.gen_ratio(chance_evade.min(chance_hit) as u32, chance_hit as u32);
+        let rate_evade = self.chance.compute(self_attributes);
+        let rate_hit = damage.hit_chance.compute(attacker_attributes);
+        let evaded = rng.gen_ratio(rate_evade.min(rate_hit) as u32, rate_hit as u32);
+        bevy::log::info!(
+            "evade rate {}, hit rate {}, evaded {}",
+            rate_evade,
+            rate_hit,
+            evaded
+        );
         let cost = if evaded {
             self.cost.compute(self_attributes)
         } else {
@@ -285,9 +291,15 @@ impl Block {
         if !self.block_type.iter().any(|k| *k == damage.kind) {
             return (false, 0);
         }
-        let chance_block = self.chance.compute(self_attributes);
-        let chance_hit = damage.hit_chance.compute(attacker_attributes);
-        let blocked = rng.gen_ratio(chance_block.min(chance_hit) as u32, chance_hit as u32);
+        let rate_block = self.chance.compute(self_attributes);
+        let rate_hit = damage.hit_chance.compute(attacker_attributes);
+        let blocked = rng.gen_ratio(rate_block.min(rate_hit) as u32, rate_hit as u32);
+        bevy::log::info!(
+            "block rate {}, hit rate {}, blocked {}",
+            rate_block,
+            rate_hit,
+            blocked
+        );
         let cost = if blocked {
             self.cost.compute(self_attributes)
         } else {
