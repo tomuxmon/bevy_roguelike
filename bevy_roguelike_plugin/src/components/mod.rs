@@ -2,6 +2,7 @@ pub use actor::stats::ActionPoints;
 pub use actor::stats::AttributeType;
 pub use actor::stats::Attributes;
 pub use actor::stats::HitPoints;
+pub use actor::stats::StatsComputed;
 pub use actor::Actor;
 pub use actor::HudHealthBar;
 pub use actor::ModifyHP;

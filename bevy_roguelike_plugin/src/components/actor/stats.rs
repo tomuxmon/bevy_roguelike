@@ -1,5 +1,7 @@
+use crate::components::{Block, Damage, Evasion, Protection, Resistance};
 use bevy::{prelude::*, reflect::FromReflect};
 use serde::{Deserialize, Serialize};
+use std::{iter::Sum, ops::Add};
 
 #[derive(
     Debug, Clone, Copy, PartialEq, Eq, Hash, Component, Reflect, FromReflect, Serialize, Deserialize,
@@ -52,6 +54,25 @@ impl Attributes {
         }
     }
 }
+impl Add for Attributes {
+    type Output = Attributes;
+
+    fn add(self, rhs: Self) -> Self::Output {
+        Self {
+            strength: self.strength + rhs.strength,
+            dexterity: self.dexterity + rhs.dexterity,
+            inteligence: self.inteligence + rhs.inteligence,
+            toughness: self.toughness + rhs.toughness,
+            perception: self.perception + rhs.perception,
+            willpower: self.willpower + rhs.willpower,
+        }
+    }
+}
+impl Sum for Attributes {
+    fn sum<I: Iterator<Item = Self>>(iter: I) -> Self {
+        iter.fold(Attributes::default(), |acc, a| acc + a)
+    }
+}
 
 #[derive(Default, Debug, Copy, Clone, Eq, PartialEq, Hash, Component, Reflect)]
 #[reflect(Component)]
@@ -61,7 +82,7 @@ pub struct ActionPoints {
     increment: i16,
 }
 impl ActionPoints {
-    pub const DELTA_COST_MOVE_DEFAULT: i16 = 100;
+    pub const MOVE_COST_DEFAULT: i16 = 100;
     pub const IDLE_COST_DEFAULT: i16 = 64;
     pub const TURN_READY_DEFAULT: i16 = 128;
     pub const INCREMENT_MIN: i16 = 64;
@@ -163,4 +184,16 @@ impl HitPoints {
             self.regen_current = rem;
         }
     }
+}
+
+#[derive(Component, Debug, Default, Clone, Reflect)]
+#[reflect(Component)]
+pub struct StatsComputed {
+    pub attributes: Attributes,
+    pub protection: Protection,
+    pub resistance: Resistance,
+    pub evasion: Evasion,
+    pub block: Vec<Block>,
+    pub damage: Vec<Damage>,
+    pub is_updated: bool,
 }

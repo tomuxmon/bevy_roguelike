@@ -16,12 +16,12 @@ use super::RenderInfo;
 use super::Resistance;
 use super::Vector2D;
 use bevy::prelude::*;
+use stats::ActionPoints;
+use stats::AttributeType;
+use stats::Attributes;
+use stats::HitPoints;
+use stats::StatsComputed;
 use std::borrow::Cow;
-
-pub use stats::ActionPoints;
-pub use stats::AttributeType;
-pub use stats::Attributes;
-pub use stats::HitPoints;
 
 pub mod stats;
 
@@ -49,6 +49,8 @@ pub struct Actor {
     equipment_display: EquipmentDisplay,
     equipment: Equipment,
     inventory: Inventory,
+
+    stats_computed: StatsComputed,
 }
 impl Actor {
     pub fn new(
@@ -72,7 +74,7 @@ impl Actor {
             base_damage: {
                 Damage {
                     kind: DamageKind::Blunt,
-                    amount: 8..19,
+                    amount: 6..10,
                     amount_multiplier: Formula::new(vec![AttributeMultiplier {
                         multiplier: 100,
                         attribute: AttributeType::Strength,
@@ -143,6 +145,8 @@ impl Actor {
             equipment: (&equipment_display).into(),
             position: Vector2D::from(position),
             render_info: RenderInfo { texture, z: 2. },
+            // NOTE: will be computed because default is_updated = false
+            stats_computed: StatsComputed::default(),
         }
     }
 }

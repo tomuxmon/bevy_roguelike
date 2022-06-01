@@ -1,4 +1,5 @@
 use super::ItemType;
+use crate::components::Vector2D;
 use bevy::{
     prelude::*,
     utils::{hashbrown::hash_map::Iter, HashMap},
@@ -11,6 +12,46 @@ pub struct Equipment {
     items: HashMap<(ItemType, u8), Option<Entity>>,
 }
 impl Equipment {
+    pub fn list<T>(&self, t_items: &Query<&T, (With<ItemType>, Without<Vector2D>)>) -> Vec<T>
+    where
+        T: Component + Clone,
+    {
+        self.iter_some()
+            .filter_map(|(_, e)| {
+                if let Ok(t) = t_items.get(e) {
+                    Some(t.clone())
+                } else {
+                    None
+                }
+            })
+            .collect()
+    }
+
+    /// OMFG what a signature :| also virtually imposible to use since lifetime polution goes up the call stack
+    pub fn iter<'s, T>(
+        &'s self,
+        t_items: &'s Query<'_, 's, &'s T, (With<ItemType>, Without<Vector2D>)>,
+    ) -> impl Iterator<Item = &'s T> + 's
+    where
+        T: Component,
+    {
+        self.iter_some().filter_map(|(_, e)| {
+            if let Ok(t) = t_items.get(e) {
+                Some(t)
+            } else {
+                None
+            }
+        })
+    }
+    // move seems to reduce the lifetime polution problem
+    pub fn enumerate_fn<'a, T, F>(&'a self, mut get_component: F) -> impl Iterator<Item = T> + 'a
+    where
+        T: Component,
+        F: FnMut(Entity) -> Option<T> + 'a,
+    {
+        self.iter_some().filter_map(move |(_, e)| get_component(e))
+    }
+
     pub fn add(&mut self, item: Entity, item_type: &ItemType) -> bool {
         if let Some((_, item_slot)) = self
             .items
@@ -36,7 +77,7 @@ impl Equipment {
         }
     }
 
-    pub fn iter_some(&self) -> impl Iterator<Item = ((ItemType, u8), Entity)> + '_ {
+    pub fn iter_some<'a>(&'a self) -> impl Iterator<Item = ((ItemType, u8), Entity)> + 'a {
         self.items
             .iter()
             .filter(|(_, i)| i.is_some())

@@ -1,5 +1,6 @@
 use super::{AttributeType, Attributes};
 use bevy::{prelude::*, reflect::FromReflect, utils::HashSet};
+use rand::prelude::*;
 use serde::{Deserialize, Serialize};
 use std::ops::Range;
 
@@ -52,7 +53,7 @@ pub struct AttributeMultiplier {
 }
 impl AttributeMultiplier {
     pub fn compute(&self, attributes: &Attributes) -> f32 {
-        let amount = match self.attribute {
+        let attribute_amount = match self.attribute {
             AttributeType::Strength => attributes.strength,
             AttributeType::Dexterity => attributes.dexterity,
             AttributeType::Inteligence => attributes.inteligence,
@@ -60,18 +61,7 @@ impl AttributeMultiplier {
             AttributeType::Perception => attributes.perception,
             AttributeType::Willpower => attributes.willpower,
         };
-        amount as f32 * self.multiplier as f32 / 1000.
-    }
-    pub fn compute_inverted(&self, attributes: &Attributes) -> f32 {
-        let amount = match self.attribute {
-            AttributeType::Strength => attributes.strength,
-            AttributeType::Dexterity => attributes.dexterity,
-            AttributeType::Inteligence => attributes.inteligence,
-            AttributeType::Toughness => attributes.toughness,
-            AttributeType::Perception => attributes.perception,
-            AttributeType::Willpower => attributes.willpower,
-        };
-        amount as f32 * (u8::MAX - self.multiplier) as f32 / 1000.
+        attribute_amount as f32 * self.multiplier as f32 / 1000.
     }
 }
 
@@ -95,12 +85,6 @@ impl Formula {
             .map(|m| m.compute(attributes))
             .sum::<f32>()
     }
-    pub fn compute_inverted(&self, attributes: &Attributes) -> f32 {
-        self.multipliers
-            .iter()
-            .map(|m| m.compute_inverted(attributes))
-            .sum::<f32>()
-    }
 }
 
 /// applies to action being performed
@@ -113,11 +97,21 @@ pub struct Rate {
     pub amount: u8,
     pub multiplier: Formula,
 }
-
 impl Rate {
     pub fn compute(&self, attributes: &Attributes) -> i32 {
         (self.multiplier.compute(attributes) * self.amount as f32) as i32
     }
+    // pub fn roll_against(
+    //     &self,
+    //     other: &Rate,
+    //     self_attributes: &Attributes,
+    //     other_attributes: &Attributes,
+    //     rng: &mut StdRng,
+    // ) -> bool {
+    //     let self_chance = self.compute(self_attributes);
+    //     let other_chance = other.compute(other_attributes);
+    //     !rng.gen_ratio(other_chance.min(self_chance) as u32, self_chance as u32)
+    // }
 }
 
 #[derive(
@@ -132,12 +126,14 @@ pub struct ActionCost {
 }
 impl ActionCost {
     pub fn compute(&self, attributes: &Attributes) -> i16 {
-        (self.multiplier_inverted.compute_inverted(attributes) * self.cost as f32) as i16
+        (self.cost as f32 / self.multiplier_inverted.compute(attributes)) as i16
     }
 }
 
 /// Information about damage that can be calculated based on actor attributes.
-#[derive(Debug, Default, Clone, PartialEq, Eq, Component, Reflect, Serialize, Deserialize)]
+#[derive(
+    Debug, Default, Clone, PartialEq, Eq, Component, Reflect, FromReflect, Serialize, Deserialize,
+)]
 #[reflect(Component)]
 pub struct Damage {
     pub kind: DamageKind,
@@ -145,6 +141,12 @@ pub struct Damage {
     pub amount_multiplier: Formula,
     pub hit_cost: ActionCost,
     pub hit_chance: Rate,
+}
+impl Damage {
+    pub fn compute(&self, attributes: &Attributes, rng: &mut StdRng) -> i32 {
+        (rng.gen_range(self.amount.clone()) as f32 * self.amount_multiplier.compute(attributes))
+            as i32
+    }
 }
 
 #[derive(
@@ -154,6 +156,17 @@ pub struct Protect {
     pub kind: DamageKind,
     pub amount_multiplier: Option<Formula>,
     pub amount: i32,
+}
+
+impl Protect {
+    pub fn compute(&self, attributes: &Attributes) -> i32 {
+        (self.amount as f32
+            * if let Some(formula) = &self.amount_multiplier {
+                formula.compute(attributes)
+            } else {
+                1.
+            }) as i32
+    }
 }
 
 /// Protective Value (PV) or the amount of direct damage negated
@@ -170,7 +183,12 @@ impl Protection {
             amounts: Vec::from_iter(protections),
         }
     }
+    pub fn extend(&mut self, other: &Protection) -> &mut Protection {
+        self.amounts.extend(other.clone().amounts);
+        self
+    }
 }
+
 #[derive(
     Debug,
     Default,
@@ -203,6 +221,11 @@ impl Resistance {
             amounts: HashSet::from_iter(resistances),
         }
     }
+    pub fn ingest(&mut self, other: &Resistance) -> &mut Resistance {
+        // todo: fix me . instead match on DamageKind
+        self.amounts.extend(other.clone().amounts);
+        self
+    }
 }
 
 /// Evasion works on any damage type.
@@ -216,6 +239,26 @@ pub struct Evasion {
     /// Evasion chance. Compared against [`Damage::hit_rate`].
     pub chance: Rate,
 }
+impl Evasion {
+    /// will try to evade damage. returns true and cost if evaded. if not returns false and zero.
+    pub fn try_evade(
+        &self,
+        damage: &Damage,
+        self_attributes: &Attributes,
+        attacker_attributes: &Attributes,
+        rng: &mut StdRng,
+    ) -> (bool, i16) {
+        let chance_evade = self.chance.compute(self_attributes);
+        let chance_hit = damage.hit_chance.compute(attacker_attributes);
+        let evaded = rng.gen_ratio(chance_evade.min(chance_hit) as u32, chance_hit as u32);
+        let cost = if evaded {
+            self.cost.compute(self_attributes)
+        } else {
+            0
+        };
+        (evaded, cost)
+    }
+}
 
 /// Block works on specified damage types. Works together with [Rate].
 #[derive(
@@ -228,4 +271,28 @@ pub struct Block {
     pub cost: ActionCost,
     /// Block chance. Compared against [`Damage::hit_rate`].
     pub chance: Rate,
+}
+
+impl Block {
+    /// will try to block damage when block type matches. returns true and cost if blocked. if not returns false and zero.
+    pub fn try_block(
+        &self,
+        damage: &Damage,
+        self_attributes: &Attributes,
+        attacker_attributes: &Attributes,
+        rng: &mut StdRng,
+    ) -> (bool, i16) {
+        if !self.block_type.iter().any(|k| *k == damage.kind) {
+            return (false, 0);
+        }
+        let chance_block = self.chance.compute(self_attributes);
+        let chance_hit = damage.hit_chance.compute(attacker_attributes);
+        let blocked = rng.gen_ratio(chance_block.min(chance_hit) as u32, chance_hit as u32);
+        let cost = if blocked {
+            self.cost.compute(self_attributes)
+        } else {
+            0
+        };
+        (blocked, cost)
+    }
 }
