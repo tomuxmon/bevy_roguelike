@@ -1,6 +1,6 @@
 use crate::components::*;
 use bevy::prelude::*;
-use bevy::utils::HashSet;
+use bevy::utils::{HashMap, HashSet};
 use rand::prelude::*;
 use std::fmt::Display;
 use std::ops::Range;
@@ -275,12 +275,12 @@ impl MutableQuality for Block {
 impl MutableQuality for Attributes {
     fn mutate_extended(&self, is_direct: bool, quality: &Quality, rng: &mut StdRng) -> Self {
         Self {
-            strength: self.strength.mutate_extended(is_direct, quality, rng),
-            dexterity: self.dexterity.mutate_extended(is_direct, quality, rng),
-            inteligence: self.inteligence.mutate_extended(is_direct, quality, rng),
-            toughness: self.toughness.mutate_extended(is_direct, quality, rng),
-            perception: self.perception.mutate_extended(is_direct, quality, rng),
-            willpower: self.willpower.mutate_extended(is_direct, quality, rng),
+            list: HashMap::from_iter(
+                self.clone()
+                    .list
+                    .into_iter()
+                    .map(|(t, v)| (t, v.mutate_extended(is_direct, quality, rng))),
+            ),
         }
     }
 }

@@ -233,47 +233,18 @@ impl<T: StateNext> RoguelikePlugin<T> {
             c.translation = new_pos;
         }
 
-        // let aaa = ItemTemplate::Shield(Shield {
-        //     name: "buckler".to_string(),
+        // let aaa = ItemTemplate::Amulet(Amulet {
         //     render: ItemRenderInfo {
-        //         render_path: "buckler_1.png".to_string(),
-        //         render_equiped_path: Some("buckler_round_3.png".to_string()),
+        //         name: "buckler".to_string(),
+        //         texture_path: "buckler_1.png".to_string(),
+        //         texture_equiped_path: Some("buckler_round_3.png".to_string()),
         //     },
-        //     protection: Protection {
-        //         amounts: vec![
-        //             Protect {
-        //                 kind: DamageKind::Blunt,
-        //                 amount_multiplier: None,
-        //                 amount: 2,
-        //             },
-        //             Protect {
-        //                 kind: DamageKind::Pierce,
-        //                 amount_multiplier: None,
-        //                 amount: 2,
-        //             },
-        //             Protect {
-        //                 kind: DamageKind::Slash,
-        //                 amount_multiplier: None,
-        //                 amount: 2,
-        //             },
-        //         ],
+        //     defense: ItemDefense {
+        //         protection: None,
+        //         resistance: None,
         //     },
-        //     block: Block {
-        //         block_type: vec![DamageKind::Blunt, DamageKind::Pierce, DamageKind::Slash],
-        //         cost: ActionCost {
-        //             cost: 45,
-        //             multiplier_inverted: Formula::new(vec![AttributeMultiplier {
-        //                 multiplier: 128,
-        //                 attribute: AttributeType::Dexterity,
-        //             }]),
-        //         },
-        //         chance: Rate {
-        //             amount: 50,
-        //             multiplier: Formula::new(vec![AttributeMultiplier {
-        //                 multiplier: 100,
-        //                 attribute: AttributeType::Dexterity,
-        //             }]),
-        //         },
+        //     enchantment: ItemEnchantment {
+        //         attributes: Some(Attributes::new(2, 2, 2, 2, 2, 2)),
         //     },
         // });
 

@@ -53,15 +53,7 @@ pub struct AttributeMultiplier {
 }
 impl AttributeMultiplier {
     pub fn compute(&self, attributes: &Attributes) -> f32 {
-        let attribute_amount = match self.attribute {
-            AttributeType::Strength => attributes.strength,
-            AttributeType::Dexterity => attributes.dexterity,
-            AttributeType::Inteligence => attributes.inteligence,
-            AttributeType::Toughness => attributes.toughness,
-            AttributeType::Perception => attributes.perception,
-            AttributeType::Willpower => attributes.willpower,
-        };
-        attribute_amount as f32 * self.multiplier as f32 / 1000.
+        *attributes.get(self.attribute) as f32 * self.multiplier as f32 / 1000.
     }
 }
 

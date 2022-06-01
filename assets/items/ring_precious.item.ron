@@ -21,13 +21,15 @@ Ring((
   )),
  ),
  enchantment: (
-  attributes: Some((
-   strength: 3,
-   dexterity: 3,
-   inteligence: 3,
-   toughness: 3,
-   perception: 3,
-   willpower: 3,
-  )),
+ attributes: Some((
+    list: {
+     Toughness: 2,
+     Willpower: 2,
+     Strength: 2,
+     Dexterity: 2,
+     Inteligence: 2,
+     Perception: 2,
+    },
+   )),
  ),
 ))
