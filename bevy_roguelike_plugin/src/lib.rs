@@ -98,9 +98,9 @@ impl<T: StateNext> Plugin for RoguelikePlugin<T> {
                     .with_system(inventory_update)
                     .with_system(drop_item)
                     .with_system(spend_ap.after(act))
-                    .with_system(do_move.after(act).after(spend_ap))
-                    .with_system(apply_position_to_transform.after(do_move))
-                    .with_system(apply_hp_modify.after(act).after(spend_ap))
+                    .with_system(try_move.after(act).after(spend_ap))
+                    .with_system(apply_position_to_transform.after(try_move))
+                    .with_system(apply_hp_modify.after(act).after(attack).after(spend_ap))
                     .with_system(idle_rest.after(apply_hp_modify))
                     .with_system(camera_set_focus_player)
                     .with_system(camera_focus_smooth.after(camera_set_focus_player))
@@ -220,7 +220,7 @@ impl<T: StateNext> RoguelikePlugin<T> {
         let map_generator = RandomMapGenerator {};
         let map = map_generator.gen(&mut rng, options.map_size);
         let info = MapInfo::from_map(&map, &mut rng);
-        let mut team_map = TeamMap::empty(options.map_size);
+        // let mut team_map = TeamMap::empty(options.map_size);
 
         #[cfg(feature = "debug")]
         log::info!("{}", map.to_colorized_string());
@@ -319,7 +319,7 @@ impl<T: StateNext> RoguelikePlugin<T> {
                 spawn_player_body_wear(player, &player_assets, options.tile_size);
             });
 
-        team_map[info.player_start] = Some(Team::new(team_player));
+        // team_map[info.player_start] = Some(Team::new(team_player));
 
         let enemies_id = cmd
             .spawn()
@@ -358,7 +358,7 @@ impl<T: StateNext> RoguelikePlugin<T> {
                             )],
                         ));
 
-                    team_map[mpt] = Some(Team::new(team_monster));
+                    // team_map[mpt] = Some(Team::new(team_monster));
                 }
             })
             .id();
@@ -366,7 +366,7 @@ impl<T: StateNext> RoguelikePlugin<T> {
         cmd.insert_resource(map);
         cmd.insert_resource(info);
         cmd.insert_resource(rng);
-        cmd.insert_resource(team_map);
+        // cmd.insert_resource(team_map);
         cmd.insert_resource(MapEntities { map_id, enemies_id });
 
         state.set_next();

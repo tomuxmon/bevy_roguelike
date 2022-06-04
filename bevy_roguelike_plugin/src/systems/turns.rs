@@ -1,8 +1,8 @@
-use crate::resources::TeamMap;
 use crate::{components::*, events::*};
 use bevy::log;
 use bevy::prelude::*;
 use bevy::tasks::ComputeTaskPool;
+use bevy::utils::HashMap;
 use map_generator::*;
 use rand::prelude::*;
 
@@ -15,8 +15,8 @@ pub fn act(
     mut move_writer: EventWriter<MoveEvent>,
     mut idle_writer: EventWriter<IdleEvent>,
     map: Res<Map>,
-    mut team_map: ResMut<TeamMap>,
 ) {
+    let team_pt: HashMap<_, _> = actors.iter().map(|(t, p)| (**p, *t)).collect();
     for e in act_reader.iter() {
         if e.delta == IVec2::new(0, 0) {
             idle_writer.send(IdleEvent::new(e.id));
@@ -28,8 +28,8 @@ pub fn act(
                 idle_writer.send(IdleEvent::new(e.id));
                 continue;
             }
-            if let Some(other_team) = team_map[dest] {
-                if other_team == *team {
+            if let Some(other_team) = team_pt.get(&dest) {
+                if *other_team == *team {
                     // NOTE: can not move into a tile ocupied by a team mate
                     idle_writer.send(IdleEvent::new(e.id));
                     continue;
@@ -39,12 +39,17 @@ pub fn act(
                     {
                         attack_writer.send(AttackEvent::new(e.id, enemy_entity))
                     } else {
-                        log::error!("nothing to attack at {:?} (TeamMap has bugs).", dest);
+                        log::error!("nothing to attack at {:?} (... has bugs).", dest);
                     }
                 }
             } else {
-                team_map[dest] = Some(*team);
-                move_writer.send(MoveEvent::new(e.id, dest));
+                let move_event = MoveEvent {
+                    id: e.id,
+                    team: *team,
+                    from: **pt,
+                    to: dest,
+                };
+                move_writer.send(move_event);
             }
         }
     }
@@ -62,13 +67,13 @@ pub fn attack(
         let (attacker_pt, attacker_stats) = if let Ok(attacker) = attackers.get(e.attacker) {
             attacker
         } else {
-            log::error!("Attacker Not Found.");
+            log::error!("Attacker Not Found (id: {:?}).", e.attacker);
             return;
         };
         let (defender_pt, defender_stats) = if let Ok(defender) = defenders.get(e.defender) {
             defender
         } else {
-            log::error!("Defender Not Found.");
+            log::error!("Defender Not Found (id: {:?}).", e.defender);
             return;
         };
 
@@ -162,15 +167,14 @@ pub fn apply_hp_modify(
     mut cmd: Commands,
     mut actors: Query<(Entity, &Vector2D, &mut HitPoints)>,
     hp_mod: Query<(Entity, &ModifyHP)>,
-    mut team_map: ResMut<TeamMap>,
 ) {
     for (e, hpm) in hp_mod.iter() {
-        if let Some((ee, pt, mut hp)) = actors.iter_mut().find(|(_, p, _)| ***p == hpm.location) {
+        if let Some((ee, _pt, mut hp)) = actors.iter_mut().find(|(_, p, _)| ***p == hpm.location) {
             hp.apply(hpm.amount);
             if hp.current() <= 0 {
                 // TODO: animated death
+                bevy::log::info!("death to {:?}", ee);
                 cmd.entity(ee).despawn_recursive();
-                team_map[**pt] = None;
             }
         }
         cmd.entity(e).despawn_recursive();
@@ -203,18 +207,26 @@ pub fn idle_rest(
     }
 }
 
-pub fn do_move(
-    mut actors: Query<(&mut Vector2D, &mut FieldOfView)>,
+pub fn try_move(
+    mut actors: Query<(&mut Vector2D, &Team, &mut FieldOfView)>,
     mut move_reader: EventReader<MoveEvent>,
     mut ap_spend_writer: EventWriter<SpendAPEvent>,
-    mut team_map: ResMut<TeamMap>,
 ) {
+    let mut team_pt: HashMap<_, _> = actors.iter().map(|(p, t, _)| (**p, *t)).collect();
     for e in move_reader.iter() {
-        ap_spend_writer.send(SpendAPEvent::new(e.id, ActionPoints::MOVE_COST_DEFAULT));
-        if let Ok((mut pt, mut fov)) = actors.get_mut(e.id) {
-            let pt_old = **pt;
-            *pt = Vector2D::from(e.destination);
-            team_map[pt_old] = None;
+        if let Ok((mut pt, _tt, mut fov)) = actors.get_mut(e.id) {
+            if let Some(_team) = team_pt.get(&e.to) {
+                bevy::log::info!(
+                    "trying to move from {} to {} by {:?}. location already ocupied",
+                    e.from,
+                    e.to,
+                    e.id
+                );
+                continue;
+            }
+            ap_spend_writer.send(SpendAPEvent::new(e.id, ActionPoints::MOVE_COST_DEFAULT));
+            team_pt.entry(e.to).insert(e.team);
+            *pt = Vector2D::from(e.to);
             fov.is_dirty = true;
         }
     }

@@ -1,3 +1,4 @@
+use crate::components::Team;
 use bevy::prelude::*;
 
 #[derive(Debug, Copy, Clone)]
@@ -50,13 +51,9 @@ impl IdleEvent {
 #[derive(Debug, Copy, Clone)]
 pub struct MoveEvent {
     pub id: Entity,
-    pub destination: IVec2,
-}
-
-impl MoveEvent {
-    pub fn new(id: Entity, destination: IVec2) -> Self {
-        Self { id, destination }
-    }
+    pub team: Team,
+    pub from: IVec2,
+    pub to: IVec2,
 }
 
 #[derive(Debug, Copy, Clone)]

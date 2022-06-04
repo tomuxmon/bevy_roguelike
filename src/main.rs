@@ -1,4 +1,4 @@
-use bevy::prelude::*;
+use bevy::{prelude::*, utils::HashMap};
 use bevy_roguelike_plugin::{
     components::*, events::*, resources::*, systems::turns::gather_action_points, AssetsLoading,
     RoguelikePlugin, StateNext,
@@ -76,10 +76,11 @@ pub fn input_player(
 pub fn input_fov_rand(
     mut rng: ResMut<StdRng>,
     actors: Query<(Entity, &Vector2D, &Team, &TurnState, &FieldOfView), With<MovingFovRandom>>,
+    actors_all: Query<(&Vector2D, &Team)>,
     mut act_writer: EventWriter<ActEvent>,
-    team_map: Res<TeamMap>,
     map: Res<Map>,
 ) {
+    let team_pt: HashMap<_, _> = actors_all.iter().map(|(p, t)| (**p, *t)).collect();
     for (id, pt, team, _, fov) in actors
         .iter()
         .filter(|(_, _, _, ts, _)| **ts == TurnState::Act)
@@ -98,10 +99,10 @@ pub fn input_fov_rand(
 
         // NOTE: closest oposing team member search
         let mut distance_last = ((fov.radius + 1) * (fov.radius + 1)) as f32;
-        let mut pt_move_target: Option<IVec2> = None;
+        let mut pt_move_target = None;
         for pt_visible in fov.tiles_visible.iter() {
-            if let Some(other_team) = team_map[*pt_visible] {
-                if other_team != *team {
+            if let Some(other_team) = team_pt.get(pt_visible) {
+                if *other_team != *team {
                     let distance = pt_visible.as_vec2().distance_squared(pt.as_vec2());
                     if distance < distance_last {
                         pt_move_target = Some(*pt_visible);
@@ -116,7 +117,7 @@ pub fn input_fov_rand(
             if let Some((x, y)) = WalkGrid::new((pt.x, pt.y), (tgt.x, tgt.y)).take(2).last() {
                 let dest = IVec2::new(x, y);
                 if map[dest] == Tile::Floor
-                    && !(team_map[dest].is_some() && team_map[dest].unwrap() == *team)
+                    && !(team_pt.get(&dest).is_some() && *team_pt.get(&dest).unwrap() == *team)
                 {
                     delta = IVec2::new(x - pt.x, y - pt.y);
                 }
@@ -164,7 +165,7 @@ fn rogue_setup(
     mut loading: ResMut<AssetsLoading>,
 ) {
     cmd.insert_resource(MapOptions {
-        map_size: IVec2::new(20, 15),
+        map_size: IVec2::new(15, 150),
         tile_size: 32.0,
     });
 
