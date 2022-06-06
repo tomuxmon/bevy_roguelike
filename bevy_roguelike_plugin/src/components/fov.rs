@@ -5,6 +5,10 @@ use bevy::{prelude::*, utils::HashSet};
 #[reflect(Component)]
 pub struct VisibilityToggle;
 
+#[derive(Default, Component, Reflect)]
+#[reflect(Component)]
+pub struct FieldOfViewDirty;
+
 #[derive(Default, Debug, Clone, Eq, PartialEq, Component, Reflect)]
 #[reflect(Component)]
 pub struct FieldOfView {

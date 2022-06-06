@@ -1,7 +1,9 @@
 pub use actor::stats::ActionPoints;
+pub use actor::stats::ActionPointsDirty;
 pub use actor::stats::AttributeType;
 pub use actor::stats::Attributes;
 pub use actor::stats::HitPoints;
+pub use actor::stats::HitPointsDirty;
 pub use actor::stats::StatsComputed;
 pub use actor::stats::StatsComputedDirty;
 pub use actor::Actor;
@@ -26,6 +28,7 @@ pub use combat::Resist;
 pub use combat::Resistance;
 pub use environment::MapTile;
 pub use fov::FieldOfView;
+pub use fov::FieldOfViewDirty;
 pub use fov::VisibilityToggle;
 pub use item::EquipedOwned;
 pub use item::EquipedRenderedItem;

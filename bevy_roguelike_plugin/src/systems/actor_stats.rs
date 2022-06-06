@@ -1,29 +1,31 @@
 use crate::components::*;
 use bevy::prelude::*;
 
-// TODO: macro for a repeating code
-// TODO: trait for a repeating update(Attributes) function
-// TODO: investigate why Changed<_> does not work as intended (includes non changes)
-
 pub fn attributes_update_action_points(
-    mut actors: Query<(&Attributes, &mut ActionPoints, Changed<Attributes>)>,
+    mut cmd: Commands,
+    mut actors: Query<(Entity, &StatsComputed, &mut ActionPoints), With<ActionPointsDirty>>,
 ) {
-    for (atr, mut ap, _) in actors.iter_mut() {
-        ap.update(atr);
+    for (id, stats, mut ap) in actors.iter_mut() {
+        ap.update(&stats.attributes);
+        cmd.entity(id).remove::<ActionPointsDirty>();
     }
 }
 pub fn attributes_update_hit_points(
-    mut actors: Query<(&Attributes, &mut HitPoints, Changed<Attributes>)>,
+    mut cmd: Commands,
+    mut actors: Query<(Entity, &StatsComputed, &mut HitPoints), With<HitPointsDirty>>,
 ) {
-    for (atr, mut hp, _) in actors.iter_mut() {
-        hp.update(atr);
+    for (id, stats, mut hp) in actors.iter_mut() {
+        hp.update(&stats.attributes);
+        cmd.entity(id).remove::<HitPointsDirty>();
     }
 }
 pub fn attributes_update_field_of_view(
-    mut actors: Query<(&Attributes, &mut FieldOfView, Changed<Attributes>)>,
+    mut cmd: Commands,
+    mut actors: Query<(Entity, &StatsComputed, &mut FieldOfView), With<FieldOfViewDirty>>,
 ) {
-    for (atr, mut fov, _) in actors.iter_mut() {
-        fov.update(atr);
+    for (id, stats, mut fov) in actors.iter_mut() {
+        fov.update(&stats.attributes);
+        cmd.entity(id).remove::<FieldOfViewDirty>();
     }
 }
 
@@ -82,6 +84,10 @@ pub fn stats_recompute(
         }
         stats.damage = damage;
 
-        cmd.entity(id).remove::<StatsComputedDirty>();
+        cmd.entity(id)
+            .remove::<StatsComputedDirty>()
+            .insert(ActionPointsDirty {})
+            .insert(HitPointsDirty {})
+            .insert(FieldOfViewDirty {});
     }
 }

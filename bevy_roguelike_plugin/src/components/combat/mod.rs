@@ -62,7 +62,6 @@ impl AttributeMultiplier {
 )]
 #[reflect(Component)]
 pub struct Formula {
-    // TODO: instead use MAshMap<AttributeType, u8>
     pub multipliers: HashSet<AttributeMultiplier>,
 }
 impl Formula {

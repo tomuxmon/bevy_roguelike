@@ -77,6 +77,10 @@ impl Sum for Attributes {
     }
 }
 
+#[derive(Default, Component, Reflect)]
+#[reflect(Component)]
+pub struct ActionPointsDirty;
+
 #[derive(Default, Debug, Copy, Clone, Eq, PartialEq, Hash, Component, Reflect)]
 #[reflect(Component)]
 pub struct ActionPoints {
@@ -117,13 +121,14 @@ impl ActionPoints {
         self.current
     }
     pub fn current_minus(&mut self, cost: i16) -> i16 {
-        //TODO: Too much of defending overflows it into negative side. fix it
-        //TODO: defending evading can not happen when current is negative
         self.current -= cost;
         self.current
     }
 }
 
+#[derive(Default, Component, Reflect)]
+#[reflect(Component)]
+pub struct HitPointsDirty;
 #[derive(Default, Debug, Copy, Clone, Eq, PartialEq, Hash, Component, Reflect)]
 #[reflect(Component)]
 pub struct HitPoints {
