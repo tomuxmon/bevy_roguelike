@@ -220,7 +220,7 @@ pub fn try_move(
     for e in move_reader.iter() {
         if let Ok((mut pt, _tt, mut fov)) = actors.get_mut(e.id) {
             if let Some(_team) = team_pt.get(&e.to) {
-                bevy::log::info!(
+                bevy::log::trace!(
                     "trying to move from {} to {} by {:?}. location already ocupied",
                     e.from,
                     e.to,
