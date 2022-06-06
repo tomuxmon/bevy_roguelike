@@ -165,7 +165,7 @@ fn rogue_setup(
     mut loading: ResMut<AssetsLoading>,
 ) {
     cmd.insert_resource(MapOptions {
-        map_size: IVec2::new(27, 37),
+        map_size: IVec2::new(15, 10),
         tile_size: 32.0,
     });
 
@@ -266,12 +266,6 @@ fn rogue_setup(
     loading.0.push(inventory_assets.neck_wear.clone_untyped());
     loading.0.push(inventory_assets.feet_wear.clone_untyped());
     cmd.insert_resource(inventory_assets);
-
-    // let prefabs = Prefabs {
-    //     ron_scene: asset_server.load("prefabs/prefabs.scn.ron"),
-    // };
-    // loading.0.push(prefabs.ron_scene.clone_untyped());
-    // cmd.insert_resource(prefabs);
 
     state.set(AppState::AssetLoad).unwrap();
 }

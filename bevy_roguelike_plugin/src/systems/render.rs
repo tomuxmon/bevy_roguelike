@@ -31,6 +31,49 @@ pub fn render_body(
     }
 }
 
+pub fn render_equiped_item(
+    mut cmd: Commands,
+    actors: Query<(Entity, &Vector2D), With<Equipment>>,
+    items: Query<(Entity, &RenderInfoEquiped, &EquipedOwned), (With<ItemType>, Without<EquipedRendition>)>,
+    map_options: Res<MapOptions>,
+) {
+    for (item_entity, info, owner) in items.iter() {
+        if let Ok((_, _pt)) = actors.get(owner.id) {
+            let mut some_id = None;
+            cmd.entity(owner.id).with_children(|renderable| {
+                let id = renderable
+                    .spawn()
+                    .insert(Name::new("item rendition"))
+                    .insert(EquipedRenderedItem { id: item_entity })
+                    .insert_bundle(SpriteBundle {
+                        sprite: Sprite {
+                            color: Color::WHITE,
+                            custom_size: Some(Vec2::splat(map_options.tile_size)),
+                            ..Default::default()
+                        },
+                        texture: info.texture.clone(),
+                        transform: Transform::from_xyz(0., 0., info.z + 0.1),
+                        ..Default::default()
+                    })
+                    .id();
+                some_id = Some(id);
+            });
+            if let Some(id) = some_id {
+                cmd.entity(item_entity).insert(EquipedRendition { id });
+            }
+        }
+    }
+}
+pub fn unrender_unequiped_items(
+    mut cmd: Commands,
+    items: Query<(Entity, &EquipedRendition), Without<EquipedOwned>>,
+) {
+    for (itemity, rendition) in items.iter() {
+        cmd.entity(itemity).remove::<EquipedRendition>();
+        cmd.entity(rendition.id).despawn_recursive();
+    }
+}
+
 pub fn render_hud_health_bar(
     mut cmd: Commands,
     renderables: Query<Entity, (With<HitPoints>, Without<HudHealthBar>)>,
@@ -62,4 +105,4 @@ pub fn render_hud_health_bar(
     }
 }
 
-// TODO: render inventory 
+// TODO: render inventory

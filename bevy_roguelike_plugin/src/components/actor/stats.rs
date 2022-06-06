@@ -199,5 +199,6 @@ pub struct StatsComputed {
     pub evasion: Evasion,
     pub block: Vec<Block>,
     pub damage: Vec<Damage>,
+    // TODO: could be separated in StatsComputedMarker::is_updated and it would only be mutable in separate places (less exclusive ownerships)
     pub is_updated: bool,
 }

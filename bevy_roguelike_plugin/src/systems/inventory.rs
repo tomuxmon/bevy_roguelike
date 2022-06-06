@@ -36,6 +36,8 @@ pub fn pick_up_items(
                         .remove::<VisibilityToggle>();
                 }
                 if equiped {
+                    cmd.entity(item_entity)
+                        .insert(EquipedOwned { id: e.picker });
                     stats.is_updated = false;
                 }
             }
@@ -52,26 +54,14 @@ pub fn drop_item(
         &mut Equipment,
         &mut StatsComputed,
     )>,
-    // mut display_slots: Query<&mut ItemDisplaySlot>,
-    // mut equip_slots: Query<&mut ItemEquipSlot>,
 ) {
     for e in drop_reader.iter() {
         if let Ok((pt, mut inventory, mut equipment, mut stats)) = actors.get_mut(e.droper) {
             if inventory.take(e.item) {
-                // display_slots.for_each_mut(|mut slot| {
-                //     if slot.item.is_some() && slot.item.unwrap() == e.item {
-                //         slot.item = None;
-                //     }
-                // });
                 cmd.entity(e.item).insert(*pt);
             } else if equipment.take(e.item) {
                 stats.is_updated = false;
-                // equip_slots.for_each_mut(|mut slot| {
-                //     if slot.item.is_some() && slot.item.unwrap() == e.item {
-                //         slot.item = None;
-                //     }
-                // });
-                cmd.entity(e.item).insert(*pt);
+                cmd.entity(e.item).insert(*pt).remove::<EquipedOwned>();
             }
         }
     }

@@ -159,6 +159,7 @@ pub fn attack(
         true_damage = (true_damage as f32 * (1. - resist)) as i32;
 
         // TODO: spawn attack animation
+        // base it on damage.kind
         cmd.spawn()
             .insert(ModifyHP::new(**defender_pt, -true_damage as i16));
         log::trace!("attack damage {}", true_damage);

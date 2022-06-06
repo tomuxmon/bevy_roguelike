@@ -83,6 +83,8 @@ impl<T: StateNext> Plugin for RoguelikePlugin<T> {
                 SystemSet::on_update(self.running_state.clone())
                     .with_system(ui_apply_drag_pos)
                     .with_system(render_body)
+                    .with_system(render_equiped_item)
+                    .with_system(unrender_unequiped_items)
                     .with_system(render_hud_health_bar)
                     .with_system(attributes_update_action_points)
                     .with_system(attributes_update_hit_points)
