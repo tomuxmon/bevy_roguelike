@@ -195,6 +195,10 @@ impl HitPoints {
     }
 }
 
+#[derive(Default, Component, Reflect)]
+#[reflect(Component)]
+pub struct StatsComputedDirty;
+
 #[derive(Component, Debug, Default, Clone, Reflect)]
 #[reflect(Component)]
 pub struct StatsComputed {
@@ -205,6 +209,3 @@ pub struct StatsComputed {
     pub block: Vec<Block>,
     pub damage: Vec<Damage>,
 }
-#[derive(Component, Debug, Default, Clone, Reflect)]
-#[reflect(Component)]
-pub struct StatsComputedDirty;

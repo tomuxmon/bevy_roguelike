@@ -202,9 +202,3 @@ pub struct ModifyHP {
     pub location: IVec2,
     pub amount: i16,
 }
-
-impl ModifyHP {
-    pub fn new(location: IVec2, amount: i16) -> Self {
-        Self { location, amount }
-    }
-}

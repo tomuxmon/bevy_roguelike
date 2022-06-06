@@ -306,8 +306,6 @@ impl<T: StateNext> RoguelikePlugin<T> {
         }
 
         let plr_atr = Attributes::new(11, 11, 11, 11, 11, 11);
-        // DefaultAttack
-        // DefaultDefense
         let team_player = 1;
         cmd.spawn()
             .insert(MovingPlayer {})

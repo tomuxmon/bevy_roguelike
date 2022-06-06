@@ -160,8 +160,12 @@ pub fn attack(
 
         // TODO: spawn attack animation
         // base it on damage.kind
-        cmd.spawn()
-            .insert(ModifyHP::new(**defender_pt, -true_damage as i16));
+        cmd.spawn().insert({
+            ModifyHP {
+                location: **defender_pt,
+                amount: -true_damage as i16,
+            }
+        });
         log::trace!("attack damage {}", true_damage);
     }
 }

@@ -92,17 +92,6 @@ impl Rate {
     pub fn compute(&self, attributes: &Attributes) -> i32 {
         (self.multiplier.compute(attributes) * self.amount as f32) as i32
     }
-    // pub fn roll_against(
-    //     &self,
-    //     other: &Rate,
-    //     self_attributes: &Attributes,
-    //     other_attributes: &Attributes,
-    //     rng: &mut StdRng,
-    // ) -> bool {
-    //     let self_chance = self.compute(self_attributes);
-    //     let other_chance = other.compute(other_attributes);
-    //     !rng.gen_ratio(other_chance.min(self_chance) as u32, self_chance as u32)
-    // }
 }
 
 #[derive(

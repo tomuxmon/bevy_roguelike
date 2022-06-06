@@ -1,7 +1,7 @@
 use super::{AttributeType, Attributes};
 use bevy::{prelude::*, utils::HashSet};
 
-#[derive(Default, Debug, Clone, Component, Reflect)]
+#[derive(Default, Component, Reflect)]
 #[reflect(Component)]
 pub struct VisibilityToggle;
 

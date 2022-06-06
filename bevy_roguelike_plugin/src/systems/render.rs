@@ -34,7 +34,10 @@ pub fn render_body(
 pub fn render_equiped_item(
     mut cmd: Commands,
     actors: Query<(Entity, &Vector2D), With<Equipment>>,
-    items: Query<(Entity, &RenderInfoEquiped, &EquipedOwned), (With<ItemType>, Without<EquipedRendition>)>,
+    items: Query<
+        (Entity, &RenderInfoEquiped, &EquipedOwned),
+        (With<ItemType>, Without<EquipedRendition>),
+    >,
     map_options: Res<MapOptions>,
 ) {
     for (item_entity, info, owner) in items.iter() {
