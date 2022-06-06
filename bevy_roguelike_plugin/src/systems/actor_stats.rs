@@ -28,15 +28,20 @@ pub fn attributes_update_field_of_view(
 }
 
 pub fn stats_recompute(
-    mut actors: Query<(
-        &mut StatsComputed,
-        &Attributes,
-        &Protection,
-        &Resistance,
-        &Evasion,
-        &Damage,
-        &Equipment,
-    )>,
+    mut cmd: Commands,
+    mut actors: Query<
+        (
+            Entity,
+            &mut StatsComputed,
+            &Attributes,
+            &Protection,
+            &Resistance,
+            &Evasion,
+            &Damage,
+            &Equipment,
+        ),
+        With<StatsComputedDirty>,
+    >,
     items_atr: Query<&Attributes, (With<ItemType>, Without<Vector2D>)>,
     items_prt: Query<&Protection, (With<ItemType>, Without<Vector2D>)>,
     items_res: Query<&Resistance, (With<ItemType>, Without<Vector2D>)>,
@@ -44,6 +49,7 @@ pub fn stats_recompute(
     items_dmg: Query<&Damage, (With<ItemType>, Without<Vector2D>)>,
 ) {
     for (
+        id,
         mut stats,
         innate_attributes,
         innate_protection,
@@ -53,30 +59,29 @@ pub fn stats_recompute(
         equipment,
     ) in actors.iter_mut()
     {
-        if !stats.is_updated {
-            // NOTE: a lot of cloning, but hopefully not a common action to equip / unequip stuff
-            stats.attributes = equipment.list(&items_atr).into_iter().sum::<Attributes>()
-                + innate_attributes.clone();
-            stats.protection = equipment
-                .list(&items_prt)
-                .iter()
-                .fold(&mut Protection::default(), |acc, p| acc.extend(p))
-                .extend(innate_protection)
-                .clone();
-            stats.resistance = equipment
-                .list(&items_res)
-                .iter()
-                .fold(&mut Resistance::default(), |acc, p| acc.ingest(p))
-                .ingest(innate_resistance)
-                .clone();
-            stats.evasion = evasion.clone();
-            stats.block = equipment.list(&items_blk);
-            let mut damage = equipment.list(&items_dmg);
-            if damage.len() == 0 {
-                damage.push(unarmed_damage.clone());
-            }
-            stats.damage = damage;
-            stats.is_updated = true;
+        // NOTE: a lot of cloning, but hopefully not a common action to equip / unequip stuff
+        stats.attributes =
+            equipment.list(&items_atr).into_iter().sum::<Attributes>() + innate_attributes.clone();
+        stats.protection = equipment
+            .list(&items_prt)
+            .iter()
+            .fold(&mut Protection::default(), |acc, p| acc.extend(p))
+            .extend(innate_protection)
+            .clone();
+        stats.resistance = equipment
+            .list(&items_res)
+            .iter()
+            .fold(&mut Resistance::default(), |acc, p| acc.ingest(p))
+            .ingest(innate_resistance)
+            .clone();
+        stats.evasion = evasion.clone();
+        stats.block = equipment.list(&items_blk);
+        let mut damage = equipment.list(&items_dmg);
+        if damage.len() == 0 {
+            damage.push(unarmed_damage.clone());
         }
+        stats.damage = damage;
+
+        cmd.entity(id).remove::<StatsComputedDirty>();
     }
 }

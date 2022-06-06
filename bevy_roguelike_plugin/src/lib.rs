@@ -142,6 +142,7 @@ impl<T: StateNext> Plugin for RoguelikePlugin<T> {
             .register_type::<Evasion>()
             .register_type::<ItemType>()
             .register_type::<StatsComputed>()
+            .register_type::<StatsComputedDirty>()
             .register_type::<Quality>()
             .register_type::<ItemEquipSlot>()
             .register_type::<ItemDisplaySlot>()
