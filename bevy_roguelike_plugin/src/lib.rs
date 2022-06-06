@@ -16,7 +16,7 @@ use bevy::prelude::*;
 use bevy::render::camera::Camera2d;
 use bevy::utils::HashSet;
 use bevy_asset_ron::RonAssetPlugin;
-use bevy_easings::*;
+use bevy_tweening::TweeningPlugin;
 use map_generator::*;
 use rand::prelude::*;
 use resources::*;
@@ -66,7 +66,7 @@ pub struct MapEntities {
 
 impl<T: StateNext> Plugin for RoguelikePlugin<T> {
     fn build(&self, app: &mut App) {
-        app.add_plugin(EasingsPlugin {})
+        app.add_plugin(TweeningPlugin {})
             .add_plugin(RonAssetPlugin::<ItemTemplate>::new(&["item.ron"]))
             .insert_resource(AssetsLoading::default())
             .add_startup_system(setup_camera)

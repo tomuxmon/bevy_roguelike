@@ -3,7 +3,8 @@ use crate::events::CameraFocusEvent;
 use crate::resources::*;
 use bevy::prelude::*;
 use bevy::render::camera::Camera2d;
-use bevy_easings::*;
+use bevy_tweening::lens::*;
+use bevy_tweening::*;
 use std::time::Duration;
 
 pub fn camera_set_focus_player(
@@ -25,18 +26,18 @@ pub fn camera_focus_smooth(
     map_options: Res<MapOptions>,
 ) {
     for cfe in cmr_rdr.iter() {
-        for (e, ct) in cameras.iter() {
-            let z = ct.translation.z;
-            cmd.entity(e).insert(
-                ct.ease_to(
-                    ct.clone()
-                        .with_translation(map_options.to_world_position(cfe.position).extend(z)),
-                    EaseFunction::QuinticOut,
-                    EasingType::Once {
-                        duration: Duration::from_millis(350),
-                    },
-                ),
-            );
+        for (camera_entity, camera_transform) in cameras.iter() {
+            cmd.entity(camera_entity).insert(Animator::new(Tween::new(
+                EaseFunction::QuinticOut,
+                TweeningType::Once,
+                Duration::from_millis(350),
+                TransformPositionLens {
+                    start: camera_transform.translation.clone(),
+                    end: map_options
+                        .to_world_position(cfe.position)
+                        .extend(camera_transform.translation.z),
+                },
+            )));
         }
     }
 }
