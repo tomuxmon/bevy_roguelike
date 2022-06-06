@@ -57,7 +57,7 @@ pub fn act(
 
 pub fn attack(
     attackers: Query<(&Vector2D, &StatsComputed)>,
-    defenders: Query<(&Vector2D, &StatsComputed)>,
+    defenders: Query<(&Vector2D, &StatsComputed, &ActionPoints)>,
     mut cmd: Commands,
     mut attack_reader: EventReader<AttackEvent>,
     mut ap_spend_writer: EventWriter<SpendAPEvent>,
@@ -70,12 +70,13 @@ pub fn attack(
             log::error!("Attacker Not Found (id: {:?}).", e.attacker);
             return;
         };
-        let (defender_pt, defender_stats) = if let Ok(defender) = defenders.get(e.defender) {
-            defender
-        } else {
-            log::error!("Defender Not Found (id: {:?}).", e.defender);
-            return;
-        };
+        let (defender_pt, defender_stats, defender_ap) =
+            if let Ok(defender) = defenders.get(e.defender) {
+                defender
+            } else {
+                log::error!("Defender Not Found (id: {:?}).", e.defender);
+                return;
+            };
 
         if attacker_stats.damage.len() == 0 {
             log::error!("attacker has no damage.");
@@ -91,32 +92,33 @@ pub fn attack(
         ap_spend_writer.send(SpendAPEvent::new(e.attacker, attack_cost));
         log::trace!("attacking from {} with cost {}", attacker_pt, attack_cost);
 
-        let (evaded, evade_cost) = defender_stats.evasion.try_evade(
-            damage,
-            &defender_stats.attributes,
-            &attacker_stats.attributes,
-            same_rng,
-        );
-
-        if evaded {
-            // TODO: and AP > 0
-            ap_spend_writer.send(SpendAPEvent::new(e.defender, evade_cost));
-            log::trace!("attack evaded {} with cost {}", defender_pt, evade_cost);
-            return;
-        }
-
-        for block in defender_stats.block.iter() {
-            let (blocked, block_cost) = block.try_block(
+        // NOTE: negative AP is ok as long as we are close to zero (not reaching i16::MIN).
+        if defender_ap.current() > 0 {
+            let (evaded, evade_cost) = defender_stats.evasion.try_evade(
                 damage,
                 &defender_stats.attributes,
                 &attacker_stats.attributes,
                 same_rng,
             );
-            if blocked {
-                // TODO: and AP > 0
-                ap_spend_writer.send(SpendAPEvent::new(e.defender, block_cost));
-                log::trace!("attack blocked {} with cost {}", defender_pt, block_cost);
+
+            if evaded {
+                ap_spend_writer.send(SpendAPEvent::new(e.defender, evade_cost));
+                log::trace!("attack evaded {} with cost {}", defender_pt, evade_cost);
                 return;
+            }
+
+            for block in defender_stats.block.iter() {
+                let (blocked, block_cost) = block.try_block(
+                    damage,
+                    &defender_stats.attributes,
+                    &attacker_stats.attributes,
+                    same_rng,
+                );
+                if blocked {
+                    ap_spend_writer.send(SpendAPEvent::new(e.defender, block_cost));
+                    log::trace!("attack blocked {} with cost {}", defender_pt, block_cost);
+                    return;
+                }
             }
         }
 
@@ -173,6 +175,7 @@ pub fn apply_hp_modify(
             hp.apply(hpm.amount);
             if hp.current() <= 0 {
                 // TODO: animated death
+                // different animation based on negative percent of current hp
                 bevy::log::info!("death to {:?}", ee);
                 cmd.entity(ee).despawn_recursive();
             }

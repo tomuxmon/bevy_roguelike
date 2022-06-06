@@ -165,7 +165,7 @@ fn rogue_setup(
     mut loading: ResMut<AssetsLoading>,
 ) {
     cmd.insert_resource(MapOptions {
-        map_size: IVec2::new(15, 150),
+        map_size: IVec2::new(27, 37),
         tile_size: 32.0,
     });
 
