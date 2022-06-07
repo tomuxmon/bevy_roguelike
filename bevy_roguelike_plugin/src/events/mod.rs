@@ -1,28 +1,17 @@
 use crate::components::Team;
 use bevy::prelude::*;
 
+// TODO: turn into Act component with is_dirty or is_used
 #[derive(Debug, Copy, Clone)]
 pub struct ActEvent {
     pub id: Entity,
     pub delta: IVec2,
 }
 
-// TODO: turn into Act component with is_dirty or is_used
-impl ActEvent {
-    pub fn new(id: Entity, delta: IVec2) -> Self {
-        Self { id, delta }
-    }
-}
-
 #[derive(Debug, Copy, Clone)]
 pub struct AttackEvent {
     pub attacker: Entity,
     pub defender: Entity,
-}
-impl AttackEvent {
-    pub fn new(attacker: Entity, defender: Entity) -> Self {
-        Self { attacker, defender }
-    }
 }
 
 #[derive(Debug, Copy, Clone)]

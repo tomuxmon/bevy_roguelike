@@ -69,7 +69,7 @@ pub fn input_player(
         } else {
             return;
         };
-        act_writer.send(ActEvent::new(id, delta));
+        act_writer.send(ActEvent { id, delta });
     }
 }
 
@@ -125,7 +125,7 @@ pub fn input_fov_rand(
         } else {
             delta = deltas[rng.gen_range(0..deltas.len())];
         }
-        act_writer.send(ActEvent::new(id, delta));
+        act_writer.send(ActEvent { id, delta });
     }
 }
 
@@ -165,7 +165,7 @@ fn rogue_setup(
     mut loading: ResMut<AssetsLoading>,
 ) {
     cmd.insert_resource(MapOptions {
-        map_size: IVec2::new(15, 10),
+        map_size: IVec2::new(35, 25),
         tile_size: 32.0,
     });
 

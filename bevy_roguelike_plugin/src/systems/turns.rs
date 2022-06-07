@@ -37,7 +37,12 @@ pub fn act(
                     if let Some((enemy_entity, _, _)) =
                         enemies.iter().find(|(_, t, p)| *t != team && ***p == dest)
                     {
-                        attack_writer.send(AttackEvent::new(e.id, enemy_entity))
+                        attack_writer.send({
+                            AttackEvent {
+                                attacker: e.id,
+                                defender: enemy_entity,
+                            }
+                        })
                     } else {
                         log::error!("nothing to attack at {:?} (... has bugs).", dest);
                     }
@@ -67,14 +72,20 @@ pub fn attack(
         let (attacker_pt, attacker_stats) = if let Ok(attacker) = attackers.get(e.attacker) {
             attacker
         } else {
-            log::error!("Attacker Not Found (id: {:?}).", e.attacker);
+            log::info!(
+                "Attacker Not Found (id: {:?}). Probably died recently.",
+                e.attacker
+            );
             return;
         };
         let (defender_pt, defender_stats, defender_ap) =
             if let Ok(defender) = defenders.get(e.defender) {
                 defender
             } else {
-                log::error!("Defender Not Found (id: {:?}).", e.defender);
+                log::info!(
+                    "Defender Not Found (id: {:?}). Probably died recently.",
+                    e.defender
+                );
                 return;
             };
 
@@ -83,9 +94,15 @@ pub fn attack(
             return;
         }
 
-        let same_rng = &mut *rng;
-        // TODO: if more then one damage pick random damage but not the one that was used before (multiple weapons , hydra , multiple claws...)
-        let damage = &attacker_stats.damage[0];
+        let rng = &mut *rng;
+
+        let damage = if attacker_stats.damage.len() == 1 {
+            &attacker_stats.damage[0]
+        } else {
+            &attacker_stats.damage[rng.gen_range(0..attacker_stats.damage.len())]
+        };
+
+        // TODO: spawn attack animation (based on damage.kind)
 
         // NOTE: attacker should spend AP regardles of outcome
         let attack_cost = damage.hit_cost.compute(&attacker_stats.attributes);
@@ -98,10 +115,11 @@ pub fn attack(
                 damage,
                 &defender_stats.attributes,
                 &attacker_stats.attributes,
-                same_rng,
+                rng,
             );
 
             if evaded {
+                // TODO: spawn evade animation (MISS on the enemy)
                 ap_spend_writer.send(SpendAPEvent::new(e.defender, evade_cost));
                 log::trace!("attack evaded {} with cost {}", defender_pt, evade_cost);
                 return;
@@ -112,9 +130,10 @@ pub fn attack(
                     damage,
                     &defender_stats.attributes,
                     &attacker_stats.attributes,
-                    same_rng,
+                    rng,
                 );
                 if blocked {
+                    // TODO: spawn block animation
                     ap_spend_writer.send(SpendAPEvent::new(e.defender, block_cost));
                     log::trace!("attack blocked {} with cost {}", defender_pt, block_cost);
                     return;
@@ -122,7 +141,7 @@ pub fn attack(
             }
         }
 
-        let mut true_damage = damage.compute(&attacker_stats.attributes, same_rng);
+        let mut true_damage = damage.compute(&attacker_stats.attributes, rng);
         log::trace!(
             "attack damage raw {} (roll from {:?})",
             true_damage,
@@ -143,6 +162,7 @@ pub fn attack(
                 "damage negated with protection. damage after protection {}",
                 true_damage
             );
+            // TODO: spawn clinc animation
             return;
         }
 
@@ -158,8 +178,6 @@ pub fn attack(
 
         true_damage = (true_damage as f32 * (1. - resist)) as i32;
 
-        // TODO: spawn attack animation
-        // base it on damage.kind
         cmd.spawn().insert({
             ModifyHP {
                 location: **defender_pt,
