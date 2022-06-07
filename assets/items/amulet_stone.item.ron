@@ -1,0 +1,30 @@
+Amulet((
+ render: (
+  name: "Stone will amulet",
+  texture_path: "sprites/item/stone_3_blue.png",
+  texture_equiped_path: None,
+ ),
+ defense: (
+  protection: Some((
+   amounts: [
+    (kind:Fire,amount_multiplier:None,amount:1),
+    (kind:Lightning,amount_multiplier:None,amount:5),
+    (kind:Cold,amount_multiplier:None,amount:6),
+   ],
+  )),
+  resistance: Some((
+   amounts: [
+    (kind:Fire,percent:2),
+    (kind:Cold,percent:10),
+    (kind:Lightning,percent:12),
+   ],
+  )),
+ ),
+ enchantment: (
+ attributes: Some((
+    list: {
+     Willpower: 5,
+    },
+   )),
+ ),
+))

@@ -1,7 +1,7 @@
 Weapon((
  render: (
-  name: "Big Sword",
-  texture_path: "sprites/item/two_handed_sword.png",
+  name: "Elven broadsword",
+  texture_path: "sprites/item/elven_broadsword.png",
   texture_equiped_path: Some("sprites/item_equiped/heavy_sword.png"),
  ),
  damage: (
@@ -22,7 +22,7 @@ Weapon((
    ),
   ),
   hit_chance: (
-   amount: 120,
+   amount: 130,
    multiplier: (
     multipliers: [(multiplier:100,attribute:Dexterity)],
    ),

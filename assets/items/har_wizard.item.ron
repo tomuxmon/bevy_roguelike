@@ -1,0 +1,19 @@
+Helm((
+ render: (
+  name: "Wizard hat",
+  texture_path: "sprites/item/wizard_hat_1.png",
+  texture_equiped_path: Some("sprites/item_equiped/wizard_white.png"),
+ ),
+ defense: (
+  protection: None,
+  resistance: None,
+ ),
+ enchantment: (
+  attributes: Some((
+    list: {
+     Willpower: 3,
+     Inteligence: 6,
+    },
+   )),
+ ),
+))
