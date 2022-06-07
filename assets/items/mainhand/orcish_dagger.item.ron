@@ -7,8 +7,8 @@ Weapon((
  damage: (
   kind: Slash,
   amount: (
-   start: 2,
-   end: 6,
+   start: 6,
+   end: 8,
   ),
   amount_multiplier: (
    multipliers: [

@@ -7,8 +7,8 @@ Weapon((
  damage: (
   kind: Blunt,
   amount: (
-   start: 3,
-   end: 5,
+   start: 4,
+   end: 12,
   ),
   amount_multiplier: (
    multipliers: [
