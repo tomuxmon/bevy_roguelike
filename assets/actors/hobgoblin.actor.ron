@@ -1,0 +1,86 @@
+(
+ render: (
+  name: "Hobgoblin",
+  texture_path: "sprites/enemy/hobgoblin.png",
+ ),
+ attributes: (
+  list: {
+   Inteligence: 5,
+   Willpower: 6,
+   Perception: 8,
+   Toughness: 11,
+   Dexterity: 14,
+   Strength: 9,
+  },
+ ),
+ protection: (
+  amounts: [
+   (
+    kind: Blunt,
+    amount_multiplier: Some((multipliers:[(multiplier:100,attribute:Toughness)])),
+    amount: 1,
+   ),
+   (
+    kind: Pierce,
+    amount_multiplier: Some((multipliers:[(multiplier:100,attribute:Toughness)])),
+    amount: 1,
+   ),
+   (
+    kind: Slash,
+    amount_multiplier: Some((multipliers:[(multiplier:100,attribute:Toughness)])),
+    amount: 1,
+   ),
+  ],
+ ),
+ resistance: (
+  amounts: [
+   (
+    kind: Slash,
+    percent: 5,
+   ),
+   (
+    kind: Blunt,
+    percent: 5,
+   ),
+   (
+    kind: Pierce,
+    percent: 5,
+   ),
+  ],
+ ),
+ evasion: (
+  cost: (
+   cost: 32,
+   multiplier_inverted: (
+    multipliers: [(multiplier:80,attribute:Dexterity)],
+   ),
+  ),
+  chance: (
+   amount: 20,
+   multiplier: (
+    multipliers: [(multiplier:100,attribute:Dexterity)],
+   ),
+  ),
+ ),
+ damage: (
+  list: [
+   (
+    kind: Blunt,
+    amount: (start:9,end:11),
+    amount_multiplier: (multipliers:[(multiplier:80,attribute:Strength)]),
+    hit_cost: (cost:128,multiplier_inverted:(multipliers:[(multiplier:80,attribute:Dexterity)])),
+    hit_chance: (amount:128,multiplier:(multipliers:[(multiplier:128,attribute:Dexterity)])),
+   ),
+  ],
+ ),
+ equipment_display: (
+  items: {
+   (OffHand, 0): (152, 48),
+   (Finger, 1): (152, 88),
+   (Finger, 0): (72, 88),
+   (Neck, 0): (152, 8),
+   (MainHand, 0): (72, 48),
+  },
+ ),
+ inventory_capacity: 16,
+)

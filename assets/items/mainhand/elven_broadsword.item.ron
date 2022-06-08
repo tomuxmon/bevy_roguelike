@@ -7,24 +7,25 @@ Weapon((
  damage: (
   kind: Slash,
   amount: (
-   start: 8,
-   end: 15,
+   start: 12,
+   end: 18,
   ),
   amount_multiplier: (
    multipliers: [
-    (multiplier:90,attribute:Strength),
+    (multiplier:60,attribute:Strength),
+    (multiplier:20,attribute:Dexterity),
    ],
   ),
   hit_cost: (
    cost: 180,
    multiplier_inverted: (
-    multipliers: [(multiplier:110,attribute:Dexterity)],
+    multipliers: [(multiplier:80,attribute:Dexterity)],
    ),
   ),
   hit_chance: (
-   amount: 130,
+   amount: 140,
    multiplier: (
-    multipliers: [(multiplier:100,attribute:Dexterity)],
+    multipliers: [(multiplier:128,attribute:Dexterity)],
    ),
   ),
  ),

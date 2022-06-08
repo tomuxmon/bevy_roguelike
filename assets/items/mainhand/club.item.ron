@@ -7,8 +7,8 @@ Weapon((
  damage: (
   kind: Blunt,
   amount: (
-   start: 4,
-   end: 12,
+   start: 10,
+   end: 14,
   ),
   amount_multiplier: (
    multipliers: [
@@ -18,13 +18,13 @@ Weapon((
   hit_cost: (
    cost: 140,
    multiplier_inverted: (
-    multipliers: [(multiplier:90,attribute:Dexterity)],
+    multipliers: [(multiplier:80,attribute:Dexterity)],
    ),
   ),
   hit_chance: (
-   amount: 120,
+   amount: 160,
    multiplier: (
-    multipliers: [(multiplier:120,attribute:Dexterity)],
+    multipliers: [(multiplier:128,attribute:Dexterity)],
    ),
   ),
  ),

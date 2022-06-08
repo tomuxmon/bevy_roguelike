@@ -39,7 +39,7 @@ pub fn stats_recompute(
             &Protection,
             &Resistance,
             &Evasion,
-            &Damage,
+            &DamageList,
             &Equipment,
         ),
         With<StatsComputedDirty>,
@@ -80,7 +80,7 @@ pub fn stats_recompute(
         stats.block = equipment.list(&items_blk);
         let mut damage = equipment.list(&items_dmg);
         if damage.len() == 0 {
-            damage.push(unarmed_damage.clone());
+            damage.extend(unarmed_damage.list.clone());
         }
         stats.damage = damage;
 

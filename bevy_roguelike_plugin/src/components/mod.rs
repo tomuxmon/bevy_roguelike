@@ -19,6 +19,7 @@ pub use combat::AttributeMultiplier;
 pub use combat::Block;
 pub use combat::Damage;
 pub use combat::DamageKind;
+pub use combat::DamageList;
 pub use combat::Evasion;
 pub use combat::Formula;
 pub use combat::Protect;

@@ -213,24 +213,6 @@ fn rogue_setup(
     loading.0.push(player_assets.body.clone_untyped());
     cmd.insert_resource(player_assets);
 
-    let enemy_assets = EnemyAssets {
-        skins: vec![
-            asset_server.load("sprites/enemy/cyclops.png"),
-            asset_server.load("sprites/enemy/ettin.png"),
-            asset_server.load("sprites/enemy/frost_giant.png"),
-            asset_server.load("sprites/enemy/gnoll.png"),
-            asset_server.load("sprites/enemy/goblin.png"),
-            asset_server.load("sprites/enemy/hobgoblin.png"),
-            asset_server.load("sprites/enemy/kobold.png"),
-            asset_server.load("sprites/enemy/orc.png"),
-            asset_server.load("sprites/enemy/stone_giant.png"),
-        ],
-    };
-    loading
-        .0
-        .extend(enemy_assets.skins.iter().map(|a| a.clone_untyped()));
-    cmd.insert_resource(enemy_assets);
-
     if let Ok(handles) = asset_server.load_folder("sprites/item_equiped") {
         loading.0.extend(handles);
     }
@@ -240,6 +222,10 @@ fn rogue_setup(
     }
 
     if let Ok(handles) = asset_server.load_folder("items") {
+        loading.0.extend(handles);
+    }
+
+    if let Ok(handles) = asset_server.load_folder("actors") {
         loading.0.extend(handles);
     }
 

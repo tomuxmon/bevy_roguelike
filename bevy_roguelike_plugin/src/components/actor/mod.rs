@@ -1,28 +1,7 @@
-use super::ActionCost;
-use super::AttributeMultiplier;
-use super::Damage;
-use super::DamageKind;
-use super::Equipment;
-use super::EquipmentDisplay;
-use super::Evasion;
-use super::FieldOfView;
-use super::Formula;
-use super::Inventory;
-use super::ItemType;
-use super::Protect;
-use super::Protection;
-use super::Rate;
-use super::RenderInfo;
-use super::Resistance;
-use super::StatsComputedDirty;
-use super::Vector2D;
+use super::*;
+use crate::resources::ActorTemplate;
 use bevy::prelude::*;
-use stats::ActionPoints;
-use stats::AttributeType;
-use stats::Attributes;
-use stats::HitPoints;
-use stats::StatsComputed;
-use std::borrow::Cow;
+use stats::*;
 
 pub mod stats;
 
@@ -31,122 +10,50 @@ pub struct Actor {
     name: Name,
     team: Team,
     state: TurnState,
-
     attributes: Attributes,
     ap: ActionPoints,
     hp: HitPoints,
-
-    base_damage: Damage,
-    base_protection: Protection,
-    base_resistance: Resistance,
+    protection: Protection,
+    resistance: Resistance,
     evasion: Evasion,
-
-    // NOTE: no blocking by default. need shield to do that.
+    damage: DamageList,
     fov: FieldOfView,
-
     position: Vector2D,
     render_info: RenderInfo,
-
     equipment_display: EquipmentDisplay,
     equipment: Equipment,
     inventory: Inventory,
-
     stats_computed: StatsComputed,
     stats_computed_dirty: StatsComputedDirty,
 }
 impl Actor {
+    /// Creates a new [`Actor`] using specified [`ActorTemplate`].
     pub fn new(
-        name: impl Into<Cow<'static, str>>,
+        asset_server: AssetServer,
+        template: &ActorTemplate,
         team: u32,
-        attributes: &Attributes,
         position: IVec2,
-        texture: Handle<Image>,
-        equipment_slots: Vec<(ItemType, u8, Rect<Val>)>,
     ) -> Self {
-        let equipment_display = EquipmentDisplay::new(equipment_slots);
         Self {
-            name: Name::new(name),
+            name: Name::new(template.render.name.clone()),
             team: Team::new(team),
             state: TurnState::default(),
-            attributes: attributes.clone(),
-            ap: ActionPoints::new(&attributes),
-            hp: HitPoints::new(&attributes),
-
-            // TODO: properly construct it
-            base_damage: {
-                Damage {
-                    kind: DamageKind::Blunt,
-                    amount: 6..10,
-                    amount_multiplier: Formula::new(vec![AttributeMultiplier {
-                        multiplier: 100,
-                        attribute: AttributeType::Strength,
-                    }]),
-                    hit_cost: ActionCost {
-                        cost: 128,
-                        multiplier_inverted: Formula::new(vec![AttributeMultiplier {
-                            multiplier: 80,
-                            attribute: AttributeType::Dexterity,
-                        }]),
-                    },
-                    hit_chance: Rate {
-                        amount: 128,
-                        multiplier: Formula::new(vec![AttributeMultiplier {
-                            multiplier: 128,
-                            attribute: AttributeType::Dexterity,
-                        }]),
-                    },
-                }
-            },
-            base_protection: Protection::new(vec![
-                Protect {
-                    kind: DamageKind::Blunt,
-                    amount: 1,
-                    amount_multiplier: Some(Formula::new(vec![AttributeMultiplier {
-                        attribute: AttributeType::Toughness,
-                        multiplier: 100,
-                    }])),
-                },
-                Protect {
-                    kind: DamageKind::Pierce,
-                    amount: 1,
-                    amount_multiplier: Some(Formula::new(vec![AttributeMultiplier {
-                        attribute: AttributeType::Toughness,
-                        multiplier: 100,
-                    }])),
-                },
-                Protect {
-                    kind: DamageKind::Slash,
-                    amount: 1,
-                    amount_multiplier: Some(Formula::new(vec![AttributeMultiplier {
-                        attribute: AttributeType::Toughness,
-                        multiplier: 100,
-                    }])),
-                },
-            ]),
-            evasion: Evasion {
-                cost: ActionCost {
-                    cost: 32,
-                    multiplier_inverted: Formula::new(vec![AttributeMultiplier {
-                        multiplier: 80,
-                        attribute: AttributeType::Dexterity,
-                    }]),
-                },
-                chance: Rate {
-                    amount: 20,
-                    multiplier: Formula::new(vec![AttributeMultiplier {
-                        multiplier: 100,
-                        attribute: AttributeType::Dexterity,
-                    }]),
-                },
-            },
-            base_resistance: Resistance::new(vec![]),
-
-            fov: FieldOfView::new(&attributes),
-            inventory: Inventory::default(),
-            equipment_display: equipment_display.clone(),
-            equipment: (&equipment_display).into(),
+            attributes: template.attributes.clone(),
+            ap: ActionPoints::new(&template.attributes),
+            hp: HitPoints::new(&template.attributes),
+            damage: template.damage.clone(),
+            protection: template.protection.clone(),
+            evasion: template.evasion.clone(),
+            resistance: template.resistance.clone(),
+            fov: FieldOfView::new(&template.attributes),
+            inventory: Inventory::with_capacity(template.inventory_capacity),
+            equipment_display: template.equipment_display.clone(),
+            equipment: (&template.equipment_display).into(),
             position: Vector2D::from(position),
-            render_info: RenderInfo { texture, z: 2. },
+            render_info: RenderInfo {
+                texture: asset_server.load(template.render.texture_path.as_str()),
+                z: 2.,
+            },
             stats_computed: StatsComputed::default(),
             stats_computed_dirty: StatsComputedDirty {},
         }

@@ -123,6 +123,8 @@ pub fn attack(
                 ap_spend_writer.send(SpendAPEvent::new(e.defender, evade_cost));
                 log::trace!("attack evaded {} with cost {}", defender_pt, evade_cost);
                 return;
+            } else {
+                // TODO: roll crit hit (hit rate vs evade rate)
             }
 
             for block in defender_stats.block.iter() {
@@ -190,17 +192,19 @@ pub fn attack(
 
 pub fn apply_hp_modify(
     mut cmd: Commands,
-    mut actors: Query<(Entity, &Vector2D, &mut HitPoints)>,
+    mut actors: Query<(Entity, &Vector2D, &mut HitPoints, &Name)>,
     hp_mod: Query<(Entity, &ModifyHP)>,
 ) {
     for (e, hpm) in hp_mod.iter() {
-        if let Some((ee, _pt, mut hp)) = actors.iter_mut().find(|(_, p, _)| ***p == hpm.location) {
+        if let Some((ee, pt, mut hp, name)) =
+            actors.iter_mut().find(|(_, p, _, _)| ***p == hpm.location)
+        {
             hp.apply(hpm.amount);
             if hp.current() <= 0 {
                 // TODO: animated death
                 // different animation based on negative percent of current hp
-                bevy::log::info!("death to {:?}", ee);
-                cmd.entity(ee).despawn_recursive();
+                bevy::log::info!("death to {} (id: {:?}) at {}", name, ee, pt);
+                cmd.entity(ee).despawn_recursive();                
             }
         }
         cmd.entity(e).despawn_recursive();

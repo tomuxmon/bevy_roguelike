@@ -4,6 +4,7 @@ use bevy::{
     prelude::*,
     utils::{hashbrown::hash_map::Iter, HashMap},
 };
+use serde::{Deserialize, Serialize};
 use std::ops::{Index, IndexMut};
 
 #[derive(Debug, Clone, Component, Reflect)]
@@ -120,34 +121,26 @@ impl IndexMut<(ItemType, u8)> for Equipment {
 }
 
 /// equipment display locations in 128 height x 256 width canvas
-#[derive(Debug, Clone, Component, Reflect)]
+#[derive(Debug, Clone, Component, Reflect, Serialize, Deserialize)]
 #[reflect(Component)]
 pub struct EquipmentDisplay {
-    items: HashMap<(ItemType, u8), Rect<Val>>,
+    items: HashMap<(ItemType, u8), Vec2>,
 }
 impl EquipmentDisplay {
-    pub fn new(list: Vec<(ItemType, u8, Rect<Val>)>) -> Self {
+    pub fn new(list: Vec<(ItemType, u8, Vec2)>) -> Self {
         let mut items = HashMap::default();
         for (t, i, r) in list {
             items.entry((t, i)).insert(r);
         }
         Self { items }
     }
-    pub fn iter(&self) -> Iter<(ItemType, u8), Rect<Val>> {
+    pub fn iter(&self) -> Iter<(ItemType, u8), Vec2> {
         self.items.iter()
     }
 }
 impl Default for EquipmentDisplay {
     fn default() -> Self {
-        EquipmentDisplay::new(vec![(
-            ItemType::MainHand,
-            0,
-            Rect {
-                top: Val::Px(58.),
-                left: Val::Px(72.),
-                ..default()
-            },
-        )])
+        EquipmentDisplay::new(vec![(ItemType::MainHand, 0, Vec2::new(72., 58.))])
     }
 }
 
@@ -158,13 +151,17 @@ pub struct Inventory {
 }
 impl Default for Inventory {
     fn default() -> Self {
-        Self {
-            items: vec![None; Inventory::DEFAULT_CAPACITY],
-        }
+        Self::with_capacity(Inventory::DEFAULT_CAPACITY)
     }
 }
 impl Inventory {
     pub const DEFAULT_CAPACITY: usize = 32;
+
+    pub fn with_capacity(cap: usize) -> Self {
+        Self {
+            items: vec![None; cap],
+        }
+    }
 
     pub fn add(&mut self, item: Entity) -> bool {
         if let Some((_, e)) = self.items.iter_mut().enumerate().find(|(_, b)| b.is_none()) {

@@ -8,7 +8,7 @@ Weapon((
   kind: Fire,
   amount: (
    start: 12,
-   end: 14,
+   end: 17,
   ),
   amount_multiplier: (
    multipliers: [
@@ -26,9 +26,9 @@ Weapon((
    ),
   ),
   hit_chance: (
-   amount: 140,
+   amount: 96,
    multiplier: (
-    multipliers: [(multiplier:100,attribute:Willpower)],
+    multipliers: [(multiplier:128,attribute:Willpower)],
    ),
   ),
  ),

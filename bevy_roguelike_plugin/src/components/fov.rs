@@ -15,6 +15,7 @@ pub struct FieldOfView {
     pub radius: i32,
     pub tiles_visible: HashSet<IVec2>,
     pub tiles_revealed: HashSet<IVec2>,
+    // TODO: refactor as a separate dirty component (do not clash with FieldOfViewDirty use.. better name?)
     pub is_dirty: bool,
 }
 

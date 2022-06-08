@@ -137,7 +137,7 @@ pub fn toggle_inventory_open(
                         ..default()
                     })
                     .with_children(|cb| {
-                        for ((item_type, idx), &position) in equipment_display.iter() {
+                        for ((item_type, idx), position) in equipment_display.iter() {
                             cb.spawn()
                                 .insert(ItemEquipSlot::new((*item_type, *idx)))
                                 .insert_bundle(ImageBundle {
@@ -147,7 +147,11 @@ pub fn toggle_inventory_open(
                                             Val::Px(map_options.tile_size),
                                         ),
                                         position_type: PositionType::Absolute,
-                                        position,
+                                        position: Rect {
+                                            left: Val::Px(position.x),
+                                            top: Val::Px(position.y),
+                                            ..default()
+                                        },
                                         ..default()
                                     },
                                     image: inventory_assets.slot.clone().into(),

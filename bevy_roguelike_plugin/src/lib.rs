@@ -68,6 +68,7 @@ impl<T: StateNext> Plugin for RoguelikePlugin<T> {
     fn build(&self, app: &mut App) {
         app.add_plugin(TweeningPlugin {})
             .add_plugin(RonAssetPlugin::<ItemTemplate>::new(&["item.ron"]))
+            .add_plugin(RonAssetPlugin::<ActorTemplate>::new(&["actor.ron"]))
             .insert_resource(AssetsLoading::default())
             .add_startup_system(setup_camera)
             .add_system_set(
@@ -208,9 +209,9 @@ impl<T: StateNext> RoguelikePlugin<T> {
         map_options: Option<Res<MapOptions>>,
         map_assets: Res<MapAssets>,
         player_assets: Res<PlayerAssets>,
-        enemy_assets: Res<EnemyAssets>,
         asset_server: Res<AssetServer>,
         item_templates: Res<Assets<ItemTemplate>>,
+        actor_templates: Res<Assets<ActorTemplate>>,
         mut cameras: Query<&mut Transform, With<Camera2d>>,
     ) {
         let options = match map_options {
@@ -238,25 +239,100 @@ impl<T: StateNext> RoguelikePlugin<T> {
             c.translation = new_pos;
         }
 
-        // let aaa = ItemTemplate::Amulet(Amulet {
-        //     render: ItemRenderInfo {
-        //         name: "buckler".to_string(),
+        // let player_template = ActorTemplate {
+        //     render: ActorRenderInfo {
+        //         name: "Player".to_string(),
         //         texture_path: "buckler_1.png".to_string(),
-        //         texture_equiped_path: Some("buckler_round_3.png".to_string()),
         //     },
-        //     defense: ItemDefense {
-        //         protection: None,
-        //         resistance: None,
+        //     attributes: Attributes::new(11, 11, 11, 11, 11, 11),
+        //     protection: Protection::new(vec![
+        //         Protect {
+        //             kind: DamageKind::Blunt,
+        //             amount_multiplier: Some(Formula::new(vec![AttributeMultiplier {
+        //                 multiplier: 100,
+        //                 attribute: AttributeType::Toughness,
+        //             }])),
+        //             amount: 1,
+        //         },
+        //         Protect {
+        //             kind: DamageKind::Pierce,
+        //             amount_multiplier: Some(Formula::new(vec![AttributeMultiplier {
+        //                 multiplier: 100,
+        //                 attribute: AttributeType::Toughness,
+        //             }])),
+        //             amount: 1,
+        //         },
+        //         Protect {
+        //             kind: DamageKind::Slash,
+        //             amount_multiplier: Some(Formula::new(vec![AttributeMultiplier {
+        //                 multiplier: 100,
+        //                 attribute: AttributeType::Toughness,
+        //             }])),
+        //             amount: 1,
+        //         },
+        //     ]),
+        //     resistance: Resistance::new(vec![
+        //         Resist {
+        //             kind: DamageKind::Blunt,
+        //             percent: 5,
+        //         },
+        //         Resist {
+        //             kind: DamageKind::Pierce,
+        //             percent: 5,
+        //         },
+        //         Resist {
+        //             kind: DamageKind::Slash,
+        //             percent: 5,
+        //         },
+        //     ]),
+        //     evasion: Evasion {
+        //         cost: ActionCost {
+        //             cost: 32,
+        //             multiplier_inverted: Formula::new(vec![AttributeMultiplier {
+        //                 multiplier: 80,
+        //                 attribute: AttributeType::Dexterity,
+        //             }]),
+        //         },
+        //         chance: Rate {
+        //             amount: 20,
+        //             multiplier: Formula::new(vec![AttributeMultiplier {
+        //                 multiplier: 100,
+        //                 attribute: AttributeType::Dexterity,
+        //             }]),
+        //         },
         //     },
-        //     enchantment: ItemEnchantment {
-        //         attributes: Some(Attributes::new(2, 2, 2, 2, 2, 2)),
+        //     damage: DamageList {
+        //         list: vec![Damage {
+        //             kind: DamageKind::Blunt,
+        //             amount: 6..10,
+        //             amount_multiplier: Formula::new(vec![AttributeMultiplier {
+        //                 multiplier: 100,
+        //                 attribute: AttributeType::Strength,
+        //             }]),
+        //             hit_cost: ActionCost {
+        //                 cost: 128,
+        //                 multiplier_inverted: Formula::new(vec![AttributeMultiplier {
+        //                     multiplier: 80,
+        //                     attribute: AttributeType::Dexterity,
+        //                 }]),
+        //             },
+        //             hit_chance: Rate {
+        //                 amount: 128,
+        //                 multiplier: Formula::new(vec![AttributeMultiplier {
+        //                     multiplier: 128,
+        //                     attribute: AttributeType::Dexterity,
+        //                 }]),
+        //             },
+        //         }],
         //     },
-        // });
+        //     equipment_display: EquipmentDisplay::new(get_player_equipment_slots()),
+        //     inventory_capacity: 30,
+        // };
 
         // let my_config = ron::ser::PrettyConfig::new()
         //     .depth_limit(4)
         //     .indentor(" ".to_owned());
-        // if let Ok(ron_str) = ron::ser::to_string_pretty(&aaa, my_config) {
+        // if let Ok(ron_str) = ron::ser::to_string_pretty(&player_template, my_config) {
         //     info!("ron: {}", ron_str);
         // } else {
         //     bevy::log::error!("no ron string huh..");
@@ -305,23 +381,25 @@ impl<T: StateNext> RoguelikePlugin<T> {
             );
         }
 
-        let plr_atr = Attributes::new(11, 11, 11, 11, 11, 11);
-        let team_player = 1;
-        cmd.spawn()
-            .insert(MovingPlayer {})
-            .insert_bundle(Actor::new(
-                "Player",
-                team_player,
-                &plr_atr,
-                info.player_start,
-                player_assets.body.clone(),
-                get_player_equipment_slots(),
-            ))
-            .with_children(|player| {
-                // TODO: instead should be equiped inventory
-                spawn_player_body_wear(player, &player_assets, options.tile_size);
-            });
+        if let Some(player_template) = actor_templates.get("actors/human.actor.ron") {
+            let team_player = 1;
+            cmd.spawn()
+                .insert(MovingPlayer {})
+                .insert_bundle(Actor::new(
+                    asset_server.clone(),
+                    player_template,
+                    team_player,
+                    info.player_start,
+                ))
+                .with_children(|player| {
+                    // TODO: instead should be equiped inventory
+                    spawn_player_body_wear(player, &player_assets, options.tile_size);
+                });
+        } else {
+            bevy::log::error!("human actor template not found");
+        }
 
+        let actor_templates: Vec<_> = actor_templates.iter().map(|(_, it)| it).collect();
         let enemies_id = cmd
             .spawn()
             .insert(Name::new("Enemies"))
@@ -329,34 +407,15 @@ impl<T: StateNext> RoguelikePlugin<T> {
             .insert(GlobalTransform::default())
             .with_children(|enms| {
                 for mpt in info.monster_spawns.clone() {
-                    let mon_atr = Attributes::new(
-                        2 + rng.gen_range(0..9),
-                        2 + rng.gen_range(0..9),
-                        2 + rng.gen_range(0..9),
-                        2 + rng.gen_range(0..9),
-                        2 + rng.gen_range(0..9),
-                        2 + rng.gen_range(0..9),
-                    );
-
+                    let monster_template = actor_templates[rng.gen_range(0..actor_templates.len())];
                     let team_monster = 1 + rng.gen_range(2..4);
-
                     enms.spawn()
                         .insert(MovingFovRandom {})
                         .insert_bundle(Actor::new(
-                            "Enemy",
+                            asset_server.clone(),
+                            monster_template,
                             team_monster,
-                            &mon_atr,
                             mpt,
-                            enemy_assets.skins[rng.gen_range(0..enemy_assets.skins.len())].clone(),
-                            vec![(
-                                ItemType::MainHand,
-                                0,
-                                Rect {
-                                    top: Val::Px(58.),
-                                    left: Val::Px(72.),
-                                    ..default()
-                                },
-                            )],
                         ));
                 }
             })
@@ -510,81 +569,4 @@ fn spawn_player_body_wear(cb: &mut ChildBuilder, player_assets: &PlayerAssets, s
 fn setup_camera(mut cmd: Commands) {
     cmd.spawn_bundle(OrthographicCameraBundle::new_2d());
     cmd.spawn_bundle(UiCameraBundle::default());
-}
-
-pub fn get_player_equipment_slots() -> Vec<(ItemType, u8, Rect<Val>)> {
-    vec![
-        (
-            ItemType::MainHand,
-            0,
-            Rect {
-                top: Val::Px(64. - 16.),
-                left: Val::Px(128. - 32. - 16. - 8.),
-                ..default()
-            },
-        ),
-        (
-            ItemType::OffHand,
-            0,
-            Rect {
-                top: Val::Px(64. - 16.),
-                left: Val::Px(128. + 32. - 16. + 8.),
-                ..default()
-            },
-        ),
-        (
-            ItemType::Head,
-            0,
-            Rect {
-                top: Val::Px(32. - 16. - 8.),
-                left: Val::Px(128. - 16.),
-                ..default()
-            },
-        ),
-        (
-            ItemType::Neck,
-            0,
-            Rect {
-                top: Val::Px(32. - 16. - 8.),
-                left: Val::Px(128. + 32. - 16. + 8.),
-                ..default()
-            },
-        ),
-        (
-            ItemType::Body,
-            0,
-            Rect {
-                top: Val::Px(64. - 16.),
-                left: Val::Px(128. - 16.),
-                ..default()
-            },
-        ),
-        (
-            ItemType::Feet,
-            0,
-            Rect {
-                top: Val::Px(96. - 16. + 8.),
-                left: Val::Px(128. - 16.),
-                ..default()
-            },
-        ),
-        (
-            ItemType::Finger,
-            0,
-            Rect {
-                top: Val::Px(96. - 16. + 8.),
-                left: Val::Px(128. - 32. - 16. - 8.),
-                ..default()
-            },
-        ),
-        (
-            ItemType::Finger,
-            1,
-            Rect {
-                top: Val::Px(96. - 16. + 8.),
-                left: Val::Px(128. + 32. - 16. + 8.),
-                ..default()
-            },
-        ),
-    ]
 }

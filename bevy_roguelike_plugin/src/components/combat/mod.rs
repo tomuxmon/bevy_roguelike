@@ -110,6 +110,14 @@ impl ActionCost {
     }
 }
 
+#[derive(
+    Debug, Default, Clone, PartialEq, Eq, Component, Reflect, FromReflect, Serialize, Deserialize,
+)]
+#[reflect(Component)]
+pub struct DamageList {
+    pub list: Vec<Damage>,
+}
+
 /// Information about damage that can be calculated based on actor attributes.
 #[derive(
     Debug, Default, Clone, PartialEq, Eq, Component, Reflect, FromReflect, Serialize, Deserialize,
@@ -124,8 +132,14 @@ pub struct Damage {
 }
 impl Damage {
     pub fn compute(&self, attributes: &Attributes, rng: &mut StdRng) -> i32 {
-        (rng.gen_range(self.amount.clone()) as f32 * self.amount_multiplier.compute(attributes))
-            as i32
+        (self.amount_roll(rng) as f32 * self.amount_multiplier.compute(attributes)) as i32
+    }
+    fn amount_roll(&self, rng: &mut StdRng) -> i32 {
+        if !self.amount.is_empty() {
+            rng.gen_range(self.amount.clone())
+        } else {
+            self.amount.start
+        }
     }
 }
 
@@ -209,7 +223,7 @@ impl Resistance {
 }
 
 /// Evasion works on any damage type.
-#[derive(Debug, Default, Clone, PartialEq, Eq, Component, Reflect)]
+#[derive(Debug, Default, Clone, PartialEq, Eq, Component, Reflect, Serialize, Deserialize)]
 #[reflect(Component)]
 pub struct Evasion {
     /// Cost in action points, [`super::ActionPoints::TURN_READY_DEFAULT`] being one single turn.

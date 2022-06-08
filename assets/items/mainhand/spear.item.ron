@@ -7,8 +7,8 @@ Weapon((
  damage: (
   kind: Pierce,
   amount: (
-   start: 6,
-   end: 12,
+   start: 11,
+   end: 21,
   ),
   amount_multiplier: (
    multipliers: [
@@ -23,9 +23,9 @@ Weapon((
    ),
   ),
   hit_chance: (
-   amount: 110,
+   amount: 80,
    multiplier: (
-    multipliers: [(multiplier:110,attribute:Dexterity)],
+    multipliers: [(multiplier:128,attribute:Dexterity)],
    ),
   ),
  ),
