@@ -171,37 +171,6 @@ fn rogue_setup(
 
     // TODO: all assets should just be loaded by lib instead with no specific paths.
 
-    let map_assets = MapAssets {
-        floor: vec![
-            asset_server.load("sprites/floor/pebble_brown_0.png"),
-            asset_server.load("sprites/floor/pebble_brown_1.png"),
-            asset_server.load("sprites/floor/pebble_brown_2.png"),
-            asset_server.load("sprites/floor/pebble_brown_3.png"),
-            asset_server.load("sprites/floor/pebble_brown_4.png"),
-            asset_server.load("sprites/floor/pebble_brown_5.png"),
-            asset_server.load("sprites/floor/pebble_brown_6.png"),
-            asset_server.load("sprites/floor/pebble_brown_7.png"),
-            asset_server.load("sprites/floor/pebble_brown_8.png"),
-        ],
-        wall: vec![
-            asset_server.load("sprites/walls/brick_brown_0.png"),
-            asset_server.load("sprites/walls/brick_brown_1.png"),
-            asset_server.load("sprites/walls/brick_brown_2.png"),
-            asset_server.load("sprites/walls/brick_brown_3.png"),
-            asset_server.load("sprites/walls/brick_brown_4.png"),
-            asset_server.load("sprites/walls/brick_brown_5.png"),
-            asset_server.load("sprites/walls/brick_brown_6.png"),
-            asset_server.load("sprites/walls/brick_brown_7.png"),
-        ],
-    };
-    loading
-        .0
-        .extend(map_assets.floor.iter().map(|a| a.clone_untyped()));
-    loading
-        .0
-        .extend(map_assets.wall.iter().map(|a| a.clone_untyped()));
-    cmd.insert_resource(map_assets);
-
     if let Ok(handles) = asset_server.load_folder("sprites/actors") {
         loading.0.extend(handles);
     }
@@ -219,6 +188,10 @@ fn rogue_setup(
     }
 
     if let Ok(handles) = asset_server.load_folder("actors") {
+        loading.0.extend(handles);
+    }
+
+    if let Ok(handles) = asset_server.load_folder("map_themes") {
         loading.0.extend(handles);
     }
 

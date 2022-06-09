@@ -69,6 +69,7 @@ impl<T: StateNext> Plugin for RoguelikePlugin<T> {
         app.add_plugin(TweeningPlugin {})
             .add_plugin(RonAssetPlugin::<ItemTemplate>::new(&["item.ron"]))
             .add_plugin(RonAssetPlugin::<ActorTemplate>::new(&["actor.ron"]))
+            .add_plugin(RonAssetPlugin::<MapTheme>::new(&["maptheme.ron"]))
             .insert_resource(AssetsLoading::default())
             .add_startup_system(setup_camera)
             .add_system_set(
@@ -207,8 +208,8 @@ impl<T: StateNext> RoguelikePlugin<T> {
         mut cmd: Commands,
         mut state: ResMut<State<T>>,
         map_options: Option<Res<MapOptions>>,
-        map_assets: Res<MapAssets>,
         asset_server: Res<AssetServer>,
+        map_themes: Res<Assets<MapTheme>>,
         item_templates: Res<Assets<ItemTemplate>>,
         actor_templates: Res<Assets<ActorTemplate>>,
         mut cameras: Query<&mut Transform, With<Camera2d>>,
@@ -338,6 +339,8 @@ impl<T: StateNext> RoguelikePlugin<T> {
         //     bevy::log::error!("no ron string huh..");
         // }
 
+        let map_themes: Vec<_> = map_themes.iter().map(|(_, it)| it).collect();
+        let map_theme = map_themes[rng.gen_range(0..map_themes.len())];
         let map_id = cmd
             .spawn()
             .insert(Name::new("RogueMap"))
@@ -345,14 +348,17 @@ impl<T: StateNext> RoguelikePlugin<T> {
             .insert(GlobalTransform::default())
             .with_children(|rogue_map| {
                 for (pt, tile) in map.enumerate() {
-                    let texture = match tile {
-                        Tile::Wall => {
-                            map_assets.wall[rng.gen_range(0..map_assets.wall.len())].clone()
+                    let texture = asset_server.load(
+                        match tile {
+                            Tile::Wall => {
+                                map_theme.wall[rng.gen_range(0..map_theme.wall.len())].clone()
+                            }
+                            Tile::Floor => {
+                                map_theme.floor[rng.gen_range(0..map_theme.floor.len())].clone()
+                            }
                         }
-                        Tile::Floor => {
-                            map_assets.floor[rng.gen_range(0..map_assets.floor.len())].clone()
-                        }
-                    };
+                        .as_str(),
+                    );
                     rogue_map
                         .spawn()
                         .insert(Name::new(format!("Tile {}", pt)))

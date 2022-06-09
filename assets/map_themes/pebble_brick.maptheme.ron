@@ -1,0 +1,23 @@
+(
+  floor: [
+    "sprites/floor/pebble_brown_0.png",
+    "sprites/floor/pebble_brown_1.png",
+    "sprites/floor/pebble_brown_2.png",
+    "sprites/floor/pebble_brown_3.png",
+    "sprites/floor/pebble_brown_4.png",
+    "sprites/floor/pebble_brown_5.png",
+    "sprites/floor/pebble_brown_6.png",
+    "sprites/floor/pebble_brown_7.png",
+    "sprites/floor/pebble_brown_8.png",
+  ],
+  wall: [
+    "sprites/walls/brick_brown_0.png",
+    "sprites/walls/brick_brown_1.png",
+    "sprites/walls/brick_brown_2.png",
+    "sprites/walls/brick_brown_3.png",
+    "sprites/walls/brick_brown_4.png",
+    "sprites/walls/brick_brown_5.png",
+    "sprites/walls/brick_brown_6.png",
+    "sprites/walls/brick_brown_7.png",
+  ],
+)
