@@ -24,6 +24,7 @@ use std::ops::Range;
 use systems::actor_stats::*;
 use systems::camera::*;
 use systems::fov::*;
+use systems::input::*;
 use systems::inventory::*;
 use systems::map::*;
 use systems::render::*;
@@ -87,6 +88,8 @@ impl<T: StateNext> Plugin for RoguelikePlugin<T> {
             .add_system_to_stage(CoreStage::First, ui_drag_interaction)
             .add_system_set(
                 SystemSet::on_update(self.running_state.clone())
+                    .with_system(input_player.after(gather_action_points))
+                    .with_system(input_fov_rand.after(gather_action_points))
                     .with_system(ui_apply_drag_pos)
                     .with_system(render_body)
                     .with_system(render_equiped_item)
