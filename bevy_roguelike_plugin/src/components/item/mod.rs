@@ -1,12 +1,17 @@
 use bevy::prelude::*;
 use serde::{Deserialize, Serialize};
 
+pub use from_template::spawn_item;
 pub use inventory::Equipment;
 pub use inventory::EquipmentDisplay;
 pub use inventory::Inventory;
 pub use inventory::InventoryDisplay;
+pub use quality::MutableQuality;
+pub use quality::Quality;
 
+mod from_template;
 mod inventory;
+mod quality;
 
 #[derive(Reflect, Copy, Clone, PartialEq, Eq, Hash, Serialize, Deserialize, Component, Debug)]
 #[reflect_value(PartialEq, Serialize, Deserialize)]
