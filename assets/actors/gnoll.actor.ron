@@ -1,7 +1,8 @@
 (
  render: (
   name: "Gnoll",
-  texture_path: "sprites/enemy/gnoll.png",
+  texture_path: "sprites/actors/gnoll.png",
+  texture_path_cosmetics: [],
  ),
  attributes: (
   list: {

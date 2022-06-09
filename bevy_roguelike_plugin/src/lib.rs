@@ -208,7 +208,6 @@ impl<T: StateNext> RoguelikePlugin<T> {
         mut state: ResMut<State<T>>,
         map_options: Option<Res<MapOptions>>,
         map_assets: Res<MapAssets>,
-        player_assets: Res<PlayerAssets>,
         asset_server: Res<AssetServer>,
         item_templates: Res<Assets<ItemTemplate>>,
         actor_templates: Res<Assets<ActorTemplate>>,
@@ -243,6 +242,7 @@ impl<T: StateNext> RoguelikePlugin<T> {
         //     render: ActorRenderInfo {
         //         name: "Player".to_string(),
         //         texture_path: "buckler_1.png".to_string(),
+        //         texture_path_cosmetics: vec![],
         //     },
         //     attributes: Attributes::new(11, 11, 11, 11, 11, 11),
         //     protection: Protection::new(vec![
@@ -325,7 +325,7 @@ impl<T: StateNext> RoguelikePlugin<T> {
         //             },
         //         }],
         //     },
-        //     equipment_display: EquipmentDisplay::new(get_player_equipment_slots()),
+        //     equipment_display: EquipmentDisplay::default(),
         //     inventory_capacity: 30,
         // };
 
@@ -361,7 +361,11 @@ impl<T: StateNext> RoguelikePlugin<T> {
                             Tile::Wall => MapTile { is_passable: false },
                             Tile::Floor => MapTile { is_passable: true },
                         })
-                        .insert(RenderInfo { texture, z: 0. });
+                        .insert(RenderInfo {
+                            texture,
+                            cosmetic_textures: vec![],
+                            z: 0.,
+                        });
                 }
             })
             .id();
@@ -390,11 +394,7 @@ impl<T: StateNext> RoguelikePlugin<T> {
                     player_template,
                     team_player,
                     info.player_start,
-                ))
-                .with_children(|player| {
-                    // TODO: instead should be equiped inventory
-                    spawn_player_body_wear(player, &player_assets, options.tile_size);
-                });
+                ));
         } else {
             bevy::log::error!("human actor template not found");
         }
@@ -541,27 +541,13 @@ fn insert_render(
         .insert(quality.clone())
         .insert(RenderInfo {
             texture: asset_server.load(render.texture_path.as_str()),
+            cosmetic_textures: vec![],
             z: 1.,
         });
     if let Some(path_equiped) = render.texture_equiped_path.clone() {
         ecmd.insert(RenderInfoEquiped {
             texture: asset_server.load(path_equiped.as_str()),
             z: 4.,
-        });
-    }
-}
-
-fn spawn_player_body_wear(cb: &mut ChildBuilder, player_assets: &PlayerAssets, size: f32) {
-    for i in 0..player_assets.wear.len() {
-        cb.spawn_bundle(SpriteBundle {
-            sprite: Sprite {
-                color: Color::WHITE,
-                custom_size: Some(Vec2::splat(size)),
-                ..Default::default()
-            },
-            texture: player_assets.wear[i].clone(),
-            transform: Transform::from_xyz(0., 0., 4.),
-            ..Default::default()
         });
     }
 }

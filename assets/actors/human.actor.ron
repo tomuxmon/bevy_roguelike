@@ -1,7 +1,11 @@
 (
  render: (
   name: "Human",
-  texture_path: "sprites/player/human_male.png",
+  texture_path: "sprites/actors/human_male.png",
+  texture_path_cosmetics: [
+      "sprites/actors/jacket_2.png",
+      "sprites/actors/pants_black.png"
+      ],
  ),
  attributes: (
   list: {

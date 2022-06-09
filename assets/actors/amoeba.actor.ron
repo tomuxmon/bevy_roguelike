@@ -1,17 +1,17 @@
 (
  render: (
-  name: "Goblin",
-  texture_path: "sprites/actors/goblin.png",
+  name: "Cyclops",
+  texture_path: "sprites/actors/giant_amoeba.png",
   texture_path_cosmetics: [],
  ),
  attributes: (
   list: {
-   Inteligence: 4,
-   Willpower: 6,
-   Perception: 8,
+   Inteligence: 1,
+   Willpower: 1,
+   Perception: 2,
    Toughness: 7,
-   Dexterity: 14,
-   Strength: 8,
+   Dexterity: 6,
+   Strength: 3,
   },
  ),
  protection: (
@@ -37,29 +37,29 @@
   amounts: [
    (
     kind: Slash,
-    percent: 5,
+    percent: 1,
    ),
    (
     kind: Blunt,
-    percent: 5,
+    percent: 1,
    ),
    (
     kind: Pierce,
-    percent: 5,
+    percent: 1,
    ),
   ],
  ),
  evasion: (
   cost: (
-   cost: 32,
+   cost: 128,
    multiplier_inverted: (
-    multipliers: [(multiplier:80,attribute:Dexterity)],
+    multipliers: [(multiplier:70,attribute:Dexterity)],
    ),
   ),
   chance: (
-   amount: 20,
+   amount: 10,
    multiplier: (
-    multipliers: [(multiplier:100,attribute:Dexterity)],
+    multipliers: [(multiplier:90,attribute:Dexterity)],
    ),
   ),
  ),
@@ -67,7 +67,7 @@
   list: [
    (
     kind: Blunt,
-    amount: (start:8,end:10),
+    amount: (start:2,end:4),
     amount_multiplier: (multipliers:[(multiplier:80,attribute:Strength)]),
     hit_cost: (cost:128,multiplier_inverted:(multipliers:[(multiplier:80,attribute:Dexterity)])),
     hit_chance: (amount:128,multiplier:(multipliers:[(multiplier:128,attribute:Dexterity)])),
@@ -77,11 +77,7 @@
  equipment_display: (
   items: {
    (OffHand, 0): (152, 48),
-   (Finger, 1): (152, 88),
-   (Finger, 0): (72, 88),
-   (Neck, 0): (152, 8),
-   (MainHand, 0): (72, 48),
   },
  ),
- inventory_capacity: 16,
+ inventory_capacity: 8,
 )

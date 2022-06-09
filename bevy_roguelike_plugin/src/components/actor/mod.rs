@@ -52,6 +52,12 @@ impl Actor {
             position: Vector2D::from(position),
             render_info: RenderInfo {
                 texture: asset_server.load(template.render.texture_path.as_str()),
+                cosmetic_textures: template
+                    .render
+                    .texture_path_cosmetics
+                    .iter()
+                    .map(|p| asset_server.load(p.as_str()))
+                    .collect(),
                 z: 2.,
             },
             stats_computed: StatsComputed::default(),

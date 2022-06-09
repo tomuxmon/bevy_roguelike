@@ -1,7 +1,8 @@
 (
  render: (
   name: "Cyclops",
-  texture_path: "sprites/enemy/cyclops.png",
+  texture_path: "sprites/actors/cyclops.png",
+  texture_path_cosmetics: [],
  ),
  attributes: (
   list: {

@@ -13,14 +13,13 @@ pub struct ActorTemplate {
     pub damage: DamageList,
     pub equipment_display: EquipmentDisplay,
     pub inventory_capacity: usize,
-
     // TODO: initial equipment
     // TODO: initial inventory
-
 }
 
 #[derive(Serialize, Deserialize)]
 pub struct ActorRenderInfo {
     pub name: String,
     pub texture_path: String,
+    pub texture_path_cosmetics: Vec<String>,
 }

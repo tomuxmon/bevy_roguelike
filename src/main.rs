@@ -32,7 +32,7 @@ impl StateNext for AppState {
         }
     }
 }
-
+// TODO: move player / enemy control to lib
 pub fn input_player(
     keys: Res<Input<KeyCode>>,
     players: Query<(Entity, &TurnState, &Inventory, &Equipment), With<MovingPlayer>>,
@@ -165,9 +165,11 @@ fn rogue_setup(
     mut loading: ResMut<AssetsLoading>,
 ) {
     cmd.insert_resource(MapOptions {
-        map_size: IVec2::new(35, 25),
-        tile_size: 32.0,
+        map_size: IVec2::new(75, 55),
+        tile_size: 16.0,
     });
+
+    // TODO: all assets should just be loaded by lib instead with no specific paths.
 
     let map_assets = MapAssets {
         floor: vec![
@@ -200,18 +202,9 @@ fn rogue_setup(
         .extend(map_assets.wall.iter().map(|a| a.clone_untyped()));
     cmd.insert_resource(map_assets);
 
-    let player_assets = PlayerAssets {
-        body: asset_server.load("sprites/player/human_male.png"),
-        wear: vec![
-            asset_server.load("sprites/player/jacket_2.png"),
-            asset_server.load("sprites/player/pants_black.png"),
-        ],
-    };
-    loading
-        .0
-        .extend(player_assets.wear.iter().map(|a| a.clone_untyped()));
-    loading.0.push(player_assets.body.clone_untyped());
-    cmd.insert_resource(player_assets);
+    if let Ok(handles) = asset_server.load_folder("sprites/actors") {
+        loading.0.extend(handles);
+    }
 
     if let Ok(handles) = asset_server.load_folder("sprites/item_equiped") {
         loading.0.extend(handles);

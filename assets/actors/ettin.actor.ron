@@ -1,7 +1,8 @@
 (
  render: (
   name: "Ettin",
-  texture_path: "sprites/enemy/ettin.png",
+  texture_path: "sprites/actors/ettin.png",
+  texture_path_cosmetics: [],
  ),
  attributes: (
   list: {

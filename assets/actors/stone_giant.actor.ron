@@ -1,7 +1,8 @@
 (
  render: (
   name: "Stone giant",
-  texture_path: "sprites/enemy/stone_giant.png",
+  texture_path: "sprites/actors/stone_giant.png",
+  texture_path_cosmetics: [],
  ),
  attributes: (
   list: {

@@ -27,6 +27,22 @@ pub fn render_body(
                         transform: Transform::from_xyz(0., 0., info.z + 0.1),
                         ..Default::default()
                     });
+
+                for cosmetic_texture in info.cosmetic_textures.iter() {
+                    renderable
+                        .spawn()
+                        .insert(Name::new("cosmetic"))
+                        .insert_bundle(SpriteBundle {
+                            sprite: Sprite {
+                                color: Color::WHITE,
+                                custom_size: Some(Vec2::splat(map_options.tile_size)),
+                                ..Default::default()
+                            },
+                            texture: cosmetic_texture.clone(),
+                            transform: Transform::from_xyz(0., 0., info.z + 0.2),
+                            ..Default::default()
+                        });
+                }
             });
     }
 }

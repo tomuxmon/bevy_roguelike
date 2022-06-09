@@ -1,7 +1,8 @@
 (
  render: (
   name: "Hobgoblin",
-  texture_path: "sprites/enemy/hobgoblin.png",
+  texture_path: "sprites/actors/hobgoblin.png",
+  texture_path_cosmetics: [],
  ),
  attributes: (
   list: {

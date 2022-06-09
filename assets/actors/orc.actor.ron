@@ -1,7 +1,8 @@
 (
  render: (
   name: "Orc",
-  texture_path: "sprites/enemy/orc.png",
+  texture_path: "sprites/actors/orc.png",
+  texture_path_cosmetics: [],
  ),
  attributes: (
   list: {

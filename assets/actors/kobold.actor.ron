@@ -1,7 +1,8 @@
 (
  render: (
   name: "Kobold",
-  texture_path: "sprites/enemy/kobold.png",
+  texture_path: "sprites/actors/kobold.png",
+  texture_path_cosmetics: [],
  ),
  attributes: (
   list: {

@@ -1,7 +1,8 @@
 (
  render: (
   name: "Frost giant",
-  texture_path: "sprites/enemy/frost_giant.png",
+  texture_path: "sprites/actors/frost_giant.png",
+  texture_path_cosmetics: [],
  ),
  attributes: (
   list: {
