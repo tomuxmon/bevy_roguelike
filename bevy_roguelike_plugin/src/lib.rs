@@ -70,7 +70,11 @@ impl<T: StateNext> Plugin for RoguelikePlugin<T> {
             .add_plugin(RonAssetPlugin::<ItemTemplate>::new(&["item.ron"]))
             .add_plugin(RonAssetPlugin::<ActorTemplate>::new(&["actor.ron"]))
             .add_plugin(RonAssetPlugin::<MapTheme>::new(&["maptheme.ron"]))
+            .add_plugin(RonAssetPlugin::<InventoryTheme>::new(&[
+                "inventorytheme.ron",
+            ]))
             .insert_resource(AssetsLoading::default())
+            .add_startup_system(Self::rogue_setup)
             .add_startup_system(setup_camera)
             .add_system_set(
                 SystemSet::on_update(self.asset_load_state.clone())
@@ -204,6 +208,18 @@ impl<T: StateNext> RoguelikePlugin<T> {
         cmd.remove_resource::<MapEntities>();
     }
 
+    fn rogue_setup(
+        asset_server: Res<AssetServer>,
+        mut state: ResMut<State<T>>,
+        mut loading: ResMut<AssetsLoading>,
+    ) {
+        if let Ok(handles) = asset_server.load_folder("") {
+            loading.0.extend(handles);
+        }
+        // NOTE: transitioning from Setup to AssetLoad
+        state.set_next();
+    }
+
     pub fn create_map(
         mut cmd: Commands,
         mut state: ResMut<State<T>>,
@@ -211,6 +227,7 @@ impl<T: StateNext> RoguelikePlugin<T> {
         asset_server: Res<AssetServer>,
         map_themes: Res<Assets<MapTheme>>,
         item_templates: Res<Assets<ItemTemplate>>,
+        inventory_themes: Res<Assets<InventoryTheme>>,
         actor_templates: Res<Assets<ActorTemplate>>,
         mut cameras: Query<&mut Transform, With<Camera2d>>,
     ) {
@@ -338,6 +355,20 @@ impl<T: StateNext> RoguelikePlugin<T> {
         // } else {
         //     bevy::log::error!("no ron string huh..");
         // }
+
+        let inventory_themes: Vec<_> = inventory_themes.iter().map(|(_, it)| it).collect();
+        let inventory_theme = inventory_themes[rng.gen_range(0..inventory_themes.len())];
+        let inventory_assets = InventoryAssets {
+            slot: asset_server.load(inventory_theme.slot.as_str()),
+            head_wear: asset_server.load(inventory_theme.head_wear.as_str()),
+            body_wear: asset_server.load(inventory_theme.body_wear.as_str()),
+            main_hand_gear: asset_server.load(inventory_theme.main_hand_gear.as_str()),
+            off_hand_gear: asset_server.load(inventory_theme.off_hand_gear.as_str()),
+            finger_wear: asset_server.load(inventory_theme.finger_wear.as_str()),
+            neck_wear: asset_server.load(inventory_theme.neck_wear.as_str()),
+            feet_wear: asset_server.load(inventory_theme.feet_wear.as_str()),
+        };
+        cmd.insert_resource(inventory_assets);
 
         let map_themes: Vec<_> = map_themes.iter().map(|(_, it)| it).collect();
         let map_theme = map_themes[rng.gen_range(0..map_themes.len())];

@@ -1,7 +1,7 @@
 use bevy::{prelude::*, utils::HashMap};
 use bevy_roguelike_plugin::{
-    components::*, events::*, resources::*, systems::turns::gather_action_points, AssetsLoading,
-    RoguelikePlugin, StateNext,
+    components::*, events::*, resources::*, systems::turns::gather_action_points, RoguelikePlugin,
+    StateNext,
 };
 use line_drawing::WalkGrid;
 use map_generator::*;
@@ -150,7 +150,7 @@ fn main() {
                 .with_system(input_player.after(gather_action_points))
                 .with_system(input_fov_rand.after(gather_action_points)),
         )
-        .add_startup_system(rogue_setup);
+        .add_startup_system(set_options);
 
     #[cfg(feature = "debug")]
     app.add_plugin(WorldInspectorPlugin::new());
@@ -158,66 +158,9 @@ fn main() {
     app.run();
 }
 
-fn rogue_setup(
-    mut cmd: Commands,
-    asset_server: Res<AssetServer>,
-    mut state: ResMut<State<AppState>>,
-    mut loading: ResMut<AssetsLoading>,
-) {
+fn set_options(mut cmd: Commands) {
     cmd.insert_resource(MapOptions {
         map_size: IVec2::new(75, 55),
-        tile_size: 16.0,
+        tile_size: 32.0,
     });
-
-    // TODO: all assets should just be loaded by lib instead with no specific paths.
-
-    if let Ok(handles) = asset_server.load_folder("sprites/actors") {
-        loading.0.extend(handles);
-    }
-
-    if let Ok(handles) = asset_server.load_folder("sprites/item_equiped") {
-        loading.0.extend(handles);
-    }
-
-    if let Ok(handles) = asset_server.load_folder("sprites/item") {
-        loading.0.extend(handles);
-    }
-
-    if let Ok(handles) = asset_server.load_folder("items") {
-        loading.0.extend(handles);
-    }
-
-    if let Ok(handles) = asset_server.load_folder("actors") {
-        loading.0.extend(handles);
-    }
-
-    if let Ok(handles) = asset_server.load_folder("map_themes") {
-        loading.0.extend(handles);
-    }
-
-    let inventory_assets = InventoryAssets {
-        slot: asset_server.load("sprites/gui/inventory/slot.png"),
-        head_wear: asset_server.load("sprites/gui/inventory/head_wear.png"),
-        body_wear: asset_server.load("sprites/gui/inventory/body_wear.png"),
-        main_hand_gear: asset_server.load("sprites/gui/inventory/main_hand_gear.png"),
-        off_hand_gear: asset_server.load("sprites/gui/inventory/off_hand_gear.png"),
-        finger_wear: asset_server.load("sprites/gui/inventory/finger_wear.png"),
-        neck_wear: asset_server.load("sprites/gui/inventory/neck_wear.png"),
-        feet_wear: asset_server.load("sprites/gui/inventory/feet_wear.png"),
-    };
-    loading.0.push(inventory_assets.slot.clone_untyped());
-    loading.0.push(inventory_assets.head_wear.clone_untyped());
-    loading.0.push(inventory_assets.body_wear.clone_untyped());
-    loading
-        .0
-        .push(inventory_assets.main_hand_gear.clone_untyped());
-    loading
-        .0
-        .push(inventory_assets.off_hand_gear.clone_untyped());
-    loading.0.push(inventory_assets.finger_wear.clone_untyped());
-    loading.0.push(inventory_assets.neck_wear.clone_untyped());
-    loading.0.push(inventory_assets.feet_wear.clone_untyped());
-    cmd.insert_resource(inventory_assets);
-
-    state.set(AppState::AssetLoad).unwrap();
 }

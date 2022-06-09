@@ -1,0 +1,10 @@
+(
+  slot: "sprites/gui/inventory/slot.png",
+  head_wear: "sprites/gui/inventory/head_wear.png",
+  body_wear: "sprites/gui/inventory/body_wear.png",
+  main_hand_gear: "sprites/gui/inventory/main_hand_gear.png",
+  off_hand_gear: "sprites/gui/inventory/off_hand_gear.png",
+  finger_wear: "sprites/gui/inventory/finger_wear.png",
+  neck_wear: "sprites/gui/inventory/neck_wear.png",
+  feet_wear: "sprites/gui/inventory/feet_wear.png",
+)
