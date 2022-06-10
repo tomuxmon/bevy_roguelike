@@ -1,5 +1,6 @@
 use crate::{components::*, events::*};
 use bevy::{prelude::*, utils::HashMap};
+use bevy_inventory::{Equipment, Inventory};
 use line_drawing::WalkGrid;
 use map_generator::*;
 use rand::prelude::*;

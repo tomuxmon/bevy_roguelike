@@ -1,5 +1,6 @@
 use crate::components::*;
 use bevy::reflect::TypeUuid;
+use bevy_inventory_ui::EquipmentDisplay;
 use serde::{Deserialize, Serialize};
 
 #[derive(Serialize, Deserialize, TypeUuid)]

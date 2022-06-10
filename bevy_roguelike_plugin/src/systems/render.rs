@@ -1,5 +1,6 @@
 use crate::{components::*, resources::MapOptions};
 use bevy::prelude::*;
+use bevy_inventory::{Equipment, ItemType};
 
 pub fn render_body(
     mut cmd: Commands,
@@ -16,7 +17,7 @@ pub fn render_body(
             .with_children(|renderable| {
                 renderable
                     .spawn()
-                    .insert(Name::new("body"))
+                    .insert(Name::new("render"))
                     .insert_bundle(SpriteBundle {
                         sprite: Sprite {
                             color: Color::WHITE,
@@ -31,7 +32,7 @@ pub fn render_body(
                 for cosmetic_texture in info.cosmetic_textures.iter() {
                     renderable
                         .spawn()
-                        .insert(Name::new("cosmetic"))
+                        .insert(Name::new("render cosmetic"))
                         .insert_bundle(SpriteBundle {
                             sprite: Sprite {
                                 color: Color::WHITE,
@@ -63,7 +64,7 @@ pub fn render_equiped_item(
             cmd.entity(owner.id).with_children(|renderable| {
                 let id = renderable
                     .spawn()
-                    .insert(Name::new("item rendition"))
+                    .insert(Name::new("item render"))
                     .insert(EquipedRenderedItem { id: item_entity })
                     .insert_bundle(SpriteBundle {
                         sprite: Sprite {
@@ -124,5 +125,3 @@ pub fn render_hud_health_bar(
             });
     }
 }
-
-// TODO: render inventory

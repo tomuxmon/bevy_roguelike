@@ -1,5 +1,6 @@
 use crate::components::*;
 use bevy::prelude::*;
+use bevy_inventory::{Equipment, ItemType};
 
 pub fn attributes_update_action_points(
     mut cmd: Commands,

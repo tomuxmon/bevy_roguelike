@@ -1,0 +1,15 @@
+[package]
+name = "bevy_inventory_ui"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+serde = "~1.0"
+bevy_inventory = { path = "../bevy_inventory" }
+
+[dependencies.bevy]
+version = "~0.7"
+default-features = false
+features = ["render"]

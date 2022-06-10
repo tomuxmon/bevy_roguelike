@@ -1,11 +1,10 @@
 pub mod components;
-pub mod dragable_ui;
+// pub mod dragable_ui;
 pub mod events;
 pub mod resources;
 pub mod systems;
 
 use crate::components::*;
-use crate::dragable_ui::*;
 use crate::events::*;
 use bevy::ecs::schedule::StateData;
 use bevy::log;
@@ -13,6 +12,13 @@ use bevy::prelude::*;
 use bevy::render::camera::Camera2d;
 use bevy::utils::HashSet;
 use bevy_asset_ron::RonAssetPlugin;
+use bevy_inventory_ui::equipment_update;
+use bevy_inventory_ui::inventory_update;
+use bevy_inventory_ui::toggle_inventory_open;
+use bevy_inventory_ui::ui_apply_drag_pos;
+use bevy_inventory_ui::ui_drag_interaction;
+use bevy_inventory_ui::InventoryAssets;
+use bevy_inventory_ui::InventoryDisplayToggleEvent;
 use bevy_tweening::TweeningPlugin;
 use map_generator::*;
 use rand::prelude::*;
@@ -102,6 +108,7 @@ impl<T: StateNext> Plugin for RoguelikePlugin<T> {
                     .with_system(attack.after(act))
                     .with_system(pick_up_items)
                     .with_system(toggle_inventory_open)
+                    .with_system(toggle_inventory_open_event_send)
                     .with_system(equipment_update)
                     .with_system(inventory_update)
                     .with_system(drop_item)
@@ -149,15 +156,15 @@ impl<T: StateNext> Plugin for RoguelikePlugin<T> {
             .register_type::<Evasion>()
             .register_type::<Block>()
             .register_type::<Evasion>()
-            .register_type::<ItemType>()
+            // .register_type::<ItemType>()
             .register_type::<StatsComputed>()
             .register_type::<StatsComputedDirty>()
             .register_type::<Quality>()
-            .register_type::<ItemEquipSlot>()
-            .register_type::<ItemDisplaySlot>()
-            .register_type::<EquipmentDisplay>()
-            .register_type::<Equipment>()
-            .register_type::<DragableUI>()
+            // .register_type::<ItemEquipSlot>()
+            // .register_type::<ItemDisplaySlot>()
+            // .register_type::<EquipmentDisplay>()
+            // .register_type::<Equipment>()
+            // .register_type::<DragableUI>()
             .register_type::<HashSet<IVec2>>()
             .register_type::<Vec<DamageKind>>()
             .register_type::<Vec<Protect>>()
@@ -170,7 +177,8 @@ impl<T: StateNext> Plugin for RoguelikePlugin<T> {
             .add_event::<IdleEvent>()
             .add_event::<PickUpItemEvent>()
             .add_event::<DropItemEvent>()
-            .add_event::<CameraFocusEvent>();
+            .add_event::<CameraFocusEvent>()
+            .add_event::<InventoryDisplayToggleEvent>();
 
         log::info!("Loaded Roguelike Plugin");
     }
@@ -256,7 +264,7 @@ impl<T: StateNext> RoguelikePlugin<T> {
             let new_pos = options.to_world_position(info.camera_focus).extend(z);
             c.translation = new_pos;
         }
-        
+
         let inventory_themes: Vec<_> = inventory_themes.iter().map(|(_, it)| it).collect();
         let inventory_theme = inventory_themes[rng.gen_range(0..inventory_themes.len())];
         let inventory_assets = InventoryAssets {

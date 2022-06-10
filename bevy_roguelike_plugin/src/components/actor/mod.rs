@@ -1,9 +1,19 @@
 use super::*;
 use crate::resources::ActorTemplate;
-use bevy::prelude::*;
+use bevy::{prelude::*, utils::HashMap};
+use bevy_inventory::{Equipment, Inventory};
+use bevy_inventory_ui::EquipmentDisplay;
 use stats::*;
 
 pub mod stats;
+
+fn from_display(display: &EquipmentDisplay) -> Equipment {
+    let mut items = HashMap::default();
+    for (t, _) in display.items.iter() {
+        items.entry(*t).insert(None);
+    }
+    Equipment { items }
+}
 
 #[derive(Bundle)]
 pub struct Actor {
@@ -48,7 +58,7 @@ impl Actor {
             fov: FieldOfView::new(&template.attributes),
             inventory: Inventory::with_capacity(template.inventory_capacity),
             equipment_display: template.equipment_display.clone(),
-            equipment: (&template.equipment_display).into(),
+            equipment: from_display(&template.equipment_display),
             position: Vector2D::from(position),
             render_info: RenderInfo {
                 texture: asset_server.load(template.render.texture_path.as_str()),

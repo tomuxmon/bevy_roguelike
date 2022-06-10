@@ -1,21 +1,37 @@
-use super::ItemType;
-use crate::components::Vector2D;
-use bevy::{
-    prelude::*,
-    utils::{hashbrown::hash_map::Iter, HashMap},
-};
+use bevy::prelude::*;
+use bevy::utils::HashMap;
 use serde::{Deserialize, Serialize};
 use std::ops::{Index, IndexMut};
+
+// TODO: make ItemType generic (ability to define item type outside of lib scope. in user code)
+#[derive(Reflect, Copy, Clone, PartialEq, Eq, Hash, Serialize, Deserialize, Component, Debug)]
+#[reflect_value(PartialEq, Serialize, Deserialize)]
+#[reflect(Component)]
+pub enum ItemType {
+    MainHand,
+    OffHand,
+    Head,
+    Neck,
+    Body,
+    Feet,
+    Finger,
+}
+impl Default for ItemType {
+    fn default() -> Self {
+        Self::MainHand
+    }
+}
 
 #[derive(Debug, Default, Clone, Component, Reflect)]
 #[reflect(Component)]
 pub struct Equipment {
-    items: HashMap<(ItemType, u8), Option<Entity>>,
+    pub items: HashMap<(ItemType, u8), Option<Entity>>,
 }
 impl Equipment {
-    pub fn list<T>(&self, t_items: &Query<&T, (With<ItemType>, Without<Vector2D>)>) -> Vec<T>
+    pub fn list<T, V>(&self, t_items: &Query<&T, (With<ItemType>, Without<V>)>) -> Vec<T>
     where
         T: Component + Clone,
+        V: Component,
     {
         self.iter_some()
             .filter_map(|(_, e)| {
@@ -27,14 +43,14 @@ impl Equipment {
             })
             .collect()
     }
-
     /// OMFG what a signature :| also virtually imposible to use since lifetime polution goes up the call stack
-    pub fn iter<'s, T>(
+    pub fn iter<'s, T, V>(
         &'s self,
-        t_items: &'s Query<'_, 's, &'s T, (With<ItemType>, Without<Vector2D>)>,
+        t_items: &'s Query<'_, 's, &'s T, (With<ItemType>, Without<V>)>,
     ) -> impl Iterator<Item = &'s T> + 's
     where
         T: Component,
+        V: Component,
     {
         self.iter_some().filter_map(|(_, e)| {
             if let Ok(t) = t_items.get(e) {
@@ -79,21 +95,14 @@ impl Equipment {
     }
 
     pub fn iter_some(&'_ self) -> impl Iterator<Item = ((ItemType, u8), Entity)> + '_ {
+        // TODO: use filter_map instead
         self.items
             .iter()
             .filter(|(_, i)| i.is_some())
             .map(move |(a, i)| (*a, i.unwrap()))
     }
 }
-impl From<&EquipmentDisplay> for Equipment {
-    fn from(display: &EquipmentDisplay) -> Self {
-        let mut items = HashMap::default();
-        for (t, _) in display.items.iter() {
-            items.entry(*t).insert(None);
-        }
-        Self { items }
-    }
-}
+
 impl Index<(ItemType, u8)> for Equipment {
     type Output = Option<Entity>;
 
@@ -104,6 +113,7 @@ impl Index<(ItemType, u8)> for Equipment {
         &None
     }
 }
+
 impl IndexMut<(ItemType, u8)> for Equipment {
     fn index_mut(&mut self, index: (ItemType, u8)) -> &mut Self::Output {
         if let Some(ee) = self.items.get_mut(&index) {
@@ -113,40 +123,18 @@ impl IndexMut<(ItemType, u8)> for Equipment {
     }
 }
 
-/// equipment display locations in 128 height x 256 width canvas
-#[derive(Debug, Clone, Component, Reflect, Serialize, Deserialize)]
-#[reflect(Component)]
-pub struct EquipmentDisplay {
-    items: HashMap<(ItemType, u8), Vec2>,
-}
-impl EquipmentDisplay {
-    pub fn new(list: Vec<(ItemType, u8, Vec2)>) -> Self {
-        let mut items = HashMap::default();
-        for (t, i, r) in list {
-            items.entry((t, i)).insert(r);
-        }
-        Self { items }
-    }
-    pub fn iter(&self) -> Iter<(ItemType, u8), Vec2> {
-        self.items.iter()
-    }
-}
-impl Default for EquipmentDisplay {
-    fn default() -> Self {
-        EquipmentDisplay::new(vec![(ItemType::MainHand, 0, Vec2::new(72., 58.))])
-    }
-}
-
 #[derive(Debug, Clone, Component, Reflect)]
 #[reflect(Component)]
 pub struct Inventory {
     items: Vec<Option<Entity>>,
 }
+
 impl Default for Inventory {
     fn default() -> Self {
         Self::with_capacity(Inventory::DEFAULT_CAPACITY)
     }
 }
+
 impl Inventory {
     pub const DEFAULT_CAPACITY: usize = 32;
 
@@ -190,6 +178,7 @@ impl Inventory {
         self.len() == 0
     }
 }
+
 impl Index<usize> for Inventory {
     type Output = Option<Entity>;
 
@@ -197,7 +186,3 @@ impl Index<usize> for Inventory {
         &self.items[index]
     }
 }
-
-#[derive(Default, Debug, Clone, Component, Reflect)]
-#[reflect(Component)]
-pub struct InventoryDisplay;

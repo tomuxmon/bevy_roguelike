@@ -4,6 +4,8 @@ use crate::components::*;
 use crate::resources::*;
 use bevy::ecs::system::EntityCommands;
 use bevy::prelude::*;
+use bevy_inventory::ItemType;
+use bevy_inventory_ui::UiRenderInfo;
 use rand::prelude::*;
 
 pub fn spawn_item(
@@ -112,10 +114,14 @@ fn insert_render(
     render: &ItemRenderInfo,
     quality: &Quality,
 ) {
+    let texture = asset_server.load(render.texture_path.as_str());
     ecmd.insert(Name::new(format!("{} {}", quality, render.name.clone())))
         .insert(quality.clone())
+        .insert(UiRenderInfo {
+            image: texture.clone().into(),
+        })
         .insert(RenderInfo {
-            texture: asset_server.load(render.texture_path.as_str()),
+            texture,
             cosmetic_textures: vec![],
             z: 1.,
         });

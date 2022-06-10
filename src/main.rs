@@ -1,4 +1,5 @@
 use bevy::prelude::*;
+use bevy_inventory_ui::InventoryDisplayOptions;
 use bevy_roguelike_plugin::{resources::*, RoguelikePlugin, StateNext};
 
 #[cfg(feature = "debug")]
@@ -53,7 +54,8 @@ fn main() {
 
 fn set_options(mut cmd: Commands) {
     cmd.insert_resource(MapOptions {
-        map_size: IVec2::new(75, 55),
+        map_size: IVec2::new(25, 25),
         tile_size: 32.0,
     });
+    cmd.insert_resource(InventoryDisplayOptions { tile_size: 32.0 })
 }
