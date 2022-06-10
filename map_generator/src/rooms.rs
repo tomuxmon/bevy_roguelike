@@ -31,14 +31,15 @@ impl MapGenerator for RoomsGenerator {
                 }
             });
         }
-        carve_coriddors(&mut map, rooms.clone());
+        carve_coriddors(&mut map, rooms);
 
         map
     }
 }
 
 fn carve_coriddors(map: &mut Map, rooms: Vec<Rect>) {
-    let mut rooms = rooms.clone();
+    // NOTE: huh.. we can do that in rust?
+    let mut rooms = rooms;
     rooms.sort_by(|a, b| a.get_center().y.cmp(&b.get_center().y));
     for (i, room) in rooms.iter().enumerate().skip(1) {
         let prev = rooms[i - 1].get_center();

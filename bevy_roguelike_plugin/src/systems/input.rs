@@ -31,10 +31,8 @@ pub fn input_player(
         } else if keys.just_pressed(KeyCode::D) {
             if let Some(ee) = inv.iter_some().last() {
                 drop_writer.send(DropItemEvent::new(id, ee));
-            } else {
-                if let Some((_, ee)) = eqv.iter_some().last() {
-                    drop_writer.send(DropItemEvent::new(id, ee));
-                }
+            } else if let Some((_, ee)) = eqv.iter_some().last() {
+                drop_writer.send(DropItemEvent::new(id, ee));
             }
             return;
         } else {

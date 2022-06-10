@@ -32,7 +32,7 @@ pub fn camera_focus_smooth(
                 TweeningType::Once,
                 Duration::from_millis(350),
                 TransformPositionLens {
-                    start: camera_transform.translation.clone(),
+                    start: camera_transform.translation,
                     end: map_options
                         .to_world_position(cfe.position)
                         .extend(camera_transform.translation.z),

@@ -47,6 +47,7 @@ pub fn render_body(
     }
 }
 
+#[allow(clippy::type_complexity)]
 pub fn render_equiped_item(
     mut cmd: Commands,
     actors: Query<(Entity, &Vector2D), With<Equipment>>,

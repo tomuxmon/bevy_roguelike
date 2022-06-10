@@ -35,7 +35,7 @@ impl Map {
     }
 
     pub fn is_in_bounds(&self, pt: IVec2) -> bool {
-        self.size.x - 1 >= pt.x && self.size.y - 1 >= pt.y && pt.x >= 0 && pt.y >= 0
+        self.size.x > pt.x && self.size.y > pt.y && pt.x >= 0 && pt.y >= 0
     }
 
     pub fn is_edge(&self, pt: IVec2) -> bool {

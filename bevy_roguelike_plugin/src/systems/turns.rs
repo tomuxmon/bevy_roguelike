@@ -33,19 +33,17 @@ pub fn act(
                     // NOTE: can not move into a tile ocupied by a team mate
                     idle_writer.send(IdleEvent::new(e.id));
                     continue;
+                } else if let Some((enemy_entity, _, _)) =
+                    enemies.iter().find(|(_, t, p)| *t != team && ***p == dest)
+                {
+                    attack_writer.send({
+                        AttackEvent {
+                            attacker: e.id,
+                            defender: enemy_entity,
+                        }
+                    })
                 } else {
-                    if let Some((enemy_entity, _, _)) =
-                        enemies.iter().find(|(_, t, p)| *t != team && ***p == dest)
-                    {
-                        attack_writer.send({
-                            AttackEvent {
-                                attacker: e.id,
-                                defender: enemy_entity,
-                            }
-                        })
-                    } else {
-                        log::error!("nothing to attack at {:?} (... has bugs).", dest);
-                    }
+                    log::error!("nothing to attack at {:?} (... has bugs).", dest);
                 }
             } else {
                 let move_event = MoveEvent {
@@ -89,7 +87,7 @@ pub fn attack(
                 return;
             };
 
-        if attacker_stats.damage.len() == 0 {
+        if attacker_stats.damage.is_empty() {
             log::error!("attacker has no damage.");
             return;
         }
@@ -204,7 +202,7 @@ pub fn apply_hp_modify(
                 // TODO: animated death
                 // different animation based on negative percent of current hp
                 bevy::log::info!("death to {} (id: {:?}) at {}", name, ee, pt);
-                cmd.entity(ee).despawn_recursive();                
+                cmd.entity(ee).despawn_recursive();
             }
         }
         cmd.entity(e).despawn_recursive();

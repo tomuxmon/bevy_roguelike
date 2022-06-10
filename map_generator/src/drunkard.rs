@@ -56,7 +56,7 @@ fn walk(from: IVec2, max_step: usize, rng: &mut StdRng, map: &mut Map) -> IVec2 
 
         let deltas = Map::get_wasd_neighbor_deltas();
         let delta = deltas[rng.gen_range(0..deltas.len())];
-        pt = pt + delta;
+        pt += delta;
 
         step += 1;
         if map.is_edge(pt) || !map.is_in_bounds(pt) || step > max_step {

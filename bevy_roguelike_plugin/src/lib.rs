@@ -220,6 +220,7 @@ impl<T: StateNext> RoguelikePlugin<T> {
         state.set_next();
     }
 
+    #[allow(clippy::too_many_arguments)]
     pub fn create_map(
         mut cmd: Commands,
         mut state: ResMut<State<T>>,

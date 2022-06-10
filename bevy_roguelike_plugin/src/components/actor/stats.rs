@@ -62,12 +62,7 @@ impl Add for Attributes {
 
     fn add(self, rhs: Self) -> Self::Output {
         Self {
-            list: HashMap::from_iter(
-                self.clone()
-                    .list
-                    .into_iter()
-                    .map(|(t, v)| (t, v + *rhs.get(t))),
-            ),
+            list: HashMap::from_iter(self.list.into_iter().map(|(t, v)| (t, v + *rhs.get(t)))),
         }
     }
 }
@@ -117,7 +112,7 @@ impl ActionPoints {
         self.current
     }
     pub fn current_add(&mut self) -> i16 {
-        self.current = self.current + self.increment;
+        self.current += self.increment;
         self.current
     }
     pub fn current_minus(&mut self, cost: i16) -> i16 {
@@ -185,7 +180,7 @@ impl HitPoints {
         self.current as f32 / self.full as f32
     }
     pub fn regen(&mut self) {
-        self.regen_current = self.regen_current + self.regen_increment;
+        self.regen_current += self.regen_increment;
         if self.regen_current > self.regen_ready {
             let amount = self.regen_current / self.regen_ready;
             let rem = self.regen_current % self.regen_ready;

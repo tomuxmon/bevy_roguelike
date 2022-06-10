@@ -22,12 +22,10 @@ pub fn ui_drag_interaction(
                     d.last_cursor_position = Vec2::ZERO;
                     d.current_cursor_position = Vec2::ZERO;
                 }
-            } else {
-                if *i == Interaction::Clicked {
-                    d.is_started = true;
-                    d.last_ui_position = s.position.clone();
-                    d.last_cursor_position = mm.position;
-                }
+            } else if *i == Interaction::Clicked {
+                d.is_started = true;
+                d.last_ui_position = s.position;
+                d.last_cursor_position = mm.position;
             }
             if d.is_started {
                 d.current_cursor_position = mm.position;
@@ -51,6 +49,6 @@ pub fn ui_apply_drag_pos(mut dragables: Query<(&mut Style, &DragableUI)>) {
         };
         style.position.top = Val::Px(top + delta.y);
         style.position.right = Val::Px(right + delta.x);
-        // update z? 
+        // update z?
     }
 }

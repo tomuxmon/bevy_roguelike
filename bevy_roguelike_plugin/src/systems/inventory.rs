@@ -1,6 +1,7 @@
 use crate::{components::*, dragable_ui::DragableUI, events::*, resources::*};
 use bevy::{prelude::*, ui::*};
 
+#[allow(clippy::type_complexity)]
 pub fn pick_up_items(
     mut cmd: Commands,
     mut pick_up_item_reader: EventReader<PickUpItemEvent>,

@@ -92,8 +92,8 @@ impl MutableQuality for u8 {
         } else {
             quality.get_multiplier_inverse()
         };
-        let t_start = (*self as f32 * start as f32 / 100 as f32) as u8;
-        let t_end = (*self as f32 * end as f32 / 100 as f32) as u8;
+        let t_start = (*self as f32 * start as f32 / 100.) as u8;
+        let t_end = (*self as f32 * end as f32 / 100.) as u8;
         let range = t_start..t_end;
         if range.is_empty() {
             range.start
@@ -109,8 +109,8 @@ impl MutableQuality for i16 {
         } else {
             quality.get_multiplier_inverse()
         };
-        let t_start = (*self as f32 * start as f32 / 100 as f32) as i16;
-        let t_end = (*self as f32 * end as f32 / 100 as f32) as i16;
+        let t_start = (*self as f32 * start as f32 / 100.) as i16;
+        let t_end = (*self as f32 * end as f32 / 100.) as i16;
         let range = t_start..t_end;
         if range.is_empty() {
             range.start
@@ -126,8 +126,8 @@ impl MutableQuality for i32 {
         } else {
             quality.get_multiplier_inverse()
         };
-        let t_start = (*self as f32 * start as f32 / 100 as f32) as i32;
-        let t_end = (*self as f32 * end as f32 / 100 as f32) as i32;
+        let t_start = (*self as f32 * start as f32 / 100.) as i32;
+        let t_end = (*self as f32 * end as f32 / 100.) as i32;
         let range = t_start..t_end;
         if range.is_empty() {
             range.start
@@ -175,11 +175,8 @@ impl MutableQuality for Formula {
 }
 impl MutableQuality for Option<Formula> {
     fn mutate_extended(&self, is_direct: bool, quality: &Quality, rng: &mut StdRng) -> Self {
-        if let Some(f) = self {
-            Some(f.mutate_extended(is_direct, quality, rng))
-        } else {
-            None
-        }
+        self.as_ref()
+            .map(|f| f.mutate_extended(is_direct, quality, rng))
     }
 }
 

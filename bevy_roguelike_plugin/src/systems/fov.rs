@@ -3,6 +3,7 @@ use bevy::{prelude::*, tasks::*, utils::HashSet};
 use line_drawing::{BresenhamCircle, Supercover};
 use map_generator::*;
 
+#[allow(clippy::type_complexity)]
 pub fn field_of_view_set_visibility(
     players: Query<&FieldOfView, With<MovingPlayer>>,
     mut visibles: Query<(
@@ -22,21 +23,15 @@ pub fn field_of_view_set_visibility(
 ) {
     for fov in players.iter() {
         visibles.for_each_mut(|(pt, children, cp, hp, _)| {
-            let is_revealed = fov.tiles_revealed.contains(&pt);
-            let is_visible = fov.tiles_visible.contains(&pt);
+            let is_revealed = fov.tiles_revealed.contains(pt);
+            let is_visible = fov.tiles_visible.contains(pt);
             let is_ambient = cp.is_none();
-            let hp_percent = if hp.is_none() {
-                1.
-            } else {
-                hp.unwrap().percent()
-            };
+            let hp_percent = hp.map(|h| h.percent()).unwrap_or(1.);
             for c in children.iter() {
                 if let Ok((mut s, mut t, mut v, h)) = visible_children.get_mut(*c) {
                     let is_hud_hp = h.is_some();
-                    v.is_visible = (is_visible && !is_hud_hp)
-                        || (is_visible && is_hud_hp && hp_percent != 1.)
-                        || (is_ambient && is_revealed);
-
+                    v.is_visible =
+                        (hp_percent != 1. || !is_hud_hp) && is_visible || is_ambient && is_revealed;
                     if !is_hud_hp {
                         s.color = if is_visible && is_revealed {
                             Color::WHITE

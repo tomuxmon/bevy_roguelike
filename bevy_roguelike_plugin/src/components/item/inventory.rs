@@ -7,7 +7,7 @@ use bevy::{
 use serde::{Deserialize, Serialize};
 use std::ops::{Index, IndexMut};
 
-#[derive(Debug, Clone, Component, Reflect)]
+#[derive(Debug, Default, Clone, Component, Reflect)]
 #[reflect(Component)]
 pub struct Equipment {
     items: HashMap<(ItemType, u8), Option<Entity>>,
@@ -78,18 +78,11 @@ impl Equipment {
         }
     }
 
-    pub fn iter_some<'a>(&'a self) -> impl Iterator<Item = ((ItemType, u8), Entity)> + 'a {
+    pub fn iter_some(&'_ self) -> impl Iterator<Item = ((ItemType, u8), Entity)> + '_ {
         self.items
             .iter()
             .filter(|(_, i)| i.is_some())
             .map(move |(a, i)| (*a, i.unwrap()))
-    }
-}
-impl Default for Equipment {
-    fn default() -> Self {
-        Self {
-            items: Default::default(),
-        }
     }
 }
 impl From<&EquipmentDisplay> for Equipment {
@@ -186,14 +179,15 @@ impl Inventory {
         }
     }
     pub fn iter_some(&self) -> impl Iterator<Item = Entity> + '_ {
-        self.items
-            .iter()
-            .filter(|i| i.is_some())
-            .map(move |i| i.unwrap())
+        self.items.iter().filter_map(|i| *i)
     }
 
     pub fn len(&self) -> usize {
         self.items.len()
+    }
+
+    pub fn is_empty(&self) -> bool {
+        self.len() == 0
     }
 }
 impl Index<usize> for Inventory {

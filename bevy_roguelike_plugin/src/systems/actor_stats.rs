@@ -29,6 +29,7 @@ pub fn attributes_update_field_of_view(
     }
 }
 
+#[allow(clippy::type_complexity)]
 pub fn stats_recompute(
     mut cmd: Commands,
     mut actors: Query<
@@ -79,7 +80,7 @@ pub fn stats_recompute(
         stats.evasion = evasion.clone();
         stats.block = equipment.list(&items_blk);
         let mut damage = equipment.list(&items_dmg);
-        if damage.len() == 0 {
+        if damage.is_empty() {
             damage.extend(unarmed_damage.list.clone());
         }
         stats.damage = damage;
