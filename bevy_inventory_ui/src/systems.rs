@@ -6,7 +6,7 @@ use crate::{
 use bevy::{prelude::*, ui::*};
 use bevy_inventory::{Equipment, Inventory, ItemType};
 
-pub fn toggle_inventory_open(
+pub(crate) fn toggle_inventory_open(
     mut cmd: Commands,
     mut inventory_toggle_reader: EventReader<InventoryDisplayToggleEvent>,
     inventory_assets: Res<InventoryAssets>,
@@ -134,7 +134,7 @@ pub fn toggle_inventory_open(
     }
 }
 
-pub fn inventory_update(
+pub(crate) fn inventory_update(
     mut cmd: Commands,
     inventory_options: Res<InventoryDisplayOptions>,
     inventory_display_nodes: Query<(&InventoryDisplayNode, &Children)>,
@@ -202,7 +202,7 @@ pub fn inventory_update(
     }
 }
 
-pub fn equipment_update(
+pub(crate) fn equipment_update(
     mut cmd: Commands,
     map_options: Res<InventoryDisplayOptions>,
     inventory_assets: Res<InventoryAssets>,

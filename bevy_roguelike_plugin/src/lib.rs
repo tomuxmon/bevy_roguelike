@@ -12,13 +12,9 @@ use bevy::prelude::*;
 use bevy::render::camera::Camera2d;
 use bevy::utils::HashSet;
 use bevy_asset_ron::RonAssetPlugin;
-use bevy_inventory_ui::equipment_update;
-use bevy_inventory_ui::inventory_update;
-use bevy_inventory_ui::toggle_inventory_open;
-use bevy_inventory_ui::ui_apply_drag_pos;
-use bevy_inventory_ui::ui_drag_interaction;
 use bevy_inventory_ui::InventoryAssets;
-use bevy_inventory_ui::InventoryDisplayToggleEvent;
+use bevy_inventory_ui::InventoryTheme;
+use bevy_inventory_ui::InventoryUiPlugin;
 use bevy_tweening::TweeningPlugin;
 use map_generator::*;
 use rand::prelude::*;
@@ -34,10 +30,10 @@ use systems::render::*;
 use systems::turns::*;
 
 pub struct RoguelikePlugin<T> {
-    /// Asset loading happens in this state. When it finishes it transitions to [`RoguelikePlugin::game_construct_state`]
-    pub asset_load_state: T,
-    pub game_construct_state: T,
-    pub running_state: T,
+    /// Asset loading happens in this state. When it finishes it transitions to [`RoguelikePlugin::state_construct`]
+    pub state_asset_load: T,
+    pub state_construct: T,
+    pub state_running: T,
 }
 
 pub trait StateNext: StateData {
@@ -71,29 +67,26 @@ pub struct MapEntities {
 impl<T: StateNext> Plugin for RoguelikePlugin<T> {
     fn build(&self, app: &mut App) {
         app.add_plugin(TweeningPlugin {})
+            .add_plugin(InventoryUiPlugin {
+                state_running: self.state_running.clone(),
+            })
             .add_plugin(RonAssetPlugin::<ItemTemplate>::new(&["item.ron"]))
             .add_plugin(RonAssetPlugin::<ActorTemplate>::new(&["actor.ron"]))
             .add_plugin(RonAssetPlugin::<MapTheme>::new(&["maptheme.ron"]))
-            .add_plugin(RonAssetPlugin::<InventoryTheme>::new(&[
-                "inventorytheme.ron",
-            ]))
             .insert_resource(AssetsLoading::default())
             .add_startup_system(Self::rogue_setup)
             .add_startup_system(setup_camera)
             .add_system_set(
-                SystemSet::on_update(self.asset_load_state.clone())
+                SystemSet::on_update(self.state_asset_load.clone())
                     .with_system(Self::check_assets_ready),
             )
             .add_system_set(
-                SystemSet::on_enter(self.game_construct_state.clone())
-                    .with_system(Self::create_map),
+                SystemSet::on_enter(self.state_construct.clone()).with_system(Self::create_map),
             )
-            .add_system_to_stage(CoreStage::First, ui_drag_interaction)
             .add_system_set(
-                SystemSet::on_update(self.running_state.clone())
+                SystemSet::on_update(self.state_running.clone())
                     .with_system(input_player.after(gather_action_points))
                     .with_system(input_fov_rand.after(gather_action_points))
-                    .with_system(ui_apply_drag_pos)
                     .with_system(render_body)
                     .with_system(render_equiped_item)
                     .with_system(unrender_unequiped_items)
@@ -107,10 +100,7 @@ impl<T: StateNext> Plugin for RoguelikePlugin<T> {
                     .with_system(act)
                     .with_system(attack.after(act))
                     .with_system(pick_up_items)
-                    .with_system(toggle_inventory_open)
                     .with_system(toggle_inventory_open_event_send)
-                    .with_system(equipment_update)
-                    .with_system(inventory_update)
                     .with_system(drop_item)
                     .with_system(spend_ap.after(act))
                     .with_system(try_move.after(act).after(spend_ap))
@@ -123,7 +113,7 @@ impl<T: StateNext> Plugin for RoguelikePlugin<T> {
                     .with_system(field_of_view_set_visibility.after(field_of_view_recompute)),
             )
             .add_system_set(
-                SystemSet::on_exit(self.running_state.clone()).with_system(Self::cleanup_map),
+                SystemSet::on_exit(self.state_running.clone()).with_system(Self::cleanup_map),
             )
             .register_type::<Vector2D>()
             .register_type::<RenderInfo>()
@@ -171,8 +161,7 @@ impl<T: StateNext> Plugin for RoguelikePlugin<T> {
             .add_event::<IdleEvent>()
             .add_event::<PickUpItemEvent>()
             .add_event::<DropItemEvent>()
-            .add_event::<CameraFocusEvent>()
-            .add_event::<InventoryDisplayToggleEvent>();
+            .add_event::<CameraFocusEvent>();
 
         log::info!("Loaded Roguelike Plugin");
     }

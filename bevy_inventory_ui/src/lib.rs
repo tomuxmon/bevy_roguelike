@@ -5,15 +5,13 @@ use bevy::{
 use bevy_inventory::ItemType;
 use serde::{Deserialize, Serialize};
 
-pub use draggable_ui::ui_apply_drag_pos;
-pub use draggable_ui::ui_drag_interaction;
 pub use inventory_assets::InventoryAssets;
-pub use systems::equipment_update;
-pub use systems::inventory_update;
-pub use systems::toggle_inventory_open;
+pub use inventory_assets::InventoryTheme;
+pub use plugin::InventoryUiPlugin;
 
 mod draggable_ui;
 mod inventory_assets;
+mod plugin;
 mod systems;
 
 /// Inventory display options. Must be used as a resource

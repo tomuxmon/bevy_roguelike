@@ -40,9 +40,9 @@ fn main() {
         })
         .add_plugins(DefaultPlugins {})
         .add_plugin(RoguelikePlugin {
-            asset_load_state: AppState::AssetLoad,
-            game_construct_state: AppState::Construct,
-            running_state: AppState::InGame,
+            state_asset_load: AppState::AssetLoad,
+            state_construct: AppState::Construct,
+            state_running: AppState::InGame,
         })
         .add_startup_system(set_options);
 

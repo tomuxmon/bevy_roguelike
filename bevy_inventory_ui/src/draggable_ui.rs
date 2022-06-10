@@ -8,7 +8,7 @@ pub struct DragableUI {
     last_cursor_position: Vec2,
 }
 
-pub fn ui_drag_interaction(
+pub (crate) fn ui_drag_interaction(
     mut cursor_moved_reader: EventReader<CursorMoved>,
     mut interactive_dragables: Query<(&Interaction, &Style, &mut DragableUI)>,
 ) {
@@ -33,7 +33,7 @@ pub fn ui_drag_interaction(
     }
 }
 
-pub fn ui_apply_drag_pos(mut dragables: Query<(&mut Style, &DragableUI)>) {
+pub(crate) fn ui_apply_drag_pos(mut dragables: Query<(&mut Style, &DragableUI)>) {
     for (mut style, d) in dragables.iter_mut().filter(|(_, d)| d.is_started) {
         let delta = d.last_cursor_position - d.current_cursor_position;
         let top = if let Val::Px(i) = d.last_ui_position.top {
