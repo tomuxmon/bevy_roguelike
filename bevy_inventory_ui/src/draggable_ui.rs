@@ -1,7 +1,6 @@
 use bevy::prelude::*;
 
-#[derive(Default, Debug, Clone, Component, Reflect)]
-#[reflect(Component)]
+#[derive(Default, Debug, Clone, Component)]
 pub struct DragableUI {
     is_started: bool,
     current_cursor_position: Vec2,

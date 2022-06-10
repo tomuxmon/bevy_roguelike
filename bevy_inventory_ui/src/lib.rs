@@ -24,8 +24,7 @@ pub struct InventoryDisplayOptions {
 }
 
 /// equipment display locations in 128 height x 256 width canvas
-#[derive(Debug, Clone, Component, Reflect, Serialize, Deserialize)]
-#[reflect(Component)]
+#[derive(Debug, Clone, Component, Serialize, Deserialize)]
 pub struct EquipmentDisplay {
     pub items: HashMap<(ItemType, u8), Vec2>,
 }
@@ -66,16 +65,13 @@ pub struct EquipmentDisplayNode {
     pub id: Entity,
 }
 
-
-#[derive(Default, Debug, PartialEq, Eq, Clone, Component, Reflect)]
-#[reflect(Component)]
+#[derive(Default, Debug, Clone, PartialEq, Eq, Component)]
 pub struct InventoryDisplaySlot {
     pub index: usize,
     pub item: Option<Entity>,
 }
 
-#[derive(Default, Debug, Clone, Component, Reflect)]
-#[reflect(Component)]
+#[derive(Default, Debug, Clone, Component)]
 pub struct EquipmentDisplaySlot {
     pub index: (ItemType, u8),
     pub item: Option<Entity>,
@@ -83,8 +79,7 @@ pub struct EquipmentDisplaySlot {
 }
 
 /// specifies how to render stuff if it is placed in the inventory disply or equipment disply
-#[derive(Default, Debug, Clone, Component, Reflect)]
-#[reflect(Component)]
+#[derive(Default, Debug, Clone, Component)]
 pub struct UiRenderInfo {
     pub image: UiImage,
 }

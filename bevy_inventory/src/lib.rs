@@ -4,9 +4,7 @@ use serde::{Deserialize, Serialize};
 use std::ops::{Index, IndexMut};
 
 // TODO: make ItemType generic (ability to define item type outside of lib scope. in user code)
-#[derive(Reflect, Copy, Clone, PartialEq, Eq, Hash, Serialize, Deserialize, Component, Debug)]
-#[reflect_value(PartialEq, Serialize, Deserialize)]
-#[reflect(Component)]
+#[derive(Debug, Copy, Clone, PartialEq, Eq, Hash, Serialize, Deserialize, Component)]
 pub enum ItemType {
     MainHand,
     OffHand,
@@ -22,8 +20,7 @@ impl Default for ItemType {
     }
 }
 
-#[derive(Debug, Default, Clone, Component, Reflect)]
-#[reflect(Component)]
+#[derive(Debug, Default, Clone, Component)]
 pub struct Equipment {
     pub items: HashMap<(ItemType, u8), Option<Entity>>,
 }
@@ -123,8 +120,7 @@ impl IndexMut<(ItemType, u8)> for Equipment {
     }
 }
 
-#[derive(Debug, Clone, Component, Reflect)]
-#[reflect(Component)]
+#[derive(Debug, Clone, Component)]
 pub struct Inventory {
     items: Vec<Option<Entity>>,
 }
