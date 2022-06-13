@@ -53,7 +53,7 @@ pub struct AttributeMultiplier {
 }
 impl AttributeMultiplier {
     pub fn compute(&self, attributes: &Attributes) -> f32 {
-        *attributes.get(self.attribute) as f32 * self.multiplier as f32 / 1000.
+        attributes.get(self.attribute) as f32 * self.multiplier as f32 / 1000.
     }
 }
 

@@ -29,6 +29,8 @@ use systems::map::*;
 use systems::render::*;
 use systems::turns::*;
 
+// TODO: review all `as T` casting
+
 pub struct RoguelikePlugin<T> {
     /// Asset loading happens in this state. When it finishes it transitions to [`RoguelikePlugin::state_construct`]
     pub state_asset_load: T,

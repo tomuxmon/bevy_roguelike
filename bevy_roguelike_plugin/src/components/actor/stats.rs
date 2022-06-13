@@ -48,8 +48,8 @@ impl Attributes {
         }
     }
 
-    pub fn get(&self, attribute_type: AttributeType) -> &u8 {
-        self.list.get(&attribute_type).unwrap_or(&0)
+    pub fn get(&self, attribute_type: AttributeType) -> u8 {
+        *self.list.get(&attribute_type).unwrap_or(&0)
     }
 }
 impl Default for Attributes {
@@ -62,7 +62,7 @@ impl Add for Attributes {
 
     fn add(self, rhs: Self) -> Self::Output {
         Self {
-            list: HashMap::from_iter(self.list.into_iter().map(|(t, v)| (t, v + *rhs.get(t)))),
+            list: HashMap::from_iter(self.list.into_iter().map(|(t, v)| (t, v + rhs.get(t)))),
         }
     }
 }
@@ -93,16 +93,16 @@ impl ActionPoints {
         Self {
             turn_ready: ActionPoints::TURN_READY_DEFAULT,
             increment: ActionPoints::INCREMENT_MIN
-                + (*atr.get(AttributeType::Dexterity) as i16) * 7
-                + (*atr.get(AttributeType::Willpower) as i16) * 3,
+                + (atr.get(AttributeType::Dexterity) as i16) * 7
+                + (atr.get(AttributeType::Willpower) as i16) * 3,
             current: 0,
         }
     }
     pub fn update(&mut self, atr: &Attributes) {
         self.turn_ready = ActionPoints::TURN_READY_DEFAULT;
         self.increment = ActionPoints::INCREMENT_MIN
-            + (*atr.get(AttributeType::Dexterity) as i16) * 7
-            + (*atr.get(AttributeType::Willpower) as i16) * 3;
+            + (atr.get(AttributeType::Dexterity) as i16) * 7
+            + (atr.get(AttributeType::Willpower) as i16) * 3;
     }
 
     pub fn turn_ready_to_act(&self) -> i16 {
@@ -141,32 +141,32 @@ impl HitPoints {
 
     pub fn new(atr: &Attributes) -> Self {
         let full = HitPoints::FULL_MIN
-            + (*atr.get(AttributeType::Toughness) as i16) * 4
-            + *atr.get(AttributeType::Strength) as i16
-            + (*atr.get(AttributeType::Willpower) as f32 / 2.) as i16;
+            + atr.get(AttributeType::Toughness) as i16 * 4
+            + atr.get(AttributeType::Strength) as i16
+            + (atr.get(AttributeType::Willpower) as f32 / 2.) as i16;
         Self {
             full,
             current: full,
             regen_ready: HitPoints::REGEN_READY_DEFAULT,
             regen_current: 0,
             regen_increment: HitPoints::REGEN_INCREMENT_MIN
-                + (*atr.get(AttributeType::Toughness) as i16) * 4
-                + (*atr.get(AttributeType::Strength) as i16) * 2
-                + (*atr.get(AttributeType::Willpower) as i16),
+                + atr.get(AttributeType::Toughness) as i16 * 4
+                + atr.get(AttributeType::Strength) as i16 * 2
+                + atr.get(AttributeType::Willpower) as i16,
         }
     }
     pub fn update(&mut self, atr: &Attributes) {
         let current_ratio = self.current as f32 / self.full as f32;
         self.full = HitPoints::FULL_MIN
-            + (*atr.get(AttributeType::Toughness) as i16) * 4
-            + *atr.get(AttributeType::Strength) as i16
-            + (*atr.get(AttributeType::Willpower) as f32 / 2.) as i16;
+            + atr.get(AttributeType::Toughness) as i16 * 4
+            + atr.get(AttributeType::Strength) as i16
+            + (atr.get(AttributeType::Willpower) as f32 / 2.) as i16;
         self.current = (current_ratio * self.full as f32) as i16;
         self.regen_ready = HitPoints::REGEN_READY_DEFAULT;
         self.regen_increment = HitPoints::REGEN_INCREMENT_MIN
-            + (*atr.get(AttributeType::Toughness) as i16) * 4
-            + (*atr.get(AttributeType::Strength) as i16) * 2
-            + (*atr.get(AttributeType::Willpower) as i16);
+            + atr.get(AttributeType::Toughness) as i16 * 4
+            + atr.get(AttributeType::Strength) as i16 * 2
+            + atr.get(AttributeType::Willpower) as i16;
     }
 
     pub fn apply(&mut self, amount: i16) -> i16 {
