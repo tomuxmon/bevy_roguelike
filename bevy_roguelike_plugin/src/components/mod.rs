@@ -36,6 +36,7 @@ pub use item::EquipedRenderedItem;
 pub use item::EquipedRendition;
 pub use item::ItemEquipedOwned;
 pub use item::Quality;
+pub use item::RogueItemType;
 pub use render_info::RenderInfo;
 pub use render_info::RenderInfoEquiped;
 pub use vector2d::Vector2D;

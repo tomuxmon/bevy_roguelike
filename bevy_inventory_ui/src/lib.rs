@@ -1,16 +1,15 @@
 use bevy::{
     prelude::*,
-    utils::{hashbrown::hash_map::Iter, HashMap},
+    utils::{hashbrown::hash_map::Iter, HashMap}, ecs::system::Resource,
 };
 use bevy_inventory::{Equipment, Inventory, ItemDropEvent, ItemType};
 use serde::{Deserialize, Serialize};
 
-pub use inventory_assets::InventoryAssets;
-pub use inventory_assets::InventoryTheme;
+pub use assets::SlotAsset;
 pub use plugin::InventoryUiPlugin;
 
+mod assets;
 mod draggable_ui;
-mod inventory_assets;
 mod plugin;
 mod systems;
 
@@ -23,24 +22,24 @@ pub struct InventoryDisplayOptions {
 
 /// equipment display locations in 128 height x 256 width canvas
 #[derive(Debug, Clone, Component, Serialize, Deserialize)]
-pub struct EquipmentDisplay {
-    pub items: HashMap<(ItemType, u8), Vec2>,
+pub struct EquipmentDisplay<I: ItemType> {
+    pub items: HashMap<(I, u8), Vec2>,
 }
-impl EquipmentDisplay {
-    pub fn new(list: Vec<(ItemType, u8, Vec2)>) -> Self {
+impl<I: ItemType> EquipmentDisplay<I> {
+    pub fn new(list: Vec<(I, u8, Vec2)>) -> Self {
         let mut items = HashMap::default();
         for (t, i, r) in list {
             items.entry((t, i)).insert(r);
         }
         Self { items }
     }
-    pub fn iter(&self) -> Iter<(ItemType, u8), Vec2> {
+    pub fn iter(&self) -> Iter<(I, u8), Vec2> {
         self.items.iter()
     }
 }
-impl Default for EquipmentDisplay {
+impl<I: ItemType> Default for EquipmentDisplay<I> {
     fn default() -> Self {
-        EquipmentDisplay::new(vec![(ItemType::MainHand, 0, Vec2::new(72., 58.))])
+        EquipmentDisplay::new(vec![(I::default(), 0, Vec2::new(72., 58.))])
     }
 }
 
@@ -70,8 +69,8 @@ pub struct InventoryDisplaySlot {
 }
 
 #[derive(Default, Debug, Clone, Component)]
-pub struct EquipmentDisplaySlot {
-    pub index: (ItemType, u8),
+pub struct EquipmentDisplaySlot<I: ItemType> {
+    pub index: (I, u8),
     pub item: Option<Entity>,
     pub is_dummy_rendered: bool,
 }
@@ -104,6 +103,10 @@ pub struct Unequipable {
     item: Entity,
 }
 
+pub trait ItemTypeUiImage<I: ItemType> : Resource {
+    fn get_image(&self, item_type: I) -> UiImage;
+}
+
 // pub(crate) fn ui_hovertip_interaction(mut interactive_hovertip: Query<(&Interaction, &HoverTip)>) {
 //     for (i, _) in interactive_hovertip.iter_mut() {
 //         //
@@ -114,10 +117,10 @@ pub struct Unequipable {
 //     }
 // }
 
-pub(crate) fn ui_click_item_equip(
+pub(crate) fn ui_click_item_equip<I: ItemType>(
     interactive_equipables: Query<(&Interaction, &Equipable)>,
-    mut actors: Query<(&mut Inventory, &mut Equipment)>,
-    items: Query<&ItemType>,
+    mut actors: Query<(&mut Inventory, &mut Equipment<I>)>,
+    items: Query<&I>,
 ) {
     for (interaction, equipable) in interactive_equipables.iter() {
         if *interaction == Interaction::Clicked {
@@ -141,9 +144,9 @@ pub(crate) fn ui_click_item_equip(
     }
 }
 
-pub(crate) fn ui_click_item_unequip(
+pub(crate) fn ui_click_item_unequip<I: ItemType>(
     interactive_unequipables: Query<(&Interaction, &Unequipable)>,
-    mut actors: Query<(&mut Inventory, &mut Equipment)>,
+    mut actors: Query<(&mut Inventory, &mut Equipment<I>)>,
     mut drop_writer: EventWriter<ItemDropEvent>,
 ) {
     for (interaction, unequipable) in interactive_unequipables.iter() {

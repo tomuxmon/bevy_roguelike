@@ -12,7 +12,7 @@ pub struct ActorTemplate {
     pub resistance: Resistance,
     pub evasion: Evasion,
     pub damage: DamageList,
-    pub equipment_display: EquipmentDisplay,
+    pub equipment_display: EquipmentDisplay<RogueItemType>,
     pub inventory_capacity: usize,
     // TODO: initial equipment
     // TODO: initial inventory

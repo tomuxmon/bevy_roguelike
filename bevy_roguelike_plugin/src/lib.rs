@@ -12,13 +12,13 @@ use bevy::prelude::*;
 use bevy::render::camera::Camera2d;
 use bevy::utils::HashSet;
 use bevy_asset_ron::RonAssetPlugin;
-use bevy_inventory_ui::InventoryAssets;
-use bevy_inventory_ui::InventoryTheme;
 use bevy_inventory_ui::InventoryUiPlugin;
+use bevy_inventory_ui::SlotAsset;
 use bevy_tweening::TweeningPlugin;
 use map_generator::*;
 use rand::prelude::*;
 use resources::*;
+use std::marker::PhantomData;
 use std::ops::Range;
 use systems::actor_stats::*;
 use systems::camera::*;
@@ -66,15 +66,22 @@ pub struct MapEntities {
     enemies_id: Entity,
 }
 
+// TODO: instead of after / before  use labels: https://bevy-cheatbook.github.io/programming/system-order.html#labels
+
 impl<T: StateNext> Plugin for RoguelikePlugin<T> {
     fn build(&self, app: &mut App) {
         app.add_plugin(TweeningPlugin {})
-            .add_plugin(InventoryUiPlugin {
+            .add_plugin(InventoryUiPlugin::<_, RogueItemType, InventoryAssets> {
                 state_running: self.state_running.clone(),
+                phantom_1: PhantomData {},
+                phantom_2: PhantomData {},
             })
             .add_plugin(RonAssetPlugin::<ItemTemplate>::new(&["item.ron"]))
             .add_plugin(RonAssetPlugin::<ActorTemplate>::new(&["actor.ron"]))
             .add_plugin(RonAssetPlugin::<MapTheme>::new(&["maptheme.ron"]))
+            .add_plugin(RonAssetPlugin::<InventoryTheme>::new(&[
+                "inventorytheme.ron",
+            ]))
             .insert_resource(AssetsLoading::default())
             .add_startup_system(Self::rogue_setup)
             .add_startup_system(setup_camera)
@@ -87,30 +94,38 @@ impl<T: StateNext> Plugin for RoguelikePlugin<T> {
             )
             .add_system_set(
                 SystemSet::on_update(self.state_running.clone())
-                    .with_system(input_player.after(gather_action_points))
+                    .with_system(input_player::<RogueItemType>.after(gather_action_points))
                     .with_system(input_fov_rand.after(gather_action_points))
                     .with_system(render_body)
-                    .with_system(render_equiped_item)
+                    .with_system(render_equiped_item::<RogueItemType>)
                     .with_system(unrender_unequiped_items)
                     .with_system(render_hud_health_bar)
                     .with_system(attributes_update_action_points)
                     .with_system(attributes_update_hit_points)
                     .with_system(attributes_update_field_of_view)
-                    .with_system(stats_recompute)
+                    .with_system(stats_recompute::<RogueItemType>)
                     .with_system(gather_action_points)
                     .with_system(turn_end_now_gather.after(gather_action_points))
                     .with_system(act)
                     .with_system(attack.after(act))
-                    .with_system(pick_up_items)
-                    .with_system(drop_item)
-                    .with_system(equip_owned_add.after(pick_up_items).after(drop_item))
-                    .with_system(equip_owned_remove.after(pick_up_items).after(drop_item))
-                    .with_system(toggle_inventory_open_event_send)
+                    .with_system(pick_up_items::<RogueItemType>)
+                    .with_system(drop_item::<RogueItemType>)
+                    .with_system(
+                        equip_owned_add::<RogueItemType>
+                            .after(pick_up_items::<RogueItemType>)
+                            .after(drop_item::<RogueItemType>),
+                    )
+                    .with_system(
+                        equip_owned_remove::<RogueItemType>
+                            .after(pick_up_items::<RogueItemType>)
+                            .after(drop_item::<RogueItemType>),
+                    )
+                    .with_system(toggle_inventory_open_event_send::<RogueItemType>)
                     .with_system(spend_ap.after(act))
                     .with_system(try_move.after(act).after(spend_ap))
                     .with_system(apply_position_to_transform.after(try_move))
                     .with_system(apply_hp_modify.after(act).after(attack).after(spend_ap))
-                    .with_system(death_read.after(apply_hp_modify))
+                    .with_system(death_read::<RogueItemType>.after(apply_hp_modify))
                     .with_system(idle_rest.after(apply_hp_modify))
                     .with_system(camera_set_focus_player)
                     .with_system(camera_focus_smooth.after(camera_set_focus_player))
@@ -254,7 +269,7 @@ impl<T: StateNext> RoguelikePlugin<T> {
 
         let inventory_themes: Vec<_> = inventory_themes.iter().map(|(_, it)| it).collect();
         let inventory_theme = inventory_themes[rng.gen_range(0..inventory_themes.len())];
-        let inventory_assets = InventoryAssets {
+        cmd.insert_resource(InventoryAssets {
             slot: asset_server.load(inventory_theme.slot.as_str()),
             head_wear: asset_server.load(inventory_theme.head_wear.as_str()),
             body_wear: asset_server.load(inventory_theme.body_wear.as_str()),
@@ -263,8 +278,10 @@ impl<T: StateNext> RoguelikePlugin<T> {
             finger_wear: asset_server.load(inventory_theme.finger_wear.as_str()),
             neck_wear: asset_server.load(inventory_theme.neck_wear.as_str()),
             feet_wear: asset_server.load(inventory_theme.feet_wear.as_str()),
-        };
-        cmd.insert_resource(inventory_assets);
+        });
+        cmd.insert_resource(SlotAsset {
+            slot: asset_server.load(inventory_theme.slot.as_str()),
+        });
 
         let map_themes: Vec<_> = map_themes.iter().map(|(_, it)| it).collect();
         let map_theme = map_themes[rng.gen_range(0..map_themes.len())];

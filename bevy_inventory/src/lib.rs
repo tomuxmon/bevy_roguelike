@@ -1,35 +1,24 @@
 use bevy::prelude::*;
 use bevy::utils::HashMap;
-use serde::{Deserialize, Serialize};
-use std::ops::{Index, IndexMut};
+use std::{
+    fmt::Debug,
+    hash::Hash,
+    ops::{Index, IndexMut},
+};
 
 pub use events::*;
 
 mod events;
 
-// TODO: make ItemType generic (ability to define item type outside of lib scope. in user code)
-#[derive(Debug, Copy, Clone, PartialEq, Eq, Hash, Serialize, Deserialize, Component)]
-pub enum ItemType {
-    MainHand,
-    OffHand,
-    Head,
-    Neck,
-    Body,
-    Feet,
-    Finger,
-}
-impl Default for ItemType {
-    fn default() -> Self {
-        Self::MainHand
-    }
-}
+pub trait ItemType: Component + Copy + Clone + Eq + Hash + Debug + Default {}
 
 #[derive(Debug, Default, Clone, Component)]
-pub struct Equipment {
-    pub items: HashMap<(ItemType, u8), Option<Entity>>,
+pub struct Equipment<I: ItemType> {
+    pub items: HashMap<(I, u8), Option<Entity>>,
 }
-impl Equipment {
-    pub fn list<T, V>(&self, t_items: &Query<&T, (With<ItemType>, Without<V>)>) -> Vec<T>
+
+impl<I: ItemType> Equipment<I> {
+    pub fn list<T, V>(&self, t_items: &Query<&T, (With<I>, Without<V>)>) -> Vec<T>
     where
         T: Component + Clone,
         V: Component,
@@ -44,33 +33,7 @@ impl Equipment {
             })
             .collect()
     }
-    /// OMFG what a signature :| also virtually imposible to use since lifetime polution goes up the call stack
-    pub fn iter<'s, T, V>(
-        &'s self,
-        t_items: &'s Query<'_, 's, &'s T, (With<ItemType>, Without<V>)>,
-    ) -> impl Iterator<Item = &'s T> + 's
-    where
-        T: Component,
-        V: Component,
-    {
-        self.iter_some().filter_map(|(_, e)| {
-            if let Ok(t) = t_items.get(e) {
-                Some(t)
-            } else {
-                None
-            }
-        })
-    }
-    // move seems to reduce the lifetime polution problem
-    pub fn enumerate_fn<'a, T, F>(&'a self, mut get_component: F) -> impl Iterator<Item = T> + 'a
-    where
-        T: Component,
-        F: FnMut(Entity) -> Option<T> + 'a,
-    {
-        self.iter_some().filter_map(move |(_, e)| get_component(e))
-    }
-
-    pub fn add(&mut self, item: Entity, item_type: &ItemType) -> bool {
+    pub fn add(&mut self, item: Entity, item_type: &I) -> bool {
         if let Some((_, item_slot)) = self
             .items
             .iter_mut()
@@ -97,7 +60,7 @@ impl Equipment {
         }
     }
 
-    pub fn iter_some(&'_ self) -> impl Iterator<Item = ((ItemType, u8), Entity)> + '_ {
+    pub fn iter_some(&'_ self) -> impl Iterator<Item = ((I, u8), Entity)> + '_ {
         // TODO: use filter_map instead
         self.items
             .iter()
@@ -106,10 +69,10 @@ impl Equipment {
     }
 }
 
-impl Index<(ItemType, u8)> for Equipment {
+impl<I: ItemType> Index<(I, u8)> for Equipment<I> {
     type Output = Option<Entity>;
 
-    fn index(&self, index: (ItemType, u8)) -> &Self::Output {
+    fn index(&self, index: (I, u8)) -> &Self::Output {
         if let Some(item) = self.items.get(&index) {
             return item;
         }
@@ -117,8 +80,8 @@ impl Index<(ItemType, u8)> for Equipment {
     }
 }
 
-impl IndexMut<(ItemType, u8)> for Equipment {
-    fn index_mut(&mut self, index: (ItemType, u8)) -> &mut Self::Output {
+impl<I: ItemType> IndexMut<(I, u8)> for Equipment<I> {
+    fn index_mut(&mut self, index: (I, u8)) -> &mut Self::Output {
         if let Some(ee) = self.items.get_mut(&index) {
             return ee;
         }

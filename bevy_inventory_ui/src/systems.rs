@@ -1,18 +1,17 @@
 use crate::{
-    draggable_ui::DragableUI, inventory_assets::InventoryAssets, Equipable, EquipmentDisplay,
-    EquipmentDisplayNode, EquipmentDisplaySlot, InventoryDisplayNode, InventoryDisplayOptions,
-    InventoryDisplayOwner, InventoryDisplaySlot, InventoryDisplayToggleEvent, UiRenderInfo,
-    Unequipable,
+    assets::SlotAsset, draggable_ui::DragableUI, Equipable, EquipmentDisplay, EquipmentDisplayNode,
+    EquipmentDisplaySlot, InventoryDisplayNode, InventoryDisplayOptions, InventoryDisplayOwner,
+    InventoryDisplaySlot, InventoryDisplayToggleEvent, ItemTypeUiImage, UiRenderInfo, Unequipable,
 };
 use bevy::{prelude::*, ui::*};
 use bevy_inventory::{Equipment, Inventory, ItemType};
 
-pub(crate) fn toggle_inventory_open(
+pub(crate) fn toggle_inventory_open<I: ItemType>(
     mut cmd: Commands,
     mut inventory_toggle_reader: EventReader<InventoryDisplayToggleEvent>,
-    inventory_assets: Res<InventoryAssets>,
+    slot_asset: Res<SlotAsset>,
     inventory_options: Res<InventoryDisplayOptions>,
-    actors: Query<(&EquipmentDisplay, &Inventory)>,
+    actors: Query<(&EquipmentDisplay<I>, &Inventory)>,
     inventory_displays: Query<(Entity, &InventoryDisplayOwner)>,
 ) {
     for e in inventory_toggle_reader.iter() {
@@ -94,7 +93,7 @@ pub(crate) fn toggle_inventory_open(
                                         },
                                         ..default()
                                     },
-                                    image: inventory_assets.slot.clone().into(),
+                                    image: slot_asset.slot.clone().into(),
                                     ..Default::default()
                                 });
                         }
@@ -126,7 +125,7 @@ pub(crate) fn toggle_inventory_open(
                                         ),
                                         ..default()
                                     },
-                                    image: inventory_assets.slot.clone().into(),
+                                    image: slot_asset.slot.clone().into(),
                                     ..Default::default()
                                 });
                         }
@@ -135,12 +134,12 @@ pub(crate) fn toggle_inventory_open(
     }
 }
 
-pub(crate) fn inventory_update(
+pub(crate) fn inventory_update<I: ItemType>(
     mut cmd: Commands,
     inventory_options: Res<InventoryDisplayOptions>,
     inventory_display_nodes: Query<(&InventoryDisplayNode, &Children)>,
     inventories: Query<&Inventory>,
-    items: Query<&UiRenderInfo, With<ItemType>>,
+    items: Query<&UiRenderInfo, With<I>>,
     mut inventory_slots: Query<&mut InventoryDisplaySlot>,
 ) {
     for (display_node, display_node_children) in inventory_display_nodes.iter() {
@@ -208,14 +207,14 @@ pub(crate) fn inventory_update(
     }
 }
 
-pub(crate) fn equipment_update(
+pub(crate) fn equipment_update<I: ItemType, T: ItemTypeUiImage<I>>(
     mut cmd: Commands,
     map_options: Res<InventoryDisplayOptions>,
-    inventory_assets: Res<InventoryAssets>,
+    inventory_assets: Res<T>,
     equipment_display_nodes: Query<(&EquipmentDisplayNode, &Children)>,
-    equipments: Query<&Equipment>,
-    items: Query<&UiRenderInfo, With<ItemType>>,
-    mut equipment_slots: Query<&mut EquipmentDisplaySlot>,
+    equipments: Query<&Equipment<I>>,
+    items: Query<&UiRenderInfo, With<I>>,
+    mut equipment_slots: Query<&mut EquipmentDisplaySlot<I>>,
 ) {
     for (display_node, display_node_children) in equipment_display_nodes.iter() {
         let equipment = if let Ok(equipment) = equipments.get(display_node.actor) {
@@ -271,18 +270,7 @@ pub(crate) fn equipment_update(
                 }
 
                 let (item_type, _) = slot.index;
-                ui_image = Some(
-                    match item_type {
-                        ItemType::MainHand => inventory_assets.main_hand_gear.clone(),
-                        ItemType::OffHand => inventory_assets.off_hand_gear.clone(),
-                        ItemType::Head => inventory_assets.head_wear.clone(),
-                        ItemType::Neck => inventory_assets.neck_wear.clone(),
-                        ItemType::Body => inventory_assets.body_wear.clone(),
-                        ItemType::Feet => inventory_assets.feet_wear.clone(),
-                        ItemType::Finger => inventory_assets.finger_wear.clone(),
-                    }
-                    .into(),
-                );
+                ui_image = Some(inventory_assets.get_image(item_type));
             }
             if render_dummy_item {
                 if let Some(image) = ui_image {

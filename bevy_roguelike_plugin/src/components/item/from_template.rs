@@ -4,7 +4,6 @@ use crate::components::*;
 use crate::resources::*;
 use bevy::ecs::system::EntityCommands;
 use bevy::prelude::*;
-use bevy_inventory::ItemType;
 use bevy_inventory_ui::UiRenderInfo;
 use rand::prelude::*;
 
@@ -17,7 +16,7 @@ pub fn spawn_item(
 ) {
     match template {
         ItemTemplate::Weapon(Weapon { render, damage }) => {
-            ecmd.insert(ItemType::MainHand);
+            ecmd.insert(RogueItemType::MainHand);
             insert_render(ecmd, asset_server, render, quality);
             ecmd.insert(damage.mutate(quality, rng));
         }
@@ -26,7 +25,7 @@ pub fn spawn_item(
             protection,
             block,
         }) => {
-            ecmd.insert(ItemType::OffHand);
+            ecmd.insert(RogueItemType::OffHand);
             insert_render(ecmd, asset_server, render, quality);
             ecmd.insert(protection.mutate(quality, rng))
                 .insert(block.mutate(quality, rng));
@@ -36,7 +35,7 @@ pub fn spawn_item(
             defense,
             enchantment,
         }) => {
-            ecmd.insert(ItemType::Head);
+            ecmd.insert(RogueItemType::Head);
             insert_render(ecmd, asset_server, render, quality);
             insert_defense(ecmd, defense, quality, rng);
             insert_enchantment(ecmd, enchantment, quality, rng);
@@ -46,7 +45,7 @@ pub fn spawn_item(
             defense,
             enchantment,
         }) => {
-            ecmd.insert(ItemType::Body);
+            ecmd.insert(RogueItemType::Body);
             insert_render(ecmd, asset_server, render, quality);
             insert_defense(ecmd, defense, quality, rng);
             insert_enchantment(ecmd, enchantment, quality, rng);
@@ -56,7 +55,7 @@ pub fn spawn_item(
             defense,
             enchantment,
         }) => {
-            ecmd.insert(ItemType::Feet);
+            ecmd.insert(RogueItemType::Feet);
             insert_render(ecmd, asset_server, render, quality);
             insert_defense(ecmd, defense, quality, rng);
             insert_enchantment(ecmd, enchantment, quality, rng);
@@ -66,7 +65,7 @@ pub fn spawn_item(
             defense,
             enchantment,
         }) => {
-            ecmd.insert(ItemType::Neck);
+            ecmd.insert(RogueItemType::Neck);
             insert_render(ecmd, asset_server, render, quality);
             insert_defense(ecmd, defense, quality, rng);
             insert_enchantment(ecmd, enchantment, quality, rng);
@@ -76,7 +75,7 @@ pub fn spawn_item(
             defense,
             enchantment,
         }) => {
-            ecmd.insert(ItemType::Finger);
+            ecmd.insert(RogueItemType::Finger);
             insert_render(ecmd, asset_server, render, quality);
             insert_defense(ecmd, defense, quality, rng);
             insert_enchantment(ecmd, enchantment, quality, rng);

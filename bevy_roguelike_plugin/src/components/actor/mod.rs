@@ -1,13 +1,13 @@
 use super::*;
 use crate::resources::ActorTemplate;
 use bevy::{prelude::*, utils::HashMap};
-use bevy_inventory::{Equipment, Inventory};
+use bevy_inventory::{Equipment, Inventory, ItemType};
 use bevy_inventory_ui::EquipmentDisplay;
 use stats::*;
 
 pub mod stats;
 
-fn from_display(display: &EquipmentDisplay) -> Equipment {
+fn from_display<I: ItemType>(display: &EquipmentDisplay<I>) -> Equipment<I> {
     let mut items = HashMap::default();
     for (t, _) in display.items.iter() {
         items.entry(*t).insert(None);
@@ -30,8 +30,8 @@ pub struct Actor {
     fov: FieldOfView,
     position: Vector2D,
     render_info: RenderInfo,
-    equipment_display: EquipmentDisplay,
-    equipment: Equipment,
+    equipment_display: EquipmentDisplay<RogueItemType>,
+    equipment: Equipment<RogueItemType>,
     inventory: Inventory,
     stats_computed: StatsComputed,
     stats_computed_dirty: StatsComputedDirty,

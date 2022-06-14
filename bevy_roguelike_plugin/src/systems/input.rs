@@ -1,13 +1,13 @@
 use crate::{components::*, events::*};
 use bevy::{prelude::*, utils::HashMap};
-use bevy_inventory::{Equipment, Inventory, ItemDropEvent, ItemPickUpEvent};
+use bevy_inventory::{Equipment, Inventory, ItemDropEvent, ItemPickUpEvent, ItemType};
 use line_drawing::WalkGrid;
 use map_generator::*;
 use rand::prelude::*;
 
-pub fn input_player(
+pub fn input_player<I: ItemType>(
     keys: Res<Input<KeyCode>>,
-    players: Query<(Entity, &TurnState, &Inventory, &Equipment), With<MovingPlayer>>,
+    players: Query<(Entity, &TurnState, &Inventory, &Equipment<I>), With<MovingPlayer>>,
     mut act_writer: EventWriter<ActEvent>,
     mut pick_up_writer: EventWriter<ItemPickUpEvent>,
     mut drop_writer: EventWriter<ItemDropEvent>,

@@ -31,7 +31,7 @@ pub fn attributes_update_field_of_view(
 }
 
 #[allow(clippy::type_complexity)]
-pub fn stats_recompute(
+pub fn stats_recompute<I: ItemType>(
     mut cmd: Commands,
     mut actors: Query<
         (
@@ -42,15 +42,15 @@ pub fn stats_recompute(
             &Resistance,
             &Evasion,
             &DamageList,
-            &Equipment,
+            &Equipment<I>,
         ),
         With<StatsComputedDirty>,
     >,
-    items_atr: Query<&Attributes, (With<ItemType>, Without<Vector2D>)>,
-    items_prt: Query<&Protection, (With<ItemType>, Without<Vector2D>)>,
-    items_res: Query<&Resistance, (With<ItemType>, Without<Vector2D>)>,
-    items_blk: Query<&Block, (With<ItemType>, Without<Vector2D>)>,
-    items_dmg: Query<&Damage, (With<ItemType>, Without<Vector2D>)>,
+    items_atr: Query<&Attributes, (With<I>, Without<Vector2D>)>,
+    items_prt: Query<&Protection, (With<I>, Without<Vector2D>)>,
+    items_res: Query<&Resistance, (With<I>, Without<Vector2D>)>,
+    items_blk: Query<&Block, (With<I>, Without<Vector2D>)>,
+    items_dmg: Query<&Damage, (With<I>, Without<Vector2D>)>,
 ) {
     for (
         id,

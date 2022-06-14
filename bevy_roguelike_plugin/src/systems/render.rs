@@ -49,12 +49,12 @@ pub fn render_body(
 }
 
 #[allow(clippy::type_complexity)]
-pub fn render_equiped_item(
+pub fn render_equiped_item<I: ItemType>(
     mut cmd: Commands,
-    actors: Query<(Entity, &Vector2D), With<Equipment>>,
+    actors: Query<(Entity, &Vector2D), With<Equipment<I>>>,
     items: Query<
         (Entity, &RenderInfoEquiped, &ItemEquipedOwned),
-        (With<ItemType>, Without<EquipedRendition>),
+        (With<I>, Without<EquipedRendition>),
     >,
     map_options: Res<MapOptions>,
 ) {

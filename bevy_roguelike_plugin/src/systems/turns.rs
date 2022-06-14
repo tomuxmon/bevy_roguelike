@@ -5,6 +5,7 @@ use bevy::tasks::ComputeTaskPool;
 use bevy::utils::HashMap;
 use bevy_inventory::Equipment;
 use bevy_inventory::Inventory;
+use bevy_inventory::ItemType;
 use map_generator::*;
 use rand::prelude::*;
 
@@ -211,10 +212,10 @@ pub fn apply_hp_modify(
     }
 }
 
-pub fn death_read(
+pub fn death_read<I: ItemType>(
     mut cmd: Commands,
     mut death_reader: EventReader<DeathEvent>,
-    actors: Query<(&Vector2D, &Name, &HitPoints, &Inventory, &Equipment)>,
+    actors: Query<(&Vector2D, &Name, &HitPoints, &Inventory, &Equipment<I>)>,
 ) {
     for death in death_reader.iter() {
         if let Ok((pt, name, _hp, inventory, equipment)) = actors.get(death.actor) {
