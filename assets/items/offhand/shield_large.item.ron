@@ -1,6 +1,6 @@
 Shield(( 
  render: (
-  name: "Buckler",
+  name: "Large shield",
   texture_path: "sprites/item/large_shield_1_new.png",
   texture_equiped_path: Some("sprites/item_equiped/lshield_long_red.png"),
  ),

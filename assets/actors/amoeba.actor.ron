@@ -1,6 +1,6 @@
 (
  render: (
-  name: "Cyclops",
+  name: "Amoeba",
   texture_path: "sprites/actors/giant_amoeba.png",
   texture_path_cosmetics: [],
  ),
@@ -24,12 +24,12 @@
    (
     kind: Pierce,
     amount_multiplier: Some((multipliers:[(multiplier:100,attribute:Toughness)])),
-    amount: 1,
+    amount: 6,
    ),
    (
     kind: Slash,
     amount_multiplier: Some((multipliers:[(multiplier:100,attribute:Toughness)])),
-    amount: 1,
+    amount: 3,
    ),
   ],
  ),
@@ -37,7 +37,7 @@
   amounts: [
    (
     kind: Slash,
-    percent: 1,
+    percent: 5,
    ),
    (
     kind: Blunt,
@@ -45,7 +45,7 @@
    ),
    (
     kind: Pierce,
-    percent: 1,
+    percent: 10,
    ),
   ],
  ),

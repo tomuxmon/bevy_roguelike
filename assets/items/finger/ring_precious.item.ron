@@ -1,6 +1,6 @@
 Ring((
  render: (
-  name: "Myn precious",
+  name: "2 precious",
   texture_path: "sprites/item/gold_green.png",
   texture_equiped_path: None,
  ),

@@ -1,6 +1,6 @@
 Armor((
  render: (
-  name: "Ringmail",
+  name: "Scalemail",
   texture_path: "sprites/item/scale_mail_1_new.png",
   texture_equiped_path: Some("sprites/item_equiped/scalemail.png"),
  ),
