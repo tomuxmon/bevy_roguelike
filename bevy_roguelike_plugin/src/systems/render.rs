@@ -53,19 +53,19 @@ pub fn render_equiped_item(
     mut cmd: Commands,
     actors: Query<(Entity, &Vector2D), With<Equipment>>,
     items: Query<
-        (Entity, &RenderInfoEquiped, &EquipedOwned),
+        (Entity, &RenderInfoEquiped, &ItemEquipedOwned),
         (With<ItemType>, Without<EquipedRendition>),
     >,
     map_options: Res<MapOptions>,
 ) {
     for (item_entity, info, owner) in items.iter() {
-        if let Ok((_, _pt)) = actors.get(owner.id) {
-            let mut some_id = None;
-            cmd.entity(owner.id).with_children(|renderable| {
-                let id = renderable
+        if let Ok((_, _pt)) = actors.get(owner.actor) {
+            let mut some_item_render_entity = None;
+            cmd.entity(owner.actor).with_children(|renderable| {
+                let item_render_entity = renderable
                     .spawn()
                     .insert(Name::new("item render"))
-                    .insert(EquipedRenderedItem { id: item_entity })
+                    .insert(EquipedRenderedItem { item: item_entity })
                     .insert_bundle(SpriteBundle {
                         sprite: Sprite {
                             color: Color::WHITE,
@@ -77,21 +77,28 @@ pub fn render_equiped_item(
                         ..Default::default()
                     })
                     .id();
-                some_id = Some(id);
+                some_item_render_entity = Some(item_render_entity);
             });
-            if let Some(id) = some_id {
-                cmd.entity(item_entity).insert(EquipedRendition { id });
+            if let Some(item_render_entity) = some_item_render_entity {
+                cmd.entity(item_entity)
+                    .insert(EquipedRendition { item_render_entity });
             }
         }
     }
 }
 pub fn unrender_unequiped_items(
     mut cmd: Commands,
-    items: Query<(Entity, &EquipedRendition), Without<EquipedOwned>>,
+    items: Query<(Entity, &EquipedRendition), Without<ItemEquipedOwned>>,
+    renditions: Query<&EquipedRenderedItem>,
 ) {
-    for (itemity, rendition) in items.iter() {
-        cmd.entity(itemity).remove::<EquipedRendition>();
-        cmd.entity(rendition.id).despawn_recursive();
+    for (item_entity, rendition) in items.iter() {
+        cmd.entity(item_entity).remove::<EquipedRendition>();
+        if renditions.get(rendition.item_render_entity).is_ok() {
+            cmd.entity(rendition.item_render_entity).despawn_recursive();
+        } else {
+            // TODO: close inventory when actor is dead;
+            bevy::log::info!("item render entity not found. could not despawn.");
+        }
     }
 }
 

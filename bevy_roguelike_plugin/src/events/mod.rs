@@ -39,33 +39,15 @@ impl IdleEvent {
 
 #[derive(Debug, Copy, Clone)]
 pub struct MoveEvent {
-    pub id: Entity,
+    pub actor: Entity,
     pub team: Team,
     pub from: IVec2,
     pub to: IVec2,
 }
 
 #[derive(Debug, Copy, Clone)]
-pub struct PickUpItemEvent {
-    pub picker: Entity,
-}
-
-impl PickUpItemEvent {
-    pub fn new(picker: Entity) -> Self {
-        Self { picker }
-    }
-}
-
-#[derive(Debug, Copy, Clone)]
-pub struct DropItemEvent {
-    pub droper: Entity,
-    pub item: Entity,
-}
-
-impl DropItemEvent {
-    pub fn new(droper: Entity, item: Entity) -> Self {
-        Self { droper, item }
-    }
+pub struct DeathEvent {
+    pub actor: Entity,
 }
 
 #[derive(Debug, Copy, Clone)]

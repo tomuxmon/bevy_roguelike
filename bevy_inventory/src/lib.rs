@@ -3,6 +3,10 @@ use bevy::utils::HashMap;
 use serde::{Deserialize, Serialize};
 use std::ops::{Index, IndexMut};
 
+pub use events::*;
+
+mod events;
+
 // TODO: make ItemType generic (ability to define item type outside of lib scope. in user code)
 #[derive(Debug, Copy, Clone, PartialEq, Eq, Hash, Serialize, Deserialize, Component)]
 pub enum ItemType {
@@ -78,6 +82,8 @@ impl Equipment {
             false
         }
     }
+    // TODO: implement replace add item and return existing one
+
     pub fn take(&mut self, item: Entity) -> bool {
         if let Some((_, e)) = self
             .items

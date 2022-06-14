@@ -102,12 +102,15 @@ impl<T: StateNext> Plugin for RoguelikePlugin<T> {
                     .with_system(act)
                     .with_system(attack.after(act))
                     .with_system(pick_up_items)
-                    .with_system(toggle_inventory_open_event_send)
                     .with_system(drop_item)
+                    .with_system(equip_owned_add.after(pick_up_items).after(drop_item))
+                    .with_system(equip_owned_remove.after(pick_up_items).after(drop_item))
+                    .with_system(toggle_inventory_open_event_send)
                     .with_system(spend_ap.after(act))
                     .with_system(try_move.after(act).after(spend_ap))
                     .with_system(apply_position_to_transform.after(try_move))
                     .with_system(apply_hp_modify.after(act).after(attack).after(spend_ap))
+                    .with_system(death_read.after(apply_hp_modify))
                     .with_system(idle_rest.after(apply_hp_modify))
                     .with_system(camera_set_focus_player)
                     .with_system(camera_focus_smooth.after(camera_set_focus_player))
@@ -161,9 +164,8 @@ impl<T: StateNext> Plugin for RoguelikePlugin<T> {
             .add_event::<MoveEvent>()
             .add_event::<ActEvent>()
             .add_event::<IdleEvent>()
-            .add_event::<PickUpItemEvent>()
-            .add_event::<DropItemEvent>()
-            .add_event::<CameraFocusEvent>();
+            .add_event::<CameraFocusEvent>()
+            .add_event::<DeathEvent>();
 
         log::info!("Loaded Roguelike Plugin");
     }

@@ -1,7 +1,8 @@
 use crate::{
-    draggable_ui::DragableUI, inventory_assets::InventoryAssets, EquipmentDisplay,
+    draggable_ui::DragableUI, inventory_assets::InventoryAssets, Equipable, EquipmentDisplay,
     EquipmentDisplayNode, EquipmentDisplaySlot, InventoryDisplayNode, InventoryDisplayOptions,
     InventoryDisplayOwner, InventoryDisplaySlot, InventoryDisplayToggleEvent, UiRenderInfo,
+    Unequipable,
 };
 use bevy::{prelude::*, ui::*};
 use bevy_inventory::{Equipment, Inventory, ItemType};
@@ -15,7 +16,7 @@ pub(crate) fn toggle_inventory_open(
     inventory_displays: Query<(Entity, &InventoryDisplayOwner)>,
 ) {
     for e in inventory_toggle_reader.iter() {
-        let (equipment_display, inventory) = if let Ok(player) = actors.get(e.id) {
+        let (equipment_display, inventory) = if let Ok(player) = actors.get(e.actor) {
             player
         } else {
             bevy::log::error!("InventoryDisplayToggleEvent with invalif actor_id (missing EquipmentDisplay, Inventory)");
@@ -23,7 +24,7 @@ pub(crate) fn toggle_inventory_open(
         };
 
         if let Some((inventory_display_entity, _)) =
-            inventory_displays.iter().find(|(_, o)| o.id == e.id)
+            inventory_displays.iter().find(|(_, o)| o.id == e.actor)
         {
             cmd.entity(inventory_display_entity).despawn_recursive();
             return;
@@ -31,7 +32,7 @@ pub(crate) fn toggle_inventory_open(
 
         cmd.spawn()
             .insert(Name::new("inventory display"))
-            .insert(InventoryDisplayOwner { id: e.id })
+            .insert(InventoryDisplayOwner { id: e.actor })
             .insert(DragableUI::default())
             .insert(Interaction::default())
             .insert_bundle(NodeBundle {
@@ -57,7 +58,7 @@ pub(crate) fn toggle_inventory_open(
                     .spawn()
                     // equipment display
                     .insert(Name::new("equipment"))
-                    .insert(EquipmentDisplayNode { id: e.id })
+                    .insert(EquipmentDisplayNode { actor: e.actor })
                     .insert_bundle(NodeBundle {
                         focus_policy: FocusPolicy::Pass,
                         style: Style {
@@ -102,7 +103,7 @@ pub(crate) fn toggle_inventory_open(
                 parent
                     .spawn()
                     .insert(Name::new("inventory"))
-                    .insert(InventoryDisplayNode { id: e.id })
+                    .insert(InventoryDisplayNode { id: e.actor })
                     .insert_bundle(NodeBundle {
                         style: Style {
                             flex_wrap: FlexWrap::WrapReverse,
@@ -162,6 +163,7 @@ pub(crate) fn inventory_update(
             if let Some(item_entity) = inventory[slot.index] {
                 let render = if let Some(slot_item) = slot.item {
                     if item_entity != slot_item {
+                        slot.item = Some(item_entity);
                         slot_cmd.despawn_descendants();
                         true
                     } else {
@@ -174,9 +176,12 @@ pub(crate) fn inventory_update(
                 if render {
                     if let Ok(info) = items.get(item_entity) {
                         slot_cmd.with_children(|cb| {
-                            // TODO: insert InventoryItemDisplay
                             cb.spawn()
                                 .insert(Interaction::default())
+                                .insert(Equipable {
+                                    actor: display_node.id,
+                                    item: item_entity,
+                                })
                                 .insert_bundle(ImageBundle {
                                     style: Style {
                                         size: Size::new(
@@ -196,6 +201,7 @@ pub(crate) fn inventory_update(
                     }
                 }
             } else {
+                slot.item = None;
                 slot_cmd.despawn_descendants();
             }
         }
@@ -212,7 +218,7 @@ pub(crate) fn equipment_update(
     mut equipment_slots: Query<&mut EquipmentDisplaySlot>,
 ) {
     for (display_node, display_node_children) in equipment_display_nodes.iter() {
-        let equipment = if let Ok(equipment) = equipments.get(display_node.id) {
+        let equipment = if let Ok(equipment) = equipments.get(display_node.actor) {
             equipment
         } else {
             bevy::log::error!("EquipmentDisplayNode without associated Equipment");
@@ -300,9 +306,12 @@ pub(crate) fn equipment_update(
             } else if render_item {
                 if let Some(image) = ui_image {
                     slot_cmd.with_children(|cb| {
-                        // TODO: insert EquipmentItemDisplay
                         cb.spawn()
                             .insert(Interaction::default())
+                            .insert(Unequipable {
+                                actor: display_node.actor,
+                                item: slot.item.unwrap(),
+                            })
                             .insert_bundle(ImageBundle {
                                 style: Style {
                                     size: Size::new(

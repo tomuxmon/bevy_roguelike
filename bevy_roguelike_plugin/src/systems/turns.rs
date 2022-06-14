@@ -3,6 +3,8 @@ use bevy::log;
 use bevy::prelude::*;
 use bevy::tasks::ComputeTaskPool;
 use bevy::utils::HashMap;
+use bevy_inventory::Equipment;
+use bevy_inventory::Inventory;
 use map_generator::*;
 use rand::prelude::*;
 
@@ -47,7 +49,7 @@ pub fn act(
                 }
             } else {
                 let move_event = MoveEvent {
-                    id: e.id,
+                    actor: e.id,
                     team: *team,
                     from: **pt,
                     to: dest,
@@ -190,22 +192,47 @@ pub fn attack(
 
 pub fn apply_hp_modify(
     mut cmd: Commands,
-    mut actors: Query<(Entity, &Vector2D, &mut HitPoints, &Name)>,
+    mut actors: Query<(Entity, &Vector2D, &mut HitPoints)>,
     hp_mod: Query<(Entity, &ModifyHP)>,
+    mut death_writer: EventWriter<DeathEvent>,
 ) {
     for (e, hpm) in hp_mod.iter() {
-        if let Some((ee, pt, mut hp, name)) =
-            actors.iter_mut().find(|(_, p, _, _)| ***p == hpm.location)
+        if let Some((actor_entity, _, mut hp)) =
+            actors.iter_mut().find(|(_, p, _)| ***p == hpm.location)
         {
             hp.apply(hpm.amount);
             if hp.current() <= 0 {
-                // TODO: animated death
-                // different animation based on negative percent of current hp
-                bevy::log::info!("death to {} (id: {:?}) at {}", name, ee, pt);
-                cmd.entity(ee).despawn_recursive();
+                death_writer.send(DeathEvent {
+                    actor: actor_entity,
+                });
             }
         }
         cmd.entity(e).despawn_recursive();
+    }
+}
+
+pub fn death_read(
+    mut cmd: Commands,
+    mut death_reader: EventReader<DeathEvent>,
+    actors: Query<(&Vector2D, &Name, &HitPoints, &Inventory, &Equipment)>,
+) {
+    for death in death_reader.iter() {
+        if let Ok((pt, name, _hp, inventory, equipment)) = actors.get(death.actor) {
+            for item_entity in inventory
+                .iter_some()
+                .chain(equipment.iter_some().map(|(_, item)| item))
+            {
+                // NOTE: manually droping without itemDropEvent.
+                // dirty way but...
+                cmd.entity(item_entity).insert(*pt);
+            }
+            // TODO: animated death
+            // different animation based on negative percent of current hp
+            bevy::log::info!("death to {} (id: {:?}) at {}", name, death.actor, pt);
+            cmd.entity(death.actor).despawn_recursive();
+        } else {
+            bevy::log::error!("Death to {:?}. But actor bedead not found.", death.actor);
+        }
     }
 }
 
@@ -242,17 +269,17 @@ pub fn try_move(
 ) {
     let mut team_pt: HashMap<_, _> = actors.iter().map(|(p, t, _)| (**p, *t)).collect();
     for e in move_reader.iter() {
-        if let Ok((mut pt, _tt, mut fov)) = actors.get_mut(e.id) {
+        if let Ok((mut pt, _tt, mut fov)) = actors.get_mut(e.actor) {
             if let Some(_team) = team_pt.get(&e.to) {
                 bevy::log::trace!(
                     "trying to move from {} to {} by {:?}. location already ocupied",
                     e.from,
                     e.to,
-                    e.id
+                    e.actor
                 );
                 continue;
             }
-            ap_spend_writer.send(SpendAPEvent::new(e.id, ActionPoints::MOVE_COST_DEFAULT));
+            ap_spend_writer.send(SpendAPEvent::new(e.actor, ActionPoints::MOVE_COST_DEFAULT));
             team_pt.entry(e.to).insert(e.team);
             *pt = Vector2D::from(e.to);
             fov.is_dirty = true;

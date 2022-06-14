@@ -1,6 +1,6 @@
 use crate::{components::*, events::*};
 use bevy::{prelude::*, utils::HashMap};
-use bevy_inventory::{Equipment, Inventory};
+use bevy_inventory::{Equipment, Inventory, ItemDropEvent, ItemPickUpEvent};
 use line_drawing::WalkGrid;
 use map_generator::*;
 use rand::prelude::*;
@@ -9,8 +9,8 @@ pub fn input_player(
     keys: Res<Input<KeyCode>>,
     players: Query<(Entity, &TurnState, &Inventory, &Equipment), With<MovingPlayer>>,
     mut act_writer: EventWriter<ActEvent>,
-    mut pick_up_writer: EventWriter<PickUpItemEvent>,
-    mut drop_writer: EventWriter<DropItemEvent>,
+    mut pick_up_writer: EventWriter<ItemPickUpEvent>,
+    mut drop_writer: EventWriter<ItemDropEvent>,
 ) {
     for (id, _, inv, eqv) in players
         .iter()
@@ -27,13 +27,19 @@ pub fn input_player(
         } else if keys.pressed(KeyCode::Space) {
             IVec2::new(0, 0) // stay put - skip turn
         } else if keys.pressed(KeyCode::Comma) {
-            pick_up_writer.send(PickUpItemEvent::new(id));
+            pick_up_writer.send(ItemPickUpEvent { picker: id });
             IVec2::new(0, 0) // still stay put - skip turn
         } else if keys.just_pressed(KeyCode::D) {
             if let Some(ee) = inv.iter_some().last() {
-                drop_writer.send(DropItemEvent::new(id, ee));
+                drop_writer.send(ItemDropEvent {
+                    droper: id,
+                    item: ee,
+                });
             } else if let Some((_, ee)) = eqv.iter_some().last() {
-                drop_writer.send(DropItemEvent::new(id, ee));
+                drop_writer.send(ItemDropEvent {
+                    droper: id,
+                    item: ee,
+                });
             }
             return;
         } else {
