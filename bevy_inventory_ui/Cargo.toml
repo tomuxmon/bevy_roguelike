@@ -7,7 +7,6 @@ edition = "2021"
 
 [dependencies]
 serde = "~1.0"
-bevy_asset_ron = "~0.4"
 bevy_inventory = { path = "../bevy_inventory" }
 
 [dependencies.bevy]

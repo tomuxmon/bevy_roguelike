@@ -12,6 +12,7 @@ use bevy::prelude::*;
 use bevy::render::camera::Camera2d;
 use bevy::utils::HashSet;
 use bevy_asset_ron::RonAssetPlugin;
+use bevy_inventory_ui::HoverCursorAsset;
 use bevy_inventory_ui::InventoryUiPlugin;
 use bevy_inventory_ui::SlotAsset;
 use bevy_tweening::TweeningPlugin;
@@ -281,6 +282,9 @@ impl<T: StateNext> RoguelikePlugin<T> {
         });
         cmd.insert_resource(SlotAsset {
             slot: asset_server.load(inventory_theme.slot.as_str()),
+        });
+        cmd.insert_resource(HoverCursorAsset {
+            image: asset_server.load("sprites/gui/tooltip/cursor.png"),
         });
 
         let map_themes: Vec<_> = map_themes.iter().map(|(_, it)| it).collect();

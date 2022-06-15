@@ -1,10 +1,12 @@
 use bevy::{
+    ecs::system::Resource,
     prelude::*,
-    utils::{hashbrown::hash_map::Iter, HashMap}, ecs::system::Resource,
+    utils::{hashbrown::hash_map::Iter, HashMap},
 };
-use bevy_inventory::{Equipment, Inventory, ItemDropEvent, ItemType};
+use bevy_inventory::ItemType;
 use serde::{Deserialize, Serialize};
 
+pub use assets::HoverCursorAsset;
 pub use assets::SlotAsset;
 pub use plugin::InventoryUiPlugin;
 
@@ -88,7 +90,9 @@ pub struct InventoryDisplayToggleEvent {
 }
 
 #[derive(Default, Debug, Clone, Component)]
-pub struct HoverTip;
+pub struct HoverTip {
+    hovered: bool,
+}
 
 // TODO: move to bevy_inventory lib
 #[derive(Debug, Clone, Component)]
@@ -103,69 +107,6 @@ pub struct Unequipable {
     item: Entity,
 }
 
-pub trait ItemTypeUiImage<I: ItemType> : Resource {
+pub trait ItemTypeUiImage<I: ItemType>: Resource {
     fn get_image(&self, item_type: I) -> UiImage;
-}
-
-// pub(crate) fn ui_hovertip_interaction(mut interactive_hovertip: Query<(&Interaction, &HoverTip)>) {
-//     for (i, _) in interactive_hovertip.iter_mut() {
-//         //
-//         if *i == Interaction::Hovered {
-//             // TODO: draw gui/tooltip/cursor.png
-//         }
-//         // else undraw
-//     }
-// }
-
-pub(crate) fn ui_click_item_equip<I: ItemType>(
-    interactive_equipables: Query<(&Interaction, &Equipable)>,
-    mut actors: Query<(&mut Inventory, &mut Equipment<I>)>,
-    items: Query<&I>,
-) {
-    for (interaction, equipable) in interactive_equipables.iter() {
-        if *interaction == Interaction::Clicked {
-            if let Ok((mut inventory, mut equipment)) = actors.get_mut(equipable.actor) {
-                let item_type = if let Ok(item_type) = items.get(equipable.item) {
-                    item_type
-                } else {
-                    bevy::log::error!("item with no type");
-                    continue;
-                };
-                if inventory.take(equipable.item) {
-                    if !equipment.add(equipable.item, item_type) {
-                        inventory.add(equipable.item);
-                        bevy::log::info!("could not equip item placing back into inventory");
-                    }
-                } else {
-                    bevy::log::error!("Equipable Item not in inventory.");
-                }
-            }
-        }
-    }
-}
-
-pub(crate) fn ui_click_item_unequip<I: ItemType>(
-    interactive_unequipables: Query<(&Interaction, &Unequipable)>,
-    mut actors: Query<(&mut Inventory, &mut Equipment<I>)>,
-    mut drop_writer: EventWriter<ItemDropEvent>,
-) {
-    for (interaction, unequipable) in interactive_unequipables.iter() {
-        if *interaction == Interaction::Clicked {
-            if let Ok((mut inventory, mut equipment)) = actors.get_mut(unequipable.actor) {
-                if equipment.take(unequipable.item) {
-                    if !inventory.add(unequipable.item) {
-                        drop_writer.send(ItemDropEvent {
-                            droper: unequipable.actor,
-                            item: unequipable.item,
-                        });
-                        bevy::log::info!(
-                            "could not place unequiped item into inventory. dropping it."
-                        );
-                    }
-                } else {
-                    bevy::log::error!("Unequipable Item not in Equipment.");
-                }
-            }
-        }
-    }
 }

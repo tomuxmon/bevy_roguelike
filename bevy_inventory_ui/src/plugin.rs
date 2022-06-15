@@ -2,8 +2,11 @@ use std::marker::PhantomData;
 
 use crate::{
     draggable_ui::{ui_apply_drag_pos, ui_drag_interaction},
-    systems::{equipment_update, inventory_update, toggle_inventory_open},
-    ui_click_item_equip, ui_click_item_unequip, InventoryDisplayToggleEvent, ItemTypeUiImage,
+    systems::{
+        equipment_update, inventory_update, toggle_inventory_open, ui_click_item_equip,
+        ui_click_item_unequip, ui_hovertip_interaction,
+    },
+    InventoryDisplayToggleEvent, ItemTypeUiImage,
 };
 use bevy::{ecs::schedule::StateData, prelude::*};
 use bevy_inventory::{ItemDropEvent, ItemPickUpEvent, ItemType};
@@ -16,8 +19,6 @@ pub struct InventoryUiPlugin<S, I: ItemType, T: ItemTypeUiImage<I>> {
 
 impl<S: StateData, I: ItemType, T: ItemTypeUiImage<I>> Plugin for InventoryUiPlugin<S, I, T> {
     fn build(&self, app: &mut App) {
-        // TODO: slot asset
-        // TODO: fn get(item_type: I) -> UIImage
         app.add_system_to_stage(CoreStage::First, ui_drag_interaction)
             .add_system_set(
                 SystemSet::on_update(self.state_running.clone())
@@ -34,6 +35,7 @@ impl<S: StateData, I: ItemType, T: ItemTypeUiImage<I>> Plugin for InventoryUiPlu
                             .after(ui_click_item_equip::<I>)
                             .after(ui_click_item_unequip::<I>),
                     )
+                    .with_system(ui_hovertip_interaction)
                     .with_system(ui_click_item_equip::<I>)
                     .with_system(ui_click_item_unequip::<I>),
             )
