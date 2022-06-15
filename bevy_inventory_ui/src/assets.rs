@@ -1,11 +1,8 @@
 use bevy::prelude::*;
 
 #[derive(Debug, Clone)]
-pub struct SlotAsset {
+pub struct InventoryUiAssets {
     pub slot: Handle<Image>,
-}
-
-#[derive(Debug, Clone)]
-pub struct HoverCursorAsset {
-    pub image: Handle<Image>,
+    pub hover_cursor_image: Handle<Image>,
+    pub font: Handle<Font>,
 }

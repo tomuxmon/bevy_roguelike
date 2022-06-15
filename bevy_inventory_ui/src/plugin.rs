@@ -35,7 +35,7 @@ impl<S: StateData, I: ItemType, T: ItemTypeUiImage<I>> Plugin for InventoryUiPlu
                             .after(ui_click_item_equip::<I>)
                             .after(ui_click_item_unequip::<I>),
                     )
-                    .with_system(ui_hovertip_interaction)
+                    .with_system(ui_hovertip_interaction::<I>)
                     .with_system(ui_click_item_equip::<I>)
                     .with_system(ui_click_item_unequip::<I>),
             )

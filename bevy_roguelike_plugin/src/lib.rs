@@ -12,9 +12,8 @@ use bevy::prelude::*;
 use bevy::render::camera::Camera2d;
 use bevy::utils::HashSet;
 use bevy_asset_ron::RonAssetPlugin;
-use bevy_inventory_ui::HoverCursorAsset;
+use bevy_inventory_ui::InventoryUiAssets;
 use bevy_inventory_ui::InventoryUiPlugin;
-use bevy_inventory_ui::SlotAsset;
 use bevy_tweening::TweeningPlugin;
 use map_generator::*;
 use rand::prelude::*;
@@ -109,6 +108,7 @@ impl<T: StateNext> Plugin for RoguelikePlugin<T> {
                     .with_system(turn_end_now_gather.after(gather_action_points))
                     .with_system(act)
                     .with_system(attack.after(act))
+                    .with_system(item_fill_text_info::<RogueItemType>)
                     .with_system(pick_up_items::<RogueItemType>)
                     .with_system(drop_item::<RogueItemType>)
                     .with_system(
@@ -280,11 +280,10 @@ impl<T: StateNext> RoguelikePlugin<T> {
             neck_wear: asset_server.load(inventory_theme.neck_wear.as_str()),
             feet_wear: asset_server.load(inventory_theme.feet_wear.as_str()),
         });
-        cmd.insert_resource(SlotAsset {
+        cmd.insert_resource(InventoryUiAssets {
             slot: asset_server.load(inventory_theme.slot.as_str()),
-        });
-        cmd.insert_resource(HoverCursorAsset {
-            image: asset_server.load("sprites/gui/tooltip/cursor.png"),
+            hover_cursor_image: asset_server.load("sprites/gui/tooltip/cursor.png"),
+            font: asset_server.load("fonts/pixeled.ttf"),
         });
 
         let map_themes: Vec<_> = map_themes.iter().map(|(_, it)| it).collect();

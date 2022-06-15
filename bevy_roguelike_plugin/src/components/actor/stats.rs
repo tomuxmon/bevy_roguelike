@@ -1,7 +1,7 @@
 use crate::components::{Block, Damage, Evasion, Protection, Resistance};
 use bevy::{prelude::*, reflect::FromReflect, utils::HashMap};
 use serde::{Deserialize, Serialize};
-use std::{iter::Sum, ops::Add};
+use std::{fmt::Display, iter::Sum, ops::Add};
 
 #[derive(
     Debug, Clone, Copy, PartialEq, Eq, Hash, Component, Reflect, FromReflect, Serialize, Deserialize,
@@ -69,6 +69,18 @@ impl Add for Attributes {
 impl Sum for Attributes {
     fn sum<I: Iterator<Item = Self>>(iter: I) -> Self {
         iter.fold(Attributes::default(), |acc, a| acc + a)
+    }
+}
+impl Display for Attributes {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(
+            f,
+            "{}",
+            self.list
+                .iter()
+                .map(|(&attribute_type, &amount)| format!("{:?} +{}", attribute_type, amount))
+                .fold("".to_string(), |acc, x| format!("{}, {}", x, acc))
+        )
     }
 }
 

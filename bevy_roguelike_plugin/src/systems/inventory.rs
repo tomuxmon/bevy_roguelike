@@ -1,7 +1,70 @@
 use crate::components::*;
-use bevy::prelude::*;
+use bevy::{prelude::*, utils::HashMap};
 use bevy_inventory::{Equipment, Inventory, ItemDropEvent, ItemPickUpEvent, ItemType};
-use bevy_inventory_ui::{EquipmentDisplay, InventoryDisplayToggleEvent};
+use bevy_inventory_ui::{EquipmentDisplay, InventoryDisplayToggleEvent, ItemUiTextInfo};
+
+#[allow(clippy::type_complexity)]
+pub fn item_fill_text_info<I: ItemType>(
+    mut cmd: Commands,
+    items: Query<
+        (
+            Entity,
+            &Name,
+            Option<&Attributes>,
+            Option<&Protection>,
+            Option<&Resistance>,
+            Option<&Damage>,
+            Option<&Block>,
+        ),
+        (With<I>, Without<ItemUiTextInfo>),
+    >,
+) {
+    for (entity, name, attributes, protection, resistance, damage, block) in items.iter() {
+        let mut infos = HashMap::default();
+        if let Some(attributes) = attributes {
+            infos
+                .entry("Attributes".to_string())
+                .insert(format!("{}", attributes));
+        }
+        if let Some(protection) = protection {
+            infos
+                .entry("Protection".to_string())
+                .insert(format!("{}", protection));
+        }
+        if let Some(resistance) = resistance {
+            infos
+                .entry("Resistance".to_string())
+                .insert(format!("{}", resistance));
+        }
+        if let Some(damage) = damage {
+            infos
+                .entry("Damage".to_string())
+                .insert(format!("{:?} ({})", damage.amount, damage.kind));
+            infos
+                .entry("Hit rate".to_string())
+                .insert(damage.hit_chance.amount.to_string());
+            infos
+                .entry("Hit cost".to_string())
+                .insert(damage.hit_cost.cost.to_string());
+        }
+        if let Some(block) = block {
+            infos.entry("Block type".to_string()).insert(
+                block
+                    .block_type
+                    .iter()
+                    .map(|p| format!("{}", p))
+                    .fold("".to_string(), |acc, x| format!("{},{}", x, acc)),
+            );
+            infos
+                .entry("Block rate".to_string())
+                .insert(block.chance.amount.to_string());
+        }
+        cmd.entity(entity).insert(ItemUiTextInfo {
+            name: name.as_str().to_string(),
+            infos,
+        });
+    }
+}
 
 #[allow(clippy::type_complexity)]
 pub fn pick_up_items<I: ItemType>(

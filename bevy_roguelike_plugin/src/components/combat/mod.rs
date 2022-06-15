@@ -2,7 +2,7 @@ use super::{AttributeType, Attributes};
 use bevy::{prelude::*, reflect::FromReflect, utils::HashSet};
 use rand::prelude::*;
 use serde::{Deserialize, Serialize};
-use std::ops::Range;
+use std::{fmt::Display, ops::Range};
 
 /// Type of damage that can be inflicted by actors or environment.
 #[derive(
@@ -27,6 +27,11 @@ pub enum DamageKind {
 impl Default for DamageKind {
     fn default() -> Self {
         Self::Blunt
+    }
+}
+impl Display for DamageKind {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{:?}", self)
     }
 }
 
@@ -162,6 +167,12 @@ impl Protect {
             }) as i32
     }
 }
+impl Display for Protect {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        // TODO: also write formula if present
+        write!(f, "{} +{}", self.kind, self.amount)
+    }
+}
 
 /// Protective Value (PV) or the amount of direct damage negated
 #[derive(
@@ -180,6 +191,18 @@ impl Protection {
     pub fn extend(&mut self, other: &Protection) -> &mut Protection {
         self.amounts.extend(other.clone().amounts);
         self
+    }
+}
+impl Display for Protection {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(
+            f,
+            "{}",
+            self.amounts
+                .iter()
+                .map(|p| format!("{}", p))
+                .fold("".to_string(), |acc, x| format!("{}, {}", x, acc))
+        )
     }
 }
 
@@ -202,6 +225,11 @@ pub struct Resist {
     /// Resistance amount in percents. 100 means fully resists specified [`DamageKind`].
     pub percent: u8,
 }
+impl Display for Resist {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{} +{}%", self.kind, self.percent)
+    }
+}
 
 #[derive(Debug, Default, Clone, PartialEq, Eq, Component, Reflect, Serialize, Deserialize)]
 #[reflect(Component)]
@@ -219,6 +247,18 @@ impl Resistance {
         // todo: fix me . instead match on DamageKind
         self.amounts.extend(other.clone().amounts);
         self
+    }
+}
+impl Display for Resistance {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(
+            f,
+            "{}",
+            self.amounts
+                .iter()
+                .map(|r| format!("{}", r))
+                .fold("".to_string(), |acc, x| format!("{}, {}", x, acc))
+        )
     }
 }
 

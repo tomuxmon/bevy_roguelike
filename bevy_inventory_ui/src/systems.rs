@@ -1,8 +1,8 @@
 use crate::{
-    assets::SlotAsset, draggable_ui::DragableUI, Equipable, EquipmentDisplay, EquipmentDisplayNode,
-    EquipmentDisplaySlot, HoverCursorAsset, HoverTip, InventoryDisplayNode,
+    assets::InventoryUiAssets, draggable_ui::DragableUI, Equipable, EquipmentDisplay,
+    EquipmentDisplayNode, EquipmentDisplaySlot, HoverTip, InventoryDisplayNode,
     InventoryDisplayOptions, InventoryDisplayOwner, InventoryDisplaySlot,
-    InventoryDisplayToggleEvent, ItemTypeUiImage, UiRenderInfo, Unequipable,
+    InventoryDisplayToggleEvent, ItemTypeUiImage, ItemUiTextInfo, UiRenderInfo, Unequipable,
 };
 use bevy::{prelude::*, ui::*};
 use bevy_inventory::{Equipment, Inventory, ItemDropEvent, ItemType};
@@ -10,7 +10,7 @@ use bevy_inventory::{Equipment, Inventory, ItemDropEvent, ItemType};
 pub(crate) fn toggle_inventory_open<I: ItemType>(
     mut cmd: Commands,
     mut inventory_toggle_reader: EventReader<InventoryDisplayToggleEvent>,
-    slot_asset: Res<SlotAsset>,
+    slot_asset: Res<InventoryUiAssets>,
     inventory_options: Res<InventoryDisplayOptions>,
     actors: Query<(&EquipmentDisplay<I>, &Inventory)>,
     inventory_displays: Query<(Entity, &InventoryDisplayOwner)>,
@@ -46,7 +46,6 @@ pub(crate) fn toggle_inventory_open<I: ItemType>(
                         right: Val::Px(10.0),
                         ..default()
                     },
-
                     ..default()
                 },
                 color: Color::rgba(0., 0., 0., 0.).into(),
@@ -182,7 +181,7 @@ pub(crate) fn inventory_update<I: ItemType>(
                                     actor: display_node.id,
                                     item: item_entity,
                                 })
-                                .insert(HoverTip::default())
+                                .insert(HoverTip::new(item_entity))
                                 .insert_bundle(ImageBundle {
                                     style: Style {
                                         size: Size::new(
@@ -302,7 +301,7 @@ pub(crate) fn equipment_update<I: ItemType, T: ItemTypeUiImage<I>>(
                                 actor: display_node.actor,
                                 item: slot.item.unwrap(),
                             })
-                            .insert(HoverTip::default())
+                            .insert(HoverTip::new(slot.item.unwrap()))
                             .insert_bundle(ImageBundle {
                                 style: Style {
                                     size: Size::new(
@@ -325,16 +324,20 @@ pub(crate) fn equipment_update<I: ItemType, T: ItemTypeUiImage<I>>(
     }
 }
 
-pub(crate) fn ui_hovertip_interaction(
+pub(crate) fn ui_hovertip_interaction<I: ItemType>(
     mut cmd: Commands,
     inventory_display_options: Res<InventoryDisplayOptions>,
-    hover_cursor_asset: Res<HoverCursorAsset>,
-    mut interactive_hovertip: Query<(Entity, &Interaction, &mut HoverTip)>,
+    inventory_ui_assets: Res<InventoryUiAssets>,
+    mut interactive_hovertip: Query<(Entity, &GlobalTransform, &Interaction, &mut HoverTip)>,
+    items: Query<&ItemUiTextInfo, With<I>>,
 ) {
-    for (entity, &interaction, mut hovet_tip) in interactive_hovertip.iter_mut() {
+    // TODO: use transform to figure out where to draw a tooltip
+    // above slot
+    // below slot
+    for (entity, _transform, &interaction, mut hovet_tip) in interactive_hovertip.iter_mut() {
         if interaction == Interaction::Hovered && !hovet_tip.hovered {
             cmd.entity(entity).with_children(|cb| {
-                let image = hover_cursor_asset.image.clone().into();
+                let image = inventory_ui_assets.hover_cursor_image.clone().into();
                 cb.spawn().insert_bundle(ImageBundle {
                     style: Style {
                         size: Size::new(
@@ -353,6 +356,75 @@ pub(crate) fn ui_hovertip_interaction(
         } else if interaction != Interaction::Hovered && hovet_tip.hovered {
             cmd.entity(entity).despawn_descendants();
             hovet_tip.hovered = false;
+        }
+        if hovet_tip.hovered && !hovet_tip.tooltip_shown {
+            if let Ok(info) = items.get(hovet_tip.item_entity) {
+                cmd.entity(entity).with_children(|cb| {
+                    cb.spawn()
+                        .insert_bundle(NodeBundle {
+                            style: Style {
+                                flex_wrap: FlexWrap::WrapReverse,
+                                flex_direction: FlexDirection::Row,
+                                size: Size::new(Val::Auto, Val::Auto),
+                                // max_size does not work :|
+                                max_size: Size::new(Val::Px(128.), Val::Px(256.)),
+                                min_size: Size::new(Val::Px(32.), Val::Px(32.)),
+                                position_type: PositionType::Absolute,
+                                position: Rect {
+                                    left: Val::Px(inventory_display_options.tile_size),
+                                    bottom: Val::Px(inventory_display_options.tile_size),
+                                    ..default()
+                                },
+                                ..default()
+                            },
+                            color: Color::rgba(0.015, 0.04, 0.025, 0.96).into(),
+                            ..default()
+                        })
+                        .with_children(|cb| {
+                            cb.spawn().insert_bundle(TextBundle {
+                                style: Style {
+                                    margin: Rect::all(Val::Px(4.0)),
+                                    ..default()
+                                },
+                                text: Text::with_section(
+                                    info.name.as_str(),
+                                    TextStyle {
+                                        font: inventory_ui_assets.font.clone(),
+                                        font_size: 24.0,
+                                        color: Color::WHITE,
+                                    },
+                                    Default::default(),
+                                ),
+                                ..default()
+                            });
+                            for (title, description) in info.infos.iter() {
+                                cb.spawn().insert_bundle(TextBundle {
+                                    style: Style {
+                                        margin: Rect::all(Val::Px(2.0)),
+                                        ..default()
+                                    },
+                                    text: Text::with_section(
+                                        format!("{}: {}", title, description),
+                                        TextStyle {
+                                            font: inventory_ui_assets.font.clone(),
+                                            font_size: 18.0,
+                                            color: Color::WHITE,
+                                        },
+                                        Default::default(),
+                                    ),
+                                    ..default()
+                                });
+                            }
+                        });
+                });
+            } else {
+                bevy::log::error!(
+                    "Item entity must have ItemUiTextInfo present in order to show a tooltip."
+                );
+            }
+            hovet_tip.tooltip_shown = true;
+        } else if !hovet_tip.hovered && hovet_tip.tooltip_shown {
+            hovet_tip.tooltip_shown = false;
         }
     }
 }

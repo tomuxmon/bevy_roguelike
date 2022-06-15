@@ -6,8 +6,7 @@ use bevy::{
 use bevy_inventory::ItemType;
 use serde::{Deserialize, Serialize};
 
-pub use assets::HoverCursorAsset;
-pub use assets::SlotAsset;
+pub use assets::InventoryUiAssets;
 pub use plugin::InventoryUiPlugin;
 
 mod assets;
@@ -89,9 +88,28 @@ pub struct InventoryDisplayToggleEvent {
     pub actor: Entity,
 }
 
-#[derive(Default, Debug, Clone, Component)]
+#[derive(Debug, Clone, Component)]
 pub struct HoverTip {
-    hovered: bool,
+    pub(crate) hovered: bool,
+    pub(crate) tooltip_shown: bool,
+    item_entity: Entity,
+}
+impl HoverTip {
+    pub fn new(item_entity: Entity) -> Self {
+        Self {
+            hovered: false,
+            tooltip_shown: false,
+            item_entity,
+        }
+    }
+    pub fn item_entity(&self) -> Entity {
+        self.item_entity
+    }
+}
+#[derive(Debug, Clone, Component)]
+pub struct ItemUiTextInfo {
+    pub name: String,
+    pub infos: HashMap<String, String>,
 }
 
 // TODO: move to bevy_inventory lib
