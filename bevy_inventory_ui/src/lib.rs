@@ -14,6 +14,11 @@ mod draggable_ui;
 mod plugin;
 mod systems;
 
+#[derive(Debug, Component)]
+pub(crate) struct UiFixedZ {
+    pub z: f32,
+}
+
 /// Inventory display options. Must be used as a resource
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct InventoryDisplayOptions {

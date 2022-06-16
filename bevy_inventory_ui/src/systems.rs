@@ -2,7 +2,8 @@ use crate::{
     assets::InventoryUiAssets, draggable_ui::DragableUI, Equipable, EquipmentDisplay,
     EquipmentDisplayNode, EquipmentDisplaySlot, HoverTip, InventoryDisplayNode,
     InventoryDisplayOptions, InventoryDisplayOwner, InventoryDisplaySlot,
-    InventoryDisplayToggleEvent, ItemTypeUiImage, ItemUiTextInfo, UiRenderInfo, Unequipable,
+    InventoryDisplayToggleEvent, ItemTypeUiImage, ItemUiTextInfo, UiFixedZ, UiRenderInfo,
+    Unequipable,
 };
 use bevy::{prelude::*, ui::*};
 use bevy_inventory::{Equipment, Inventory, ItemDropEvent, ItemType};
@@ -324,6 +325,12 @@ pub(crate) fn equipment_update<I: ItemType, T: ItemTypeUiImage<I>>(
     }
 }
 
+pub(crate) fn ui_apply_fixed_z(mut node_query: Query<(&mut Transform, &UiFixedZ), With<Node>>) {
+    for (mut transform, fixed) in node_query.iter_mut() {
+        transform.translation.z = fixed.z;
+    }
+}
+
 pub(crate) fn ui_hovertip_interaction<I: ItemType>(
     mut cmd: Commands,
     inventory_display_options: Res<InventoryDisplayOptions>,
@@ -360,6 +367,7 @@ pub(crate) fn ui_hovertip_interaction<I: ItemType>(
             if let Ok(info) = items.get(hovet_tip.item_entity) {
                 cmd.entity(entity).with_children(|cb| {
                     cb.spawn()
+                        .insert(UiFixedZ { z: 100. })
                         .insert_bundle(NodeBundle {
                             style: Style {
                                 flex_wrap: FlexWrap::WrapReverse,
@@ -378,39 +386,43 @@ pub(crate) fn ui_hovertip_interaction<I: ItemType>(
                             ..default()
                         })
                         .with_children(|cb| {
-                            cb.spawn().insert_bundle(TextBundle {
-                                style: Style {
-                                    margin: Rect::all(Val::Px(4.0)),
-                                    ..default()
-                                },
-                                text: Text::with_section(
-                                    info.name.as_str(),
-                                    TextStyle {
-                                        font: inventory_ui_assets.font.clone(),
-                                        font_size: 24.0,
-                                        color: Color::WHITE,
-                                    },
-                                    Default::default(),
-                                ),
-                                ..default()
-                            });
-                            for (title, description) in info.infos.iter() {
-                                cb.spawn().insert_bundle(TextBundle {
+                            cb.spawn()
+                                .insert(UiFixedZ { z: 101. })
+                                .insert_bundle(TextBundle {
                                     style: Style {
-                                        margin: Rect::all(Val::Px(2.0)),
+                                        margin: Rect::all(Val::Px(4.0)),
                                         ..default()
                                     },
                                     text: Text::with_section(
-                                        format!("{}: {}", title, description),
+                                        info.name.as_str(),
                                         TextStyle {
                                             font: inventory_ui_assets.font.clone(),
-                                            font_size: 18.0,
+                                            font_size: 24.0,
                                             color: Color::WHITE,
                                         },
                                         Default::default(),
                                     ),
                                     ..default()
                                 });
+                            for (title, description) in info.infos.iter() {
+                                cb.spawn()
+                                    .insert(UiFixedZ { z: 102. })
+                                    .insert_bundle(TextBundle {
+                                        style: Style {
+                                            margin: Rect::all(Val::Px(2.0)),
+                                            ..default()
+                                        },
+                                        text: Text::with_section(
+                                            format!("{}: {}", title, description),
+                                            TextStyle {
+                                                font: inventory_ui_assets.font.clone(),
+                                                font_size: 18.0,
+                                                color: Color::WHITE,
+                                            },
+                                            Default::default(),
+                                        ),
+                                        ..default()
+                                    });
                             }
                         });
                 });

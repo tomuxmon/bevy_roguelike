@@ -3,8 +3,8 @@ use std::marker::PhantomData;
 use crate::{
     draggable_ui::{ui_apply_drag_pos, ui_drag_interaction},
     systems::{
-        equipment_update, inventory_update, toggle_inventory_open, ui_click_item_equip,
-        ui_click_item_unequip, ui_hovertip_interaction,
+        equipment_update, inventory_update, toggle_inventory_open, ui_apply_fixed_z,
+        ui_click_item_equip, ui_click_item_unequip, ui_hovertip_interaction,
     },
     InventoryDisplayToggleEvent, ItemTypeUiImage,
 };
@@ -20,6 +20,7 @@ pub struct InventoryUiPlugin<S, I: ItemType, T: ItemTypeUiImage<I>> {
 impl<S: StateData, I: ItemType, T: ItemTypeUiImage<I>> Plugin for InventoryUiPlugin<S, I, T> {
     fn build(&self, app: &mut App) {
         app.add_system_to_stage(CoreStage::First, ui_drag_interaction)
+            .add_system_to_stage(CoreStage::Last, ui_apply_fixed_z)
             .add_system_set(
                 SystemSet::on_update(self.state_running.clone())
                     .label("inventory_ui")
