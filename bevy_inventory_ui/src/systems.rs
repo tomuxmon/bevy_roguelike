@@ -325,9 +325,12 @@ pub(crate) fn equipment_update<I: ItemType, T: ItemTypeUiImage<I>>(
     }
 }
 
-pub(crate) fn ui_apply_fixed_z(mut node_query: Query<(&mut Transform, &UiFixedZ), With<Node>>) {
-    for (mut transform, fixed) in node_query.iter_mut() {
+pub(crate) fn ui_apply_fixed_z(
+    mut node_query: Query<(&mut Transform, &mut GlobalTransform, &UiFixedZ), With<Node>>,
+) {
+    for (mut transform, mut global_transform, fixed) in node_query.iter_mut() {
         transform.translation.z = fixed.z;
+        global_transform.translation.z = fixed.z;
     }
 }
 
@@ -367,7 +370,7 @@ pub(crate) fn ui_hovertip_interaction<I: ItemType>(
             if let Ok(info) = items.get(hovet_tip.item_entity) {
                 cmd.entity(entity).with_children(|cb| {
                     cb.spawn()
-                        .insert(UiFixedZ { z: 100. })
+                        .insert(UiFixedZ { z: 10. })
                         .insert_bundle(NodeBundle {
                             style: Style {
                                 flex_wrap: FlexWrap::WrapReverse,
@@ -387,7 +390,7 @@ pub(crate) fn ui_hovertip_interaction<I: ItemType>(
                         })
                         .with_children(|cb| {
                             cb.spawn()
-                                .insert(UiFixedZ { z: 101. })
+                                .insert(UiFixedZ { z: 11. })
                                 .insert_bundle(TextBundle {
                                     style: Style {
                                         margin: Rect::all(Val::Px(4.0)),
@@ -406,7 +409,7 @@ pub(crate) fn ui_hovertip_interaction<I: ItemType>(
                                 });
                             for (title, description) in info.infos.iter() {
                                 cb.spawn()
-                                    .insert(UiFixedZ { z: 102. })
+                                    .insert(UiFixedZ { z: 12. })
                                     .insert_bundle(TextBundle {
                                         style: Style {
                                             margin: Rect::all(Val::Px(2.0)),
