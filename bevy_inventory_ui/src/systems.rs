@@ -325,6 +325,7 @@ pub(crate) fn equipment_update<I: ItemType, T: ItemTypeUiImage<I>>(
     }
 }
 
+/// system must be executed in the last core stage in order to override bevy_ui z-order calculation
 pub(crate) fn ui_apply_fixed_z(
     mut node_query: Query<(&mut Transform, &mut GlobalTransform, &UiFixedZ), With<Node>>,
 ) {
