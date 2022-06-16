@@ -336,15 +336,23 @@ pub(crate) fn ui_apply_fixed_z(
 
 pub(crate) fn ui_hovertip_interaction<I: ItemType>(
     mut cmd: Commands,
+    windows: Res<Windows>,
     inventory_display_options: Res<InventoryDisplayOptions>,
     inventory_ui_assets: Res<InventoryUiAssets>,
     mut interactive_hovertip: Query<(Entity, &GlobalTransform, &Interaction, &mut HoverTip)>,
     items: Query<&ItemUiTextInfo, With<I>>,
 ) {
-    // TODO: use transform to figure out where to draw a tooltip
-    // above slot
-    // below slot
-    for (entity, _transform, &interaction, mut hovet_tip) in interactive_hovertip.iter_mut() {
+    let window = if let Some(window) = windows.get_primary() {
+        window
+    } else {
+        bevy::log::error!("no window in ui_hovertip_interaction");
+        return;
+    };
+
+    for (entity, transform, &interaction, mut hovet_tip) in interactive_hovertip.iter_mut() {
+        let x_first_half = transform.translation.x < window.width() / 2.;
+        let y_first_half = transform.translation.y < window.height() / 2.;
+
         if interaction == Interaction::Hovered && !hovet_tip.hovered {
             cmd.entity(entity).with_children(|cb| {
                 let image = inventory_ui_assets.hover_cursor_image.clone().into();
@@ -379,9 +387,26 @@ pub(crate) fn ui_hovertip_interaction<I: ItemType>(
                                 max_size: Size::new(Val::Px(256.), Val::Auto),
                                 position_type: PositionType::Absolute,
                                 position: Rect {
-                                    left: Val::Px(inventory_display_options.tile_size),
-                                    bottom: Val::Px(inventory_display_options.tile_size),
-                                    ..default()
+                                    top: if !y_first_half {
+                                        Val::Px(inventory_display_options.tile_size)
+                                    } else {
+                                        Val::Undefined
+                                    },
+                                    bottom: if y_first_half {
+                                        Val::Px(inventory_display_options.tile_size)
+                                    } else {
+                                        Val::Undefined
+                                    },
+                                    right: if !x_first_half {
+                                        Val::Px(inventory_display_options.tile_size)
+                                    } else {
+                                        Val::Undefined
+                                    },
+                                    left: if x_first_half {
+                                        Val::Px(inventory_display_options.tile_size)
+                                    } else {
+                                        Val::Undefined
+                                    },
                                 },
                                 ..default()
                             },
