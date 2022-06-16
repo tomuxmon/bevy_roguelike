@@ -344,7 +344,6 @@ pub(crate) fn ui_hovertip_interaction<I: ItemType>(
                             Val::Px(inventory_display_options.tile_size),
                             Val::Px(inventory_display_options.tile_size),
                         ),
-
                         ..default()
                     },
                     image,
@@ -365,10 +364,8 @@ pub(crate) fn ui_hovertip_interaction<I: ItemType>(
                             style: Style {
                                 flex_wrap: FlexWrap::WrapReverse,
                                 flex_direction: FlexDirection::Row,
-                                size: Size::new(Val::Auto, Val::Auto),
-                                // max_size does not work :|
-                                max_size: Size::new(Val::Px(128.), Val::Px(256.)),
-                                min_size: Size::new(Val::Px(32.), Val::Px(32.)),
+                                min_size: Size::new(Val::Px(128.), Val::Auto),
+                                max_size: Size::new(Val::Px(256.), Val::Auto),
                                 position_type: PositionType::Absolute,
                                 position: Rect {
                                     left: Val::Px(inventory_display_options.tile_size),
