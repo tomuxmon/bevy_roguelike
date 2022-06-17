@@ -483,8 +483,26 @@ pub(crate) fn ui_click_item_equip<I: ItemType>(
                 };
                 if inventory.take(equipable.item) {
                     if !equipment.add(equipable.item, item_type) {
-                        inventory.add(equipable.item);
-                        bevy::log::info!("could not equip item placing back into inventory");
+                        let mut swap_done = false;
+                        let some_item_entity = if let Some((_, entity)) =
+                            equipment.iter_some().find(|((it, _), _)| item_type == it)
+                        {
+                            Some(entity)
+                        } else {
+                            None
+                        };
+                        if let Some(entity) = some_item_entity {
+                            if equipment.take(entity)
+                                && inventory.add(entity)
+                                && equipment.add(equipable.item, item_type)
+                            {
+                                swap_done = true;
+                            }
+                        }
+                        if !swap_done {
+                            inventory.add(equipable.item);
+                            bevy::log::info!("could not equip item placing back into inventory");
+                        }
                     }
                 } else {
                     bevy::log::error!("Equipable Item not in inventory.");
