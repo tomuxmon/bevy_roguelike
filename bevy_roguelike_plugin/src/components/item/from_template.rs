@@ -14,10 +14,11 @@ pub fn spawn_item(
     quality: &Quality,
     rng: &mut StdRng,
 ) {
+    ecmd.insert(quality.clone());
     match template {
         ItemTemplate::Weapon(Weapon { render, damage }) => {
             ecmd.insert(RogueItemType::MainHand);
-            insert_render(ecmd, asset_server, render, quality);
+            insert_render(ecmd, asset_server, render);
             ecmd.insert(damage.mutate(quality, rng));
         }
         ItemTemplate::Shield(Shield {
@@ -26,7 +27,7 @@ pub fn spawn_item(
             block,
         }) => {
             ecmd.insert(RogueItemType::OffHand);
-            insert_render(ecmd, asset_server, render, quality);
+            insert_render(ecmd, asset_server, render);
             ecmd.insert(protection.mutate(quality, rng))
                 .insert(block.mutate(quality, rng));
         }
@@ -36,7 +37,7 @@ pub fn spawn_item(
             enchantment,
         }) => {
             ecmd.insert(RogueItemType::Head);
-            insert_render(ecmd, asset_server, render, quality);
+            insert_render(ecmd, asset_server, render);
             insert_defense(ecmd, defense, quality, rng);
             insert_enchantment(ecmd, enchantment, quality, rng);
         }
@@ -46,7 +47,7 @@ pub fn spawn_item(
             enchantment,
         }) => {
             ecmd.insert(RogueItemType::Body);
-            insert_render(ecmd, asset_server, render, quality);
+            insert_render(ecmd, asset_server, render);
             insert_defense(ecmd, defense, quality, rng);
             insert_enchantment(ecmd, enchantment, quality, rng);
         }
@@ -56,7 +57,7 @@ pub fn spawn_item(
             enchantment,
         }) => {
             ecmd.insert(RogueItemType::Feet);
-            insert_render(ecmd, asset_server, render, quality);
+            insert_render(ecmd, asset_server, render);
             insert_defense(ecmd, defense, quality, rng);
             insert_enchantment(ecmd, enchantment, quality, rng);
         }
@@ -66,7 +67,7 @@ pub fn spawn_item(
             enchantment,
         }) => {
             ecmd.insert(RogueItemType::Neck);
-            insert_render(ecmd, asset_server, render, quality);
+            insert_render(ecmd, asset_server, render);
             insert_defense(ecmd, defense, quality, rng);
             insert_enchantment(ecmd, enchantment, quality, rng);
         }
@@ -76,7 +77,7 @@ pub fn spawn_item(
             enchantment,
         }) => {
             ecmd.insert(RogueItemType::Finger);
-            insert_render(ecmd, asset_server, render, quality);
+            insert_render(ecmd, asset_server, render);
             insert_defense(ecmd, defense, quality, rng);
             insert_enchantment(ecmd, enchantment, quality, rng);
         }
@@ -107,15 +108,9 @@ fn insert_enchantment(
     }
 }
 
-fn insert_render(
-    ecmd: &mut EntityCommands,
-    asset_server: AssetServer,
-    render: &ItemRenderInfo,
-    quality: &Quality,
-) {
+fn insert_render(ecmd: &mut EntityCommands, asset_server: AssetServer, render: &ItemRenderInfo) {
     let texture = asset_server.load(render.texture_path.as_str());
-    ecmd.insert(Name::new(format!("{} {}", quality, render.name.clone())))
-        .insert(quality.clone())
+    ecmd.insert(Name::new(render.name.clone()))
         .insert(UiRenderInfo {
             image: texture.clone().into(),
         })

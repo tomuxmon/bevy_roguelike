@@ -228,7 +228,14 @@ impl MutableQuality for Protection {
             amounts: self
                 .amounts
                 .iter()
-                .map(|a| a.mutate_extended(is_direct, quality, rng))
+                .filter_map(|a| {
+                    let protect = a.mutate_extended(is_direct, quality, rng);
+                    if protect.amount > 0 {
+                        Some(protect)
+                    } else {
+                        None
+                    }
+                })
                 .collect(),
         }
     }
@@ -244,11 +251,14 @@ impl MutableQuality for Resist {
 impl MutableQuality for Resistance {
     fn mutate_extended(&self, is_direct: bool, quality: &Quality, rng: &mut StdRng) -> Self {
         Self {
-            amounts: HashSet::from_iter(
-                self.amounts
-                    .iter()
-                    .map(|p| p.mutate_extended(is_direct, quality, rng)),
-            ),
+            amounts: HashSet::from_iter(self.amounts.iter().filter_map(|p| {
+                let aa = p.mutate_extended(is_direct, quality, rng);
+                if aa.percent > 0 {
+                    Some(aa)
+                } else {
+                    None
+                }
+            })),
         }
     }
 }
@@ -272,12 +282,14 @@ impl MutableQuality for Block {
 impl MutableQuality for Attributes {
     fn mutate_extended(&self, is_direct: bool, quality: &Quality, rng: &mut StdRng) -> Self {
         Self {
-            list: HashMap::from_iter(
-                self.clone()
-                    .list
-                    .into_iter()
-                    .map(|(t, v)| (t, v.mutate_extended(is_direct, quality, rng))),
-            ),
+            list: HashMap::from_iter(self.clone().list.into_iter().filter_map(|(t, v)| {
+                let attribute = (t, v.mutate_extended(is_direct, quality, rng));
+                if attribute.1 > 0 {
+                    Some(attribute)
+                } else {
+                    None
+                }
+            })),
         }
     }
 }

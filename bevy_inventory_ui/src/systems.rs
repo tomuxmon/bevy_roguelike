@@ -433,7 +433,7 @@ pub(crate) fn ui_hovertip_interaction<I: ItemType>(
                                     ),
                                     ..default()
                                 });
-                            for (title, description) in info.infos.iter() {
+                            for (title, description) in info.titles_descriptions.iter() {
                                 cb.spawn()
                                     .insert(UiFixedZ { z: 12. })
                                     .insert_bundle(TextBundle {

@@ -114,7 +114,7 @@ impl HoverTip {
 #[derive(Debug, Clone, Component)]
 pub struct ItemUiTextInfo {
     pub name: String,
-    pub infos: HashMap<String, String>,
+    pub titles_descriptions: Vec<(String, String)>,
 }
 
 // TODO: move to bevy_inventory lib

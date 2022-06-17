@@ -1,5 +1,5 @@
 use crate::components::*;
-use bevy::{prelude::*, utils::HashMap};
+use bevy::prelude::*;
 use bevy_inventory::{Equipment, Inventory, ItemDropEvent, ItemPickUpEvent, ItemType};
 use bevy_inventory_ui::{EquipmentDisplay, InventoryDisplayToggleEvent, ItemUiTextInfo};
 
@@ -10,6 +10,7 @@ pub fn item_fill_text_info<I: ItemType>(
         (
             Entity,
             &Name,
+            &Quality,
             Option<&Attributes>,
             Option<&Protection>,
             Option<&Resistance>,
@@ -19,49 +20,51 @@ pub fn item_fill_text_info<I: ItemType>(
         (With<I>, Without<ItemUiTextInfo>),
     >,
 ) {
-    for (entity, name, attributes, protection, resistance, damage, block) in items.iter() {
-        let mut infos = HashMap::default();
+    for (entity, name, quality, attributes, protection, resistance, damage, block) in items.iter() {
+        let name = name.as_str().to_string()
+            + match quality {
+                Quality::Broken => " (broken)",
+                Quality::Damaged => " (damaged)",
+                Quality::Normal => "",
+                Quality::Masterwork => " (masterwork)",
+                Quality::Artifact => " (artifact)",
+            };
+
+        let mut titles_descriptions = vec![];
         if let Some(attributes) = attributes {
-            infos
-                .entry("Attributes".to_string())
-                .insert(format!("{}", attributes));
+            titles_descriptions.push(("Attributes".to_string(), format!("{}", attributes)));
         }
         if let Some(protection) = protection {
-            infos
-                .entry("Protection".to_string())
-                .insert(format!("{}", protection));
+            titles_descriptions.push(("Protection".to_string(), format!("{}", protection)));
         }
         if let Some(resistance) = resistance {
-            infos
-                .entry("Resistance".to_string())
-                .insert(format!("{}", resistance));
+            titles_descriptions.push(("Resistance".to_string(), format!("{}", resistance)));
         }
         if let Some(damage) = damage {
-            infos
-                .entry("Damage".to_string())
-                .insert(format!("{:?} ({})", damage.amount, damage.kind));
-            infos
-                .entry("Hit rate".to_string())
-                .insert(damage.hit_chance.amount.to_string());
-            infos
-                .entry("Hit cost".to_string())
-                .insert(damage.hit_cost.cost.to_string());
+            titles_descriptions.push((
+                "Damage".to_string(),
+                format!("{:?} ({})", damage.amount, damage.kind),
+            ));
+            titles_descriptions
+                .push(("Hit rate".to_string(), damage.hit_chance.amount.to_string()));
+            titles_descriptions.push(("Hit cost".to_string(), damage.hit_cost.cost.to_string()));
         }
         if let Some(block) = block {
-            infos.entry("Block type".to_string()).insert(
+            titles_descriptions.push((
+                "Block type".to_string(),
                 block
                     .block_type
                     .iter()
                     .map(|p| format!("{}", p))
                     .fold("".to_string(), |acc, x| format!("{},{}", x, acc)),
-            );
-            infos
-                .entry("Block rate".to_string())
-                .insert(block.chance.amount.to_string());
+            ));
+
+            titles_descriptions.push(("Block rate".to_string(), block.chance.amount.to_string()));
         }
+
         cmd.entity(entity).insert(ItemUiTextInfo {
-            name: name.as_str().to_string(),
-            infos,
+            name,
+            titles_descriptions,
         });
     }
 }
@@ -144,7 +147,9 @@ pub fn equip_owned_remove<I: ItemType>(
             }
         } else {
             cmd.entity(item_entity).remove::<ItemEquipedOwned>();
-            bevy::log::info!("actor entity not found. Could not add StatsComputedDirty. Probably dead.");
+            bevy::log::info!(
+                "actor entity not found. Could not add StatsComputedDirty. Probably dead."
+            );
         }
     }
 }
