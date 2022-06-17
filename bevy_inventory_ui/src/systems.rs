@@ -25,7 +25,7 @@ pub(crate) fn toggle_inventory_open<I: ItemType>(
         };
 
         if let Some((inventory_display_entity, _)) =
-            inventory_displays.iter().find(|(_, o)| o.id == e.actor)
+            inventory_displays.iter().find(|(_, o)| o.actor == e.actor)
         {
             cmd.entity(inventory_display_entity).despawn_recursive();
             return;
@@ -33,7 +33,7 @@ pub(crate) fn toggle_inventory_open<I: ItemType>(
 
         cmd.spawn()
             .insert(Name::new("inventory display"))
-            .insert(InventoryDisplayOwner { id: e.actor })
+            .insert(InventoryDisplayOwner { actor: e.actor })
             .insert(DragableUI::default())
             .insert(Interaction::default())
             .insert_bundle(NodeBundle {

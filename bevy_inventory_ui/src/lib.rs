@@ -52,7 +52,7 @@ impl<I: ItemType> Default for EquipmentDisplay<I> {
 /// specifies the owner of the inventory and equipment UI
 #[derive(Debug, Clone, Component)]
 pub struct InventoryDisplayOwner {
-    pub id: Entity,
+    pub actor: Entity,
 }
 
 /// Specifies the node containing children of InventoryDisplaySlot

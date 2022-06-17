@@ -6,6 +6,7 @@ use bevy::utils::HashMap;
 use bevy_inventory::Equipment;
 use bevy_inventory::Inventory;
 use bevy_inventory::ItemType;
+use bevy_inventory_ui::InventoryDisplayOwner;
 use map_generator::*;
 use rand::prelude::*;
 
@@ -216,6 +217,7 @@ pub fn death_read<I: ItemType>(
     mut cmd: Commands,
     mut death_reader: EventReader<DeathEvent>,
     actors: Query<(&Vector2D, &Name, &HitPoints, &Inventory, &Equipment<I>)>,
+    inventory_displays: Query<(Entity, &InventoryDisplayOwner)>,
 ) {
     for death in death_reader.iter() {
         if let Ok((pt, name, _hp, inventory, equipment)) = actors.get(death.actor) {
@@ -226,6 +228,11 @@ pub fn death_read<I: ItemType>(
                 // NOTE: manually droping without itemDropEvent.
                 // dirty way but...
                 cmd.entity(item_entity).insert(*pt);
+            }
+            for (ui_node_entity, owner) in inventory_displays.iter() {
+                if owner.actor == death.actor {
+                    cmd.entity(ui_node_entity).despawn_recursive();
+                }
             }
             // TODO: animated death
             // different animation based on negative percent of current hp
