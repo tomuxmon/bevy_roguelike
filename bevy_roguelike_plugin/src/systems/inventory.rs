@@ -144,7 +144,7 @@ pub fn equip_owned_remove<I: ItemType>(
             }
         } else {
             cmd.entity(item_entity).remove::<ItemEquipedOwned>();
-            bevy::log::error!("actor entity not found. Could not add StatsComputedDirty");
+            bevy::log::info!("actor entity not found. Could not add StatsComputedDirty. Probably dead.");
         }
     }
 }
