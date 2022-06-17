@@ -30,7 +30,7 @@ pub(crate) fn toggle_inventory_open<I: ItemType>(
             cmd.entity(inventory_display_entity).despawn_recursive();
             return;
         }
-
+        // TODO: local resource to track inventory position and reopen on the same position.
         cmd.spawn()
             .insert(Name::new("inventory display"))
             .insert(InventoryDisplayOwner { actor: e.actor })

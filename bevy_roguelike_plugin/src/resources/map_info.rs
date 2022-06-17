@@ -39,7 +39,9 @@ impl MapInfo {
         while item_spawns.len() < item_count {
             let iidx = rng.gen_range(0..floor.len());
             let pt = floor[iidx];
-            item_spawns.push(pt);
+            if !item_spawns.contains(&pt) {
+                item_spawns.push(pt);
+            }
         }
 
         MapInfo {
