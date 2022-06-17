@@ -64,6 +64,7 @@ pub struct AssetsLoading(pub Vec<HandleUntyped>);
 pub struct MapEntities {
     map_id: Entity,
     enemies_id: Entity,
+    items_id: Entity,
 }
 
 // TODO: instead of after / before  use labels: https://bevy-cheatbook.github.io/programming/system-order.html#labels
@@ -216,6 +217,8 @@ impl<T: StateNext> RoguelikePlugin<T> {
     fn cleanup_map(map_id: Res<MapEntities>, mut cmd: Commands) {
         cmd.entity(map_id.map_id).despawn_recursive();
         cmd.entity(map_id.enemies_id).despawn_recursive();
+        // TODO: leave player items
+        cmd.entity(map_id.items_id).despawn_recursive();
         cmd.remove_resource::<MapEntities>();
     }
 
@@ -324,19 +327,27 @@ impl<T: StateNext> RoguelikePlugin<T> {
             .id();
 
         let item_templates: Vec<_> = item_templates.iter().map(|(_, it)| it).collect();
-        for ipt in info.item_spawns.clone() {
-            let template = item_templates[rng.gen_range(0..item_templates.len())];
-            let quality = Quality::roll(&mut rng);
-            let mut ecmd = cmd.spawn();
-            ecmd.insert(Vector2D::from(ipt));
-            spawn_item(
-                &mut ecmd,
-                asset_server.clone(),
-                template,
-                &quality,
-                &mut rng,
-            );
-        }
+        let items_id = cmd
+            .spawn()
+            .insert(Name::new("Items"))
+            .insert(Transform::default())
+            .insert(GlobalTransform::default())
+            .with_children(|cb| {
+                for ipt in info.item_spawns.clone() {
+                    let template = item_templates[rng.gen_range(0..item_templates.len())];
+                    let quality = Quality::roll(&mut rng);
+                    let mut ecmd = cb.spawn();
+                    ecmd.insert(Vector2D::from(ipt));
+                    spawn_item(
+                        &mut ecmd,
+                        asset_server.clone(),
+                        template,
+                        &quality,
+                        &mut rng,
+                    );
+                }
+            })
+            .id();
 
         if let Some(player_template) = actor_templates.get("actors/human.actor.ron") {
             let team_player = 1;
@@ -378,7 +389,11 @@ impl<T: StateNext> RoguelikePlugin<T> {
         cmd.insert_resource(info);
         cmd.insert_resource(rng);
 
-        cmd.insert_resource(MapEntities { map_id, enemies_id });
+        cmd.insert_resource(MapEntities {
+            map_id,
+            enemies_id,
+            items_id,
+        });
 
         state.set_next();
     }
