@@ -509,6 +509,8 @@ pub(crate) fn world_hovertip_interaction(
     let cursor_position = window.cursor_position();
     let window_size = Vec2::new(window.width(), window.height());
 
+    // TODO: show a paged tooltip when more then
+    // one item at the same hover position
     for (transform, info, mut hover_tip) in no_ui_things.iter_mut() {
         let is_hovered = if let Some(cursor_screen_pos) = cursor_position {
             // NOTE: world_pos compute stolen from https://bevy-cheatbook.github.io/cookbook/cursor2world.html

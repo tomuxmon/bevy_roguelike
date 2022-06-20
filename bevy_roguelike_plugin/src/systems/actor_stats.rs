@@ -20,7 +20,7 @@ pub fn actors_fill_text_info(
 ) {
     for (actor_entity, name, team, ap, hp, stats) in actors.iter() {
         let mut titles_descriptions = vec![];
-        titles_descriptions.push(("Team".to_string(), format!("{:?}", team)));
+        titles_descriptions.push(("Team".to_string(), format!("{}", team.id())));
         titles_descriptions.push(("Speed".to_string(), format!("{}", ap.increment())));
         titles_descriptions.push((
             "Hit points".to_string(),

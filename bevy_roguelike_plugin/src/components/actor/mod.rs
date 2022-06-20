@@ -111,6 +111,9 @@ impl Team {
     pub fn new(id: u32) -> Self {
         Self { id }
     }
+    pub fn id(&self) -> u32 {
+        self.id
+    }
 }
 
 // TODO: fix lousy name
