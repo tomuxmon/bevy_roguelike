@@ -93,47 +93,52 @@ impl<T: StateNext> Plugin for RoguelikePlugin<T> {
             .add_system_set(
                 SystemSet::on_enter(self.state_construct.clone()).with_system(Self::create_map),
             )
-            .add_system_set(
+            .add_system_set_to_stage(
+                CoreStage::First,
                 SystemSet::on_update(self.state_running.clone())
-                    .with_system(input_player::<RogueItemType>.after(gather_action_points))
-                    .with_system(input_fov_rand.after(gather_action_points))
-                    .with_system(render_body)
-                    .with_system(actors_fill_text_info.after(stats_recompute::<RogueItemType>))
-                    .with_system(render_equiped_item::<RogueItemType>)
-                    .with_system(unrender_unequiped_items)
-                    .with_system(render_hud_health_bar)
+                    .with_system(apply_position_to_transform)
+                    .with_system(camera_set_focus_player)
+                    .with_system(field_of_view_recompute),
+            )
+            .add_system_set_to_stage(
+                CoreStage::PreUpdate,
+                SystemSet::on_update(self.state_running.clone())
+                    .with_system(gather_action_points)
+                    .with_system(turn_end_now_gather)
+                    .with_system(stats_recompute::<RogueItemType>)
                     .with_system(attributes_update_action_points)
                     .with_system(attributes_update_hit_points)
                     .with_system(attributes_update_field_of_view)
-                    .with_system(stats_recompute::<RogueItemType>)
-                    .with_system(gather_action_points)
-                    .with_system(turn_end_now_gather.after(gather_action_points))
+                    .with_system(field_of_view_set_visibility)
+                    .with_system(actors_fill_text_info)
+                    .with_system(item_fill_text_info::<RogueItemType>)
+                    .with_system(camera_focus_smooth)
+                    .with_system(equip_owned_add::<RogueItemType>)
+                    .with_system(equip_owned_remove::<RogueItemType>)
+                    .with_system(toggle_inventory_open_event_send::<RogueItemType>),
+            )
+            .add_system_set_to_stage(
+                CoreStage::Update,
+                SystemSet::on_update(self.state_running.clone())
+                    .with_system(input_player::<RogueItemType>)
+                    .with_system(input_fov_rand)
+                    .with_system(render_body)
+                    .with_system(render_equiped_item::<RogueItemType>)
+                    .with_system(unrender_unequiped_items)
+                    .with_system(render_hud_health_bar)
                     .with_system(act)
                     .with_system(attack.after(act))
-                    .with_system(item_fill_text_info::<RogueItemType>)
+                    .with_system(spend_ap.after(act))
+                    .with_system(try_move.after(act).after(spend_ap)),
+            )
+            .add_system_set_to_stage(
+                CoreStage::PostUpdate,
+                SystemSet::on_update(self.state_running.clone())
                     .with_system(pick_up_items::<RogueItemType>)
                     .with_system(drop_item::<RogueItemType>)
-                    .with_system(
-                        equip_owned_add::<RogueItemType>
-                            .after(pick_up_items::<RogueItemType>)
-                            .after(drop_item::<RogueItemType>),
-                    )
-                    .with_system(
-                        equip_owned_remove::<RogueItemType>
-                            .after(pick_up_items::<RogueItemType>)
-                            .after(drop_item::<RogueItemType>),
-                    )
-                    .with_system(toggle_inventory_open_event_send::<RogueItemType>)
-                    .with_system(spend_ap.after(act))
-                    .with_system(try_move.after(act).after(spend_ap))
-                    .with_system(apply_position_to_transform.after(try_move))
-                    .with_system(apply_hp_modify.after(act).after(attack).after(spend_ap))
+                    .with_system(apply_hp_modify)
                     .with_system(death_read::<RogueItemType>.after(apply_hp_modify))
-                    .with_system(idle_rest.after(apply_hp_modify))
-                    .with_system(camera_set_focus_player)
-                    .with_system(camera_focus_smooth.after(camera_set_focus_player))
-                    .with_system(field_of_view_recompute)
-                    .with_system(field_of_view_set_visibility.after(field_of_view_recompute)),
+                    .with_system(idle_rest.after(apply_hp_modify)),
             )
             .add_system_set(
                 SystemSet::on_exit(self.state_running.clone()).with_system(Self::cleanup_map),

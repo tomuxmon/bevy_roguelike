@@ -30,7 +30,11 @@ impl StateNext for AppState {
 
 fn main() {
     let mut app = App::new();
-    app.add_state(AppState::Setup)
+    app.add_state_to_stage(CoreStage::First, AppState::Setup)
+        .add_state_to_stage(CoreStage::PreUpdate, AppState::Setup)
+        .add_state_to_stage(CoreStage::Update, AppState::Setup)
+        .add_state_to_stage(CoreStage::PostUpdate, AppState::Setup)
+        .add_state_to_stage(CoreStage::Last, AppState::Setup)
         .insert_resource(ClearColor(Color::BLACK))
         .insert_resource(WindowDescriptor {
             title: "rogue bevy".to_string(),
