@@ -21,6 +21,22 @@ impl Default for AttributeType {
         Self::Strength
     }
 }
+impl Display for AttributeType {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(
+            f,
+            "{}",
+            match self {
+                AttributeType::Strength => "str",
+                AttributeType::Dexterity => "dex",
+                AttributeType::Inteligence => "int",
+                AttributeType::Toughness => "tou",
+                AttributeType::Perception => "per",
+                AttributeType::Willpower => "wil",
+            }
+        )
+    }
+}
 
 #[derive(Debug, Clone, Eq, PartialEq, Component, Reflect, Serialize, Deserialize)]
 #[reflect(Component)]
@@ -78,7 +94,7 @@ impl Display for Attributes {
             "{}",
             self.list
                 .iter()
-                .map(|(&attribute_type, &amount)| format!("{:?} +{}", attribute_type, amount))
+                .map(|(&attribute_type, &amount)| format!("{} +{}", attribute_type, amount))
                 .fold("".to_string(), |acc, x| format!("{}, {}", x, acc))
         )
     }

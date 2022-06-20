@@ -6,31 +6,35 @@ use bevy_inventory_ui::UiTextInfo;
 #[allow(clippy::type_complexity)]
 pub fn actors_fill_text_info(
     mut cmd: Commands,
-    actors: Query<
-        (
-            Entity,
-            &Name,
-            &Team,
-            &ActionPoints,
-            &HitPoints,
-            &StatsComputed,
-        ),
-        With<StatsComputedDirty>,
-    >,
+    players: Query<&FieldOfView, With<MovingPlayer>>,
+    actors: Query<(
+        Entity,
+        &Name,
+        &Team,
+        &ActionPoints,
+        &HitPoints,
+        &StatsComputed,
+        &Vector2D,
+        Option<&UiTextInfo>,
+    )>,
 ) {
-    for (actor_entity, name, team, ap, hp, stats) in actors.iter() {
-        let mut titles_descriptions = vec![];
-        titles_descriptions.push(("Team".to_string(), format!("{}", team.id())));
-        titles_descriptions.push(("Speed".to_string(), format!("{}", ap.increment())));
-        titles_descriptions.push((
-            "Hit points".to_string(),
-            format!("{} out of {}", hp.current(), hp.full()),
-        ));
-        titles_descriptions.push(("Attributes".to_string(), format!("{}", stats.attributes)));
-        cmd.entity(actor_entity).insert(UiTextInfo {
-            name: name.as_str().to_string(),
-            titles_descriptions,
-        });
+    for player_fov in players.iter() {
+        for (actor_entity, name, team, ap, hp, stats, pt, info) in actors.iter() {
+            if player_fov.tiles_visible.iter().any(|t| *t == **pt) {
+                let mut titles_descriptions = vec![];
+                titles_descriptions.push(("Team".to_string(), format!("{}", team.id())));
+                titles_descriptions.push(("Speed".to_string(), format!("{}", ap.increment())));
+                titles_descriptions.push(("Hit points".to_string(), hp.full().to_string()));
+                titles_descriptions
+                    .push(("Attributes".to_string(), format!("{}", stats.attributes)));
+                cmd.entity(actor_entity).insert(UiTextInfo {
+                    name: name.as_str().to_string(),
+                    titles_descriptions,
+                });
+            } else if info.is_some() {
+                cmd.entity(actor_entity).remove::<UiTextInfo>();
+            }
+        }
     }
 }
 

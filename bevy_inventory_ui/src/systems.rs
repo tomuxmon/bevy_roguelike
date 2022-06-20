@@ -513,7 +513,7 @@ pub(crate) fn world_hovertip_interaction(
     // one item at the same hover position
     for (transform, info, mut hover_tip) in no_ui_things.iter_mut() {
         let is_hovered = if let Some(cursor_screen_pos) = cursor_position {
-            // NOTE: world_pos compute stolen from https://bevy-cheatbook.github.io/cookbook/cursor2world.html
+            // NOTE: cursor_world_pos compute stolen from https://bevy-cheatbook.github.io/cookbook/cursor2world.html
             let cursor_world_pos = (cam2d_transform.compute_matrix()
                 * cam2d.projection_matrix.inverse())
             .project_point3(((cursor_screen_pos / window_size) * 2.0 - Vec2::ONE).extend(-1.0));
