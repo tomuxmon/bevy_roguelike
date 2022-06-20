@@ -1,6 +1,38 @@
 use crate::components::*;
 use bevy::prelude::*;
 use bevy_inventory::{Equipment, ItemType};
+use bevy_inventory_ui::UiTextInfo;
+
+#[allow(clippy::type_complexity)]
+pub fn actors_fill_text_info(
+    mut cmd: Commands,
+    actors: Query<
+        (
+            Entity,
+            &Name,
+            &Team,
+            &ActionPoints,
+            &HitPoints,
+            &StatsComputed,
+        ),
+        With<StatsComputedDirty>,
+    >,
+) {
+    for (actor_entity, name, team, ap, hp, stats) in actors.iter() {
+        let mut titles_descriptions = vec![];
+        titles_descriptions.push(("Team".to_string(), format!("{:?}", team)));
+        titles_descriptions.push(("Speed".to_string(), format!("{}", ap.increment())));
+        titles_descriptions.push((
+            "Hit points".to_string(),
+            format!("{} out of {}", hp.current(), hp.full()),
+        ));
+        titles_descriptions.push(("Attributes".to_string(), format!("{}", stats.attributes)));
+        cmd.entity(actor_entity).insert(UiTextInfo {
+            name: name.as_str().to_string(),
+            titles_descriptions,
+        });
+    }
+}
 
 pub fn attributes_update_action_points(
     mut cmd: Commands,

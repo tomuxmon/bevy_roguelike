@@ -98,6 +98,7 @@ impl<T: StateNext> Plugin for RoguelikePlugin<T> {
                     .with_system(input_player::<RogueItemType>.after(gather_action_points))
                     .with_system(input_fov_rand.after(gather_action_points))
                     .with_system(render_body)
+                    .with_system(actors_fill_text_info.after(stats_recompute::<RogueItemType>))
                     .with_system(render_equiped_item::<RogueItemType>)
                     .with_system(unrender_unequiped_items)
                     .with_system(render_hud_health_bar)

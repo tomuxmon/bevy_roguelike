@@ -34,8 +34,8 @@ fn main() {
         .insert_resource(ClearColor(Color::BLACK))
         .insert_resource(WindowDescriptor {
             title: "rogue bevy".to_string(),
-            width: 1200.,
-            height: 700.,
+            width: 600.,
+            height: 400.,
             ..Default::default()
         })
         .add_plugins(DefaultPlugins {})

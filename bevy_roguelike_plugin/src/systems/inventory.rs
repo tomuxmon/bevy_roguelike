@@ -1,7 +1,7 @@
 use crate::components::*;
 use bevy::prelude::*;
 use bevy_inventory::{Equipment, Inventory, ItemDropEvent, ItemPickUpEvent, ItemType};
-use bevy_inventory_ui::{EquipmentDisplay, InventoryDisplayToggleEvent, ItemUiTextInfo};
+use bevy_inventory_ui::{EquipmentDisplay, InventoryDisplayToggleEvent, UiTextInfo};
 
 #[allow(clippy::type_complexity)]
 pub fn item_fill_text_info<I: ItemType>(
@@ -17,7 +17,7 @@ pub fn item_fill_text_info<I: ItemType>(
             Option<&Damage>,
             Option<&Block>,
         ),
-        (With<I>, Without<ItemUiTextInfo>),
+        (With<I>, Without<UiTextInfo>),
     >,
 ) {
     for (entity, name, quality, attributes, protection, resistance, damage, block) in items.iter() {
@@ -62,7 +62,7 @@ pub fn item_fill_text_info<I: ItemType>(
             titles_descriptions.push(("Block rate".to_string(), block.chance.amount.to_string()));
         }
 
-        cmd.entity(entity).insert(ItemUiTextInfo {
+        cmd.entity(entity).insert(UiTextInfo {
             name,
             titles_descriptions,
         });

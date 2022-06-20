@@ -131,6 +131,9 @@ impl ActionPoints {
         self.current -= cost;
         self.current
     }
+    pub fn increment(&self) -> i16 {
+        self.increment
+    }
 }
 
 #[derive(Default, Component, Reflect)]
@@ -199,6 +202,9 @@ impl HitPoints {
             self.apply(amount);
             self.regen_current = rem;
         }
+    }
+    pub fn full(&self) -> i16 {
+        self.full
     }
 }
 

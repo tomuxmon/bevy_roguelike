@@ -1,11 +1,15 @@
 use crate::{
     assets::InventoryUiAssets, draggable_ui::DragableUI, Equipable, EquipmentDisplay,
-    EquipmentDisplayNode, EquipmentDisplaySlot, HoverTip, InventoryDisplayNode,
-    InventoryDisplayOptions, InventoryDisplayOwner, InventoryDisplaySlot,
-    InventoryDisplayToggleEvent, ItemTypeUiImage, ItemUiTextInfo, UiFixedZ, UiRenderInfo,
-    Unequipable,
+    EquipmentDisplayNode, EquipmentDisplaySlot, InventoryDisplayNode, InventoryDisplayOptions,
+    InventoryDisplayOwner, InventoryDisplaySlot, InventoryDisplayToggleEvent, ItemTypeUiImage,
+    UiFixedZ, UiHoverTip, UiRenderInfo, UiTextInfo, Unequipable, WorldHoverTip,
 };
-use bevy::{prelude::*, ui::*};
+use bevy::{
+    ecs::system::EntityCommands,
+    prelude::*,
+    render::camera::{Camera2d, RenderTarget},
+    ui::*,
+};
 use bevy_inventory::{Equipment, Inventory, ItemDropEvent, ItemType};
 
 pub(crate) fn toggle_inventory_open<I: ItemType>(
@@ -182,7 +186,7 @@ pub(crate) fn inventory_update<I: ItemType>(
                                     actor: display_node.id,
                                     item: item_entity,
                                 })
-                                .insert(HoverTip::new(item_entity))
+                                .insert(UiHoverTip::new(item_entity))
                                 .insert_bundle(ImageBundle {
                                     style: Style {
                                         size: Size::new(
@@ -302,7 +306,7 @@ pub(crate) fn equipment_update<I: ItemType, T: ItemTypeUiImage<I>>(
                                 actor: display_node.actor,
                                 item: slot.item.unwrap(),
                             })
-                            .insert(HoverTip::new(slot.item.unwrap()))
+                            .insert(UiHoverTip::new(slot.item.unwrap()))
                             .insert_bundle(ImageBundle {
                                 style: Style {
                                     size: Size::new(
@@ -340,8 +344,8 @@ pub(crate) fn ui_hovertip_interaction<I: ItemType>(
     windows: Res<Windows>,
     inventory_display_options: Res<InventoryDisplayOptions>,
     inventory_ui_assets: Res<InventoryUiAssets>,
-    mut interactive_hovertip: Query<(Entity, &GlobalTransform, &Interaction, &mut HoverTip)>,
-    items: Query<&ItemUiTextInfo, With<I>>,
+    mut interactive_hovertip: Query<(Entity, &GlobalTransform, &Interaction, &mut UiHoverTip)>,
+    items: Query<&UiTextInfo, With<I>>,
 ) {
     let window = if let Some(window) = windows.get_primary() {
         window
@@ -350,11 +354,13 @@ pub(crate) fn ui_hovertip_interaction<I: ItemType>(
         return;
     };
 
-    for (entity, transform, &interaction, mut hovet_tip) in interactive_hovertip.iter_mut() {
+    for (entity, transform, &interaction, mut hover_tip) in interactive_hovertip.iter_mut() {
         let x_first_half = transform.translation.x < window.width() / 2.;
         let y_first_half = transform.translation.y < window.height() / 2.;
 
-        if interaction == Interaction::Hovered && !hovet_tip.hovered {
+        // TODO: extract function to show hovertip
+
+        if interaction == Interaction::Hovered && !hover_tip.hovered {
             cmd.entity(entity).with_children(|cb| {
                 let image = inventory_ui_assets.hover_cursor_image.clone().into();
                 cb.spawn().insert_bundle(ImageBundle {
@@ -370,99 +376,31 @@ pub(crate) fn ui_hovertip_interaction<I: ItemType>(
                     ..Default::default()
                 });
             });
-            hovet_tip.hovered = true;
-        } else if interaction != Interaction::Hovered && hovet_tip.hovered {
+            hover_tip.hovered = true;
+        } else if interaction != Interaction::Hovered && hover_tip.hovered {
             cmd.entity(entity).despawn_descendants();
-            hovet_tip.hovered = false;
+            hover_tip.hovered = false;
         }
-        if hovet_tip.hovered && !hovet_tip.tooltip_shown {
-            if let Ok(info) = items.get(hovet_tip.item_entity) {
+        if hover_tip.hovered && !hover_tip.tooltip_shown {
+            if let Ok(info) = items.get(hover_tip.tip_owner) {
                 cmd.entity(entity).with_children(|cb| {
-                    cb.spawn()
-                        .insert(UiFixedZ { z: 10. })
-                        .insert_bundle(NodeBundle {
-                            style: Style {
-                                flex_wrap: FlexWrap::WrapReverse,
-                                flex_direction: FlexDirection::Row,
-                                min_size: Size::new(Val::Px(128.), Val::Auto),
-                                max_size: Size::new(Val::Px(256.), Val::Auto),
-                                position_type: PositionType::Absolute,
-                                position: Rect {
-                                    top: if !y_first_half {
-                                        Val::Px(inventory_display_options.tile_size)
-                                    } else {
-                                        Val::Undefined
-                                    },
-                                    bottom: if y_first_half {
-                                        Val::Px(inventory_display_options.tile_size)
-                                    } else {
-                                        Val::Undefined
-                                    },
-                                    right: if !x_first_half {
-                                        Val::Px(inventory_display_options.tile_size)
-                                    } else {
-                                        Val::Undefined
-                                    },
-                                    left: if x_first_half {
-                                        Val::Px(inventory_display_options.tile_size)
-                                    } else {
-                                        Val::Undefined
-                                    },
-                                },
-                                ..default()
-                            },
-                            color: Color::rgba(0.015, 0.04, 0.025, 0.96).into(),
-                            ..default()
-                        })
-                        .with_children(|cb| {
-                            cb.spawn()
-                                .insert(UiFixedZ { z: 11. })
-                                .insert_bundle(TextBundle {
-                                    style: Style {
-                                        margin: Rect::all(Val::Px(4.0)),
-                                        ..default()
-                                    },
-                                    text: Text::with_section(
-                                        info.name.as_str(),
-                                        TextStyle {
-                                            font: inventory_ui_assets.font.clone(),
-                                            font_size: 24.0,
-                                            color: Color::WHITE,
-                                        },
-                                        Default::default(),
-                                    ),
-                                    ..default()
-                                });
-                            for (title, description) in info.titles_descriptions.iter() {
-                                cb.spawn()
-                                    .insert(UiFixedZ { z: 12. })
-                                    .insert_bundle(TextBundle {
-                                        style: Style {
-                                            margin: Rect::all(Val::Px(2.0)),
-                                            ..default()
-                                        },
-                                        text: Text::with_section(
-                                            format!("{}: {}", title, description),
-                                            TextStyle {
-                                                font: inventory_ui_assets.font.clone(),
-                                                font_size: 18.0,
-                                                color: Color::WHITE,
-                                            },
-                                            Default::default(),
-                                        ),
-                                        ..default()
-                                    });
-                            }
-                        });
+                    insert_tooltip(
+                        cb.spawn(),
+                        info,
+                        &inventory_ui_assets.font,
+                        inventory_display_options.tile_size,
+                        x_first_half,
+                        y_first_half,
+                    );
                 });
             } else {
                 bevy::log::error!(
                     "Item entity must have ItemUiTextInfo present in order to show a tooltip."
                 );
             }
-            hovet_tip.tooltip_shown = true;
-        } else if !hovet_tip.hovered && hovet_tip.tooltip_shown {
-            hovet_tip.tooltip_shown = false;
+            hover_tip.tooltip_shown = true;
+        } else if !hover_tip.hovered && hover_tip.tooltip_shown {
+            hover_tip.tooltip_shown = false;
         }
     }
 }
@@ -536,4 +474,201 @@ pub(crate) fn ui_click_item_unequip<I: ItemType>(
             }
         }
     }
+}
+
+#[allow(clippy::type_complexity)]
+pub(crate) fn append_world_hovertip(
+    mut cmd: Commands,
+    no_ui_things: Query<Entity, (Without<Node>, Without<WorldHoverTip>, With<UiTextInfo>)>,
+) {
+    for entity in no_ui_things.iter() {
+        cmd.entity(entity).insert(WorldHoverTip::default());
+    }
+}
+
+pub(crate) fn world_hovertip_interaction(
+    mut cmd: Commands,
+    windows: Res<Windows>,
+    inventory_display_options: Res<InventoryDisplayOptions>,
+    inventory_ui_assets: Res<InventoryUiAssets>,
+    cameras_2d: Query<(&Camera, &GlobalTransform), With<Camera2d>>,
+    mut no_ui_things: Query<(&GlobalTransform, &UiTextInfo, &mut WorldHoverTip), Without<Node>>,
+) {
+    let (cam2d, cam2d_transform) = cameras_2d.single();
+    let window = if let RenderTarget::Window(id) = cam2d.target {
+        windows.get(id)
+    } else {
+        windows.get_primary()
+    };
+    let window = if let Some(window) = window {
+        window
+    } else {
+        bevy::log::error!("could not get any window in world_hovertip_interaction");
+        return;
+    };
+    let cursor_position = window.cursor_position();
+    let window_size = Vec2::new(window.width(), window.height());
+
+    for (transform, info, mut hover_tip) in no_ui_things.iter_mut() {
+        let is_hovered = if let Some(cursor_screen_pos) = cursor_position {
+            // NOTE: world_pos compute stolen from https://bevy-cheatbook.github.io/cookbook/cursor2world.html
+            let cursor_world_pos = (cam2d_transform.compute_matrix()
+                * cam2d.projection_matrix.inverse())
+            .project_point3(((cursor_screen_pos / window_size) * 2.0 - Vec2::ONE).extend(-1.0));
+
+            let thing_pos = transform.translation.truncate();
+            let extents = inventory_display_options.tile_size / 2.0;
+            let min = thing_pos - extents;
+            let max = thing_pos + extents;
+
+            (min.x..max.x).contains(&cursor_world_pos.x)
+                && (min.y..max.y).contains(&cursor_world_pos.y)
+        } else {
+            false
+        };
+
+        let ui_screen_pos = transform.translation.truncate()
+            - cam2d_transform.translation.truncate()
+            + (window_size / 2.)
+            - (inventory_display_options.tile_size / 2.);
+
+        let x_first_half = ui_screen_pos.x < window.width() / 2.;
+        let y_first_half = ui_screen_pos.y < window.height() / 2.;
+
+        if is_hovered && !hover_tip.hovered {
+            let image = inventory_ui_assets.hover_cursor_image.clone().into();
+            let id = cmd
+                .spawn()
+                .insert_bundle(ImageBundle {
+                    style: Style {
+                        size: Size::new(
+                            Val::Px(inventory_display_options.tile_size),
+                            Val::Px(inventory_display_options.tile_size),
+                        ),
+                        position_type: PositionType::Absolute,
+                        position: Rect {
+                            left: Val::Px(ui_screen_pos.x),
+                            bottom: Val::Px(ui_screen_pos.y),
+                            ..default()
+                        },
+                        ..default()
+                    },
+                    image,
+                    focus_policy: FocusPolicy::Pass,
+                    ..Default::default()
+                })
+                .id();
+
+            hover_tip.tip_entity = Some(id);
+            hover_tip.hovered = true;
+        } else if !is_hovered && hover_tip.hovered {
+            if let Some(entity) = hover_tip.tip_entity {
+                cmd.entity(entity).despawn_recursive();
+                hover_tip.tip_entity = None;
+            }
+            hover_tip.hovered = false;
+        }
+        if hover_tip.hovered && !hover_tip.tooltip_shown {
+            if let Some(tip_entity) = hover_tip.tip_entity {
+                cmd.entity(tip_entity).with_children(|cb| {
+                    insert_tooltip(
+                        cb.spawn(),
+                        info,
+                        &inventory_ui_assets.font,
+                        inventory_display_options.tile_size,
+                        x_first_half,
+                        y_first_half,
+                    );
+                });
+            }
+            hover_tip.tooltip_shown = true;
+        } else if !hover_tip.hovered && hover_tip.tooltip_shown {
+            hover_tip.tooltip_shown = false;
+        }
+    }
+}
+
+fn insert_tooltip(
+    mut ec: EntityCommands,
+    info: &UiTextInfo,
+    font: &Handle<Font>,
+    tile_size: f32,
+    x_first_half: bool,
+    y_first_half: bool,
+) {
+    ec.insert(UiFixedZ { z: 10. })
+        .insert_bundle(NodeBundle {
+            style: Style {
+                flex_wrap: FlexWrap::WrapReverse,
+                flex_direction: FlexDirection::Row,
+                min_size: Size::new(Val::Px(128.), Val::Auto),
+                max_size: Size::new(Val::Px(256.), Val::Auto),
+                position_type: PositionType::Absolute,
+                position: Rect {
+                    top: if !y_first_half {
+                        Val::Px(tile_size)
+                    } else {
+                        Val::Undefined
+                    },
+                    bottom: if y_first_half {
+                        Val::Px(tile_size)
+                    } else {
+                        Val::Undefined
+                    },
+                    right: if !x_first_half {
+                        Val::Px(tile_size)
+                    } else {
+                        Val::Undefined
+                    },
+                    left: if x_first_half {
+                        Val::Px(tile_size)
+                    } else {
+                        Val::Undefined
+                    },
+                },
+                ..default()
+            },
+            color: Color::rgba(0.015, 0.04, 0.025, 0.96).into(),
+            ..default()
+        })
+        .with_children(|cb| {
+            cb.spawn()
+                .insert(UiFixedZ { z: 11. })
+                .insert_bundle(TextBundle {
+                    style: Style {
+                        margin: Rect::all(Val::Px(4.0)),
+                        ..default()
+                    },
+                    text: Text::with_section(
+                        info.name.as_str(),
+                        TextStyle {
+                            font: font.clone(),
+                            font_size: 24.0,
+                            color: Color::WHITE,
+                        },
+                        Default::default(),
+                    ),
+                    ..default()
+                });
+            for (title, description) in info.titles_descriptions.iter() {
+                cb.spawn()
+                    .insert(UiFixedZ { z: 12. })
+                    .insert_bundle(TextBundle {
+                        style: Style {
+                            margin: Rect::all(Val::Px(2.0)),
+                            ..default()
+                        },
+                        text: Text::with_section(
+                            format!("{}: {}", title, description),
+                            TextStyle {
+                                font: font.clone(),
+                                font_size: 18.0,
+                                color: Color::WHITE,
+                            },
+                            Default::default(),
+                        ),
+                        ..default()
+                    });
+            }
+        });
 }

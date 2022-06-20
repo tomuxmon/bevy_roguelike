@@ -94,25 +94,32 @@ pub struct InventoryDisplayToggleEvent {
 }
 
 #[derive(Debug, Clone, Component)]
-pub struct HoverTip {
+pub(crate) struct UiHoverTip {
     pub(crate) hovered: bool,
     pub(crate) tooltip_shown: bool,
-    item_entity: Entity,
+    /// could be any entity having UiTextInfo
+    /// This entity will be used to place hover tip as a child entity
+    tip_owner: Entity,
 }
-impl HoverTip {
-    pub fn new(item_entity: Entity) -> Self {
+impl UiHoverTip {
+    pub fn new(tip_owner: Entity) -> Self {
         Self {
             hovered: false,
             tooltip_shown: false,
-            item_entity,
+            tip_owner,
         }
     }
-    pub fn item_entity(&self) -> Entity {
-        self.item_entity
-    }
 }
+#[derive(Debug,Default, Clone, Component)]
+pub(crate) struct WorldHoverTip {
+    pub(crate) hovered: bool,
+    pub(crate) tooltip_shown: bool,
+    /// ui entity thet is actually displaying tip
+    tip_entity: Option<Entity>,
+}
+
 #[derive(Debug, Clone, Component)]
-pub struct ItemUiTextInfo {
+pub struct UiTextInfo {
     pub name: String,
     pub titles_descriptions: Vec<(String, String)>,
 }
