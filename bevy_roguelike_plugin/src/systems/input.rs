@@ -24,9 +24,9 @@ pub fn input_player<I: ItemType>(
             IVec2::new(-1, 0)
         } else if keys.just_pressed(KeyCode::Right) {
             IVec2::new(1, 0)
-        } else if keys.pressed(KeyCode::Space) {
+        } else if keys.just_pressed(KeyCode::Space) {
             IVec2::new(0, 0) // stay put - skip turn
-        } else if keys.pressed(KeyCode::Comma) {
+        } else if keys.just_pressed(KeyCode::Comma) {
             pick_up_writer.send(ItemPickUpEvent { picker: id });
             IVec2::new(0, 0) // still stay put - skip turn
         } else if keys.just_pressed(KeyCode::D) {

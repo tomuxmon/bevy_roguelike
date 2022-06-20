@@ -245,27 +245,29 @@ pub fn death_read<I: ItemType>(
 }
 
 pub fn spend_ap(
-    mut actors: Query<(&mut ActionPoints, &mut TurnState)>,
+    mut actors: Query<(&mut ActionPoints, &mut TurnState, &mut HitPoints)>,
     mut ap_reader: EventReader<SpendAPEvent>,
 ) {
     for e in ap_reader.iter() {
-        if let Ok((mut ap, mut ts)) = actors.get_mut(e.id) {
+        if let Ok((mut ap, mut ts, mut hp)) = actors.get_mut(e.id) {
             if ap.current_minus(e.amount) < ap.turn_ready_to_act() {
                 *ts = TurnState::End;
+                hp.regen();
             }
         }
     }
 }
 
 pub fn idle_rest(
-    mut actors: Query<&mut HitPoints>,
+    mut actors: Query<(&mut HitPoints, &ActionPoints)>,
     mut idle_reader: EventReader<IdleEvent>,
     mut ap_spend_writer: EventWriter<SpendAPEvent>,
 ) {
     for e in idle_reader.iter() {
         ap_spend_writer.send(SpendAPEvent::new(e.id, ActionPoints::IDLE_COST_DEFAULT));
-        if let Ok(mut hp) = actors.get_mut(e.id) {
-            hp.regen();
+        if let Ok((mut hp, ap)) = actors.get_mut(e.id) {
+            let ratio =  ActionPoints::IDLE_COST_DEFAULT as f32 / ap.turn_ready_to_act() as f32;
+            hp.regen_ratio(ratio);
         }
     }
 }

@@ -2,6 +2,8 @@ use crate::components::*;
 use bevy::reflect::TypeUuid;
 use serde::{Deserialize, Serialize};
 
+
+// TODO: each item should define possible artifact bonuses
 #[derive(Serialize, Deserialize, TypeUuid)]
 #[uuid = "5621d397-fbc8-4216-b1d8-3d90743338e8"]
 pub enum ItemTemplate {

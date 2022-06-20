@@ -152,7 +152,7 @@ pub struct HitPoints {
 impl HitPoints {
     pub const FULL_MIN: i16 = 20;
     pub const REGEN_READY_DEFAULT: i16 = 128;
-    pub const REGEN_INCREMENT_MIN: i16 = 64;
+    pub const REGEN_INCREMENT_MIN: i16 = 16;
 
     pub fn new(atr: &Attributes) -> Self {
         let full = HitPoints::FULL_MIN
@@ -195,7 +195,10 @@ impl HitPoints {
         self.current as f32 / self.full as f32
     }
     pub fn regen(&mut self) {
-        self.regen_current += self.regen_increment;
+        self.regen_ratio(1.);
+    }
+    pub fn regen_ratio(&mut self, ratio: f32) {
+        self.regen_current += (self.regen_increment as f32 * ratio) as i16;
         if self.regen_current > self.regen_ready {
             let amount = self.regen_current / self.regen_ready;
             let rem = self.regen_current % self.regen_ready;
