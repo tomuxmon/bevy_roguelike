@@ -7,8 +7,8 @@ use bevy_inventory::Equipment;
 use bevy_inventory::Inventory;
 use bevy_inventory::ItemType;
 use bevy_inventory_ui::InventoryDisplayOwner;
+use bevy_roguelike_combat::*;
 use map_generator::*;
-use rand::prelude::*;
 
 pub fn act(
     actors: Query<(&Team, &Vector2D)>,
@@ -23,19 +23,19 @@ pub fn act(
     let team_pt: HashMap<_, _> = actors.iter().map(|(t, p)| (**p, *t)).collect();
     for e in act_reader.iter() {
         if e.delta == IVec2::new(0, 0) {
-            idle_writer.send(IdleEvent::new(e.id));
+            idle_writer.send(IdleEvent { id: e.id });
             continue;
         }
         if let Ok((team, pt)) = actors.get(e.id) {
             let dest = **pt + e.delta;
             if !map.is_in_bounds(dest) || map[dest] != Tile::Floor {
-                idle_writer.send(IdleEvent::new(e.id));
+                idle_writer.send(IdleEvent { id: e.id });
                 continue;
             }
             if let Some(other_team) = team_pt.get(&dest) {
                 if *other_team == *team {
                     // NOTE: can not move into a tile ocupied by a team mate
-                    idle_writer.send(IdleEvent::new(e.id));
+                    idle_writer.send(IdleEvent { id: e.id });
                     continue;
                 } else if let Some((enemy_entity, _, _)) =
                     enemies.iter().find(|(_, t, p)| *t != team && ***p == dest)
@@ -50,166 +50,14 @@ pub fn act(
                     log::error!("nothing to attack at {:?} (... has bugs).", dest);
                 }
             } else {
-                let move_event = MoveEvent {
+                move_writer.send(MoveEvent {
                     actor: e.id,
                     team: *team,
                     from: **pt,
                     to: dest,
-                };
-                move_writer.send(move_event);
-            }
-        }
-    }
-}
-
-pub fn attack(
-    attackers: Query<(&Vector2D, &StatsComputed)>,
-    defenders: Query<(&Vector2D, &StatsComputed, &ActionPoints)>,
-    mut cmd: Commands,
-    mut attack_reader: EventReader<AttackEvent>,
-    mut ap_spend_writer: EventWriter<SpendAPEvent>,
-    mut rng: ResMut<StdRng>,
-) {
-    for e in attack_reader.iter() {
-        let (attacker_pt, attacker_stats) = if let Ok(attacker) = attackers.get(e.attacker) {
-            attacker
-        } else {
-            log::info!(
-                "Attacker Not Found (id: {:?}). Probably died recently.",
-                e.attacker
-            );
-            return;
-        };
-        let (defender_pt, defender_stats, defender_ap) =
-            if let Ok(defender) = defenders.get(e.defender) {
-                defender
-            } else {
-                log::info!(
-                    "Defender Not Found (id: {:?}). Probably died recently.",
-                    e.defender
-                );
-                return;
-            };
-
-        if attacker_stats.damage.is_empty() {
-            log::error!("attacker has no damage.");
-            return;
-        }
-
-        let rng = &mut *rng;
-
-        let damage = if attacker_stats.damage.len() == 1 {
-            &attacker_stats.damage[0]
-        } else {
-            &attacker_stats.damage[rng.gen_range(0..attacker_stats.damage.len())]
-        };
-
-        // TODO: spawn attack animation (based on damage.kind)
-
-        // NOTE: attacker should spend AP regardles of outcome
-        let attack_cost = damage.hit_cost.compute(&attacker_stats.attributes);
-        ap_spend_writer.send(SpendAPEvent::new(e.attacker, attack_cost));
-        log::trace!("attacking from {} with cost {}", attacker_pt, attack_cost);
-
-        // NOTE: negative AP is ok as long as we are close to zero (not reaching i16::MIN).
-        if defender_ap.current() > 0 {
-            let (evaded, evade_cost) = defender_stats.evasion.try_evade(
-                damage,
-                &defender_stats.attributes,
-                &attacker_stats.attributes,
-                rng,
-            );
-
-            if evaded {
-                // TODO: spawn evade animation (MISS on the enemy)
-                ap_spend_writer.send(SpendAPEvent::new(e.defender, evade_cost));
-                log::trace!("attack evaded {} with cost {}", defender_pt, evade_cost);
-                return;
-            } else {
-                // TODO: roll crit hit (hit rate vs evade rate)
-            }
-
-            for block in defender_stats.block.iter() {
-                let (blocked, block_cost) = block.try_block(
-                    damage,
-                    &defender_stats.attributes,
-                    &attacker_stats.attributes,
-                    rng,
-                );
-                if blocked {
-                    // TODO: spawn block animation
-                    ap_spend_writer.send(SpendAPEvent::new(e.defender, block_cost));
-                    log::trace!("attack blocked {} with cost {}", defender_pt, block_cost);
-                    return;
-                }
-            }
-        }
-
-        let mut true_damage = damage.compute(&attacker_stats.attributes, rng);
-        log::trace!(
-            "attack damage raw {} (roll from {:?})",
-            true_damage,
-            damage.amount
-        );
-
-        // NOTE: apply protection and only then resistance
-        for protect in defender_stats
-            .protection
-            .amounts
-            .iter()
-            .filter(|p| p.kind == damage.kind)
-        {
-            true_damage -= protect.compute(&defender_stats.attributes);
-        }
-        if true_damage < 1 {
-            log::trace!(
-                "damage negated with protection. damage after protection {}",
-                true_damage
-            );
-            // TODO: spawn clinc animation
-            return;
-        }
-
-        let resist = defender_stats
-            .resistance
-            .amounts
-            .iter()
-            .filter(|r| r.kind == damage.kind)
-            .map(|r| r.percent)
-            .sum::<u8>()
-            .min(100) as f32
-            / 100.;
-
-        true_damage = (true_damage as f32 * (1. - resist)) as i32;
-
-        cmd.spawn().insert({
-            ModifyHP {
-                location: **defender_pt,
-                amount: -true_damage as i16,
-            }
-        });
-        log::trace!("attack damage {}", true_damage);
-    }
-}
-
-pub fn apply_hp_modify(
-    mut cmd: Commands,
-    mut actors: Query<(Entity, &Vector2D, &mut HitPoints)>,
-    hp_mod: Query<(Entity, &ModifyHP)>,
-    mut death_writer: EventWriter<DeathEvent>,
-) {
-    for (e, hpm) in hp_mod.iter() {
-        if let Some((actor_entity, _, mut hp)) =
-            actors.iter_mut().find(|(_, p, _)| ***p == hpm.location)
-        {
-            hp.apply(hpm.amount);
-            if hp.current() <= 0 {
-                death_writer.send(DeathEvent {
-                    actor: actor_entity,
                 });
             }
         }
-        cmd.entity(e).despawn_recursive();
     }
 }
 
@@ -258,19 +106,7 @@ pub fn spend_ap(
     }
 }
 
-pub fn idle_rest(
-    mut actors: Query<(&mut HitPoints, &ActionPoints)>,
-    mut idle_reader: EventReader<IdleEvent>,
-    mut ap_spend_writer: EventWriter<SpendAPEvent>,
-) {
-    for e in idle_reader.iter() {
-        ap_spend_writer.send(SpendAPEvent::new(e.id, ActionPoints::IDLE_COST_DEFAULT));
-        if let Ok((mut hp, ap)) = actors.get_mut(e.id) {
-            let ratio =  ActionPoints::IDLE_COST_DEFAULT as f32 / ap.turn_ready_to_act() as f32;
-            hp.regen_ratio(ratio);
-        }
-    }
-}
+
 
 pub fn try_move(
     mut actors: Query<(&mut Vector2D, &Team, &mut FieldOfView)>,

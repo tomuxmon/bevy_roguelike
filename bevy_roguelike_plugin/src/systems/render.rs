@@ -1,6 +1,7 @@
 use crate::{components::*, resources::MapOptions};
 use bevy::prelude::*;
 use bevy_inventory::{Equipment, ItemType};
+use bevy_roguelike_combat::HitPoints;
 
 pub fn render_body(
     mut cmd: Commands,

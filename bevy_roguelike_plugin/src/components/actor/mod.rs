@@ -3,9 +3,7 @@ use crate::resources::ActorTemplate;
 use bevy::{prelude::*, utils::HashMap};
 use bevy_inventory::{Equipment, Inventory, ItemType};
 use bevy_inventory_ui::EquipmentDisplay;
-use stats::*;
-
-pub mod stats;
+use bevy_roguelike_combat::{*, stats_derived::*};
 
 fn from_display<I: ItemType>(display: &EquipmentDisplay<I>) -> Equipment<I> {
     let mut items = HashMap::default();
@@ -120,11 +118,3 @@ impl Team {
 #[derive(Default, Debug, Clone, Eq, PartialEq, Component, Reflect)]
 #[reflect(Component)]
 pub struct HudHealthBar;
-
-// NOTE: a clunky component to transfer damage
-#[derive(Default, Debug, Copy, Clone, Eq, PartialEq, Hash, Component, Reflect)]
-#[reflect(Component)]
-pub struct ModifyHP {
-    pub location: IVec2,
-    pub amount: i16,
-}

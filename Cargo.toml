@@ -31,6 +31,7 @@ features = ["x11"]
 [workspace]
 members = [
     "bevy_roguelike_plugin",
+    "bevy_roguelike_combat",
     "map_generator",
     "bevy_inventory",
     "bevy_inventory_ui",

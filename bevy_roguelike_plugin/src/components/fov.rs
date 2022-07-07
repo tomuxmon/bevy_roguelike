@@ -1,5 +1,5 @@
-use super::{AttributeType, Attributes};
 use bevy::{prelude::*, utils::HashSet};
+use bevy_roguelike_combat::{AttributeType, Attributes};
 
 #[derive(Default, Component, Reflect)]
 #[reflect(Component)]

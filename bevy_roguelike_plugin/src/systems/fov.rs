@@ -1,5 +1,6 @@
 use crate::{components::*, resources::MapOptions};
 use bevy::{prelude::*, tasks::*, utils::HashSet};
+use bevy_roguelike_combat::{ActionPoints, HitPoints};
 use line_drawing::{BresenhamCircle, Supercover};
 use map_generator::*;
 

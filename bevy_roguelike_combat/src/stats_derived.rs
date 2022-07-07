@@ -1,4 +1,4 @@
-use super::{AttributeType, Attributes};
+use super::stats::*;
 use bevy::{prelude::*, reflect::FromReflect, utils::HashSet};
 use rand::prelude::*;
 use serde::{Deserialize, Serialize};
@@ -106,7 +106,7 @@ impl Rate {
 pub struct ActionCost {
     /// cost in action points, [`super::ActionPoints::TURN_READY_DEFAULT`] being one single turn
     pub cost: i16,
-    /// formula to compute the multiplier. 
+    /// formula to compute the multiplier.
     pub multiplier_inverted: Formula,
 }
 impl ActionCost {
@@ -341,4 +341,19 @@ impl Block {
         };
         (blocked, cost)
     }
+}
+
+#[derive(Default, Component, Reflect)]
+#[reflect(Component)]
+pub struct StatsComputedDirty;
+
+#[derive(Component, Debug, Default, Clone, Reflect)]
+#[reflect(Component)]
+pub struct StatsComputed {
+    pub attributes: Attributes,
+    pub protection: Protection,
+    pub resistance: Resistance,
+    pub evasion: Evasion,
+    pub block: Vec<Block>,
+    pub damage: Vec<Damage>,
 }

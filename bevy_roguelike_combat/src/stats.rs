@@ -1,4 +1,3 @@
-use crate::components::{Block, Damage, Evasion, Protection, Resistance};
 use bevy::{prelude::*, reflect::FromReflect, utils::HashMap};
 use serde::{Deserialize, Serialize};
 use std::{fmt::Display, iter::Sum, ops::Add};
@@ -225,19 +224,4 @@ impl HitPoints {
     pub fn full(&self) -> i16 {
         self.full
     }
-}
-
-#[derive(Default, Component, Reflect)]
-#[reflect(Component)]
-pub struct StatsComputedDirty;
-
-#[derive(Component, Debug, Default, Clone, Reflect)]
-#[reflect(Component)]
-pub struct StatsComputed {
-    pub attributes: Attributes,
-    pub protection: Protection,
-    pub resistance: Resistance,
-    pub evasion: Evasion,
-    pub block: Vec<Block>,
-    pub damage: Vec<Damage>,
 }

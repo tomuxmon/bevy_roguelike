@@ -10,6 +10,7 @@ default = []
 debug = ["colored", "bevy-inspector-egui"]
 
 [dependencies]
+bevy_roguelike_combat = { path = "../bevy_roguelike_combat" }
 map_generator = { path = "../map_generator" }
 bevy_inventory = { path = "../bevy_inventory" }
 bevy_inventory_ui = { path = "../bevy_inventory_ui" }

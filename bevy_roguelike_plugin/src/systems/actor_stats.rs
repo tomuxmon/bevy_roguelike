@@ -2,6 +2,7 @@ use crate::components::*;
 use bevy::prelude::*;
 use bevy_inventory::{Equipment, ItemType};
 use bevy_inventory_ui::UiTextInfo;
+use bevy_roguelike_combat::{stats_derived::*, *};
 
 #[allow(clippy::type_complexity)]
 pub fn actors_fill_text_info(
@@ -38,24 +39,6 @@ pub fn actors_fill_text_info(
     }
 }
 
-pub fn attributes_update_action_points(
-    mut cmd: Commands,
-    mut actors: Query<(Entity, &StatsComputed, &mut ActionPoints), With<ActionPointsDirty>>,
-) {
-    for (id, stats, mut ap) in actors.iter_mut() {
-        ap.update(&stats.attributes);
-        cmd.entity(id).remove::<ActionPointsDirty>();
-    }
-}
-pub fn attributes_update_hit_points(
-    mut cmd: Commands,
-    mut actors: Query<(Entity, &StatsComputed, &mut HitPoints), With<HitPointsDirty>>,
-) {
-    for (id, stats, mut hp) in actors.iter_mut() {
-        hp.update(&stats.attributes);
-        cmd.entity(id).remove::<HitPointsDirty>();
-    }
-}
 pub fn attributes_update_field_of_view(
     mut cmd: Commands,
     mut actors: Query<(Entity, &StatsComputed, &mut FieldOfView), With<FieldOfViewDirty>>,

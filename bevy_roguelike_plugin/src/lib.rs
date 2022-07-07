@@ -14,6 +14,7 @@ use bevy::utils::HashSet;
 use bevy_asset_ron::RonAssetPlugin;
 use bevy_inventory_ui::InventoryUiAssets;
 use bevy_inventory_ui::InventoryUiPlugin;
+use bevy_roguelike_combat::*;
 use bevy_tweening::TweeningPlugin;
 use map_generator::*;
 use rand::prelude::*;
@@ -77,6 +78,9 @@ impl<T: StateNext> Plugin for RoguelikePlugin<T> {
                 phantom_1: PhantomData {},
                 phantom_2: PhantomData {},
             })
+            .add_plugin(RogulikeCombatPlugin {
+                state_running: self.state_running.clone(),
+            })
             .add_plugin(RonAssetPlugin::<ItemTemplate>::new(&["item.ron"]))
             .add_plugin(RonAssetPlugin::<ActorTemplate>::new(&["actor.ron"]))
             .add_plugin(RonAssetPlugin::<MapTheme>::new(&["maptheme.ron"]))
@@ -106,8 +110,6 @@ impl<T: StateNext> Plugin for RoguelikePlugin<T> {
                     .with_system(gather_action_points)
                     .with_system(turn_end_now_gather)
                     .with_system(stats_recompute::<RogueItemType>)
-                    .with_system(attributes_update_action_points)
-                    .with_system(attributes_update_hit_points)
                     .with_system(attributes_update_field_of_view)
                     .with_system(field_of_view_set_visibility)
                     .with_system(actors_fill_text_info)
@@ -127,7 +129,6 @@ impl<T: StateNext> Plugin for RoguelikePlugin<T> {
                     .with_system(unrender_unequiped_items)
                     .with_system(render_hud_health_bar)
                     .with_system(act)
-                    .with_system(attack.after(act))
                     .with_system(spend_ap.after(act))
                     .with_system(try_move.after(act).after(spend_ap)),
             )
@@ -136,9 +137,7 @@ impl<T: StateNext> Plugin for RoguelikePlugin<T> {
                 SystemSet::on_update(self.state_running.clone())
                     .with_system(pick_up_items::<RogueItemType>)
                     .with_system(drop_item::<RogueItemType>)
-                    .with_system(apply_hp_modify)
-                    .with_system(death_read::<RogueItemType>.after(apply_hp_modify))
-                    .with_system(idle_rest.after(apply_hp_modify)),
+                    .with_system(death_read::<RogueItemType>),
             )
             .add_system_set(
                 SystemSet::on_exit(self.state_running.clone()).with_system(Self::cleanup_map),
@@ -147,48 +146,20 @@ impl<T: StateNext> Plugin for RoguelikePlugin<T> {
             .register_type::<RenderInfo>()
             .register_type::<RenderInfoEquiped>()
             .register_type::<MapTile>()
-            .register_type::<Attributes>()
-            .register_type::<AttributeType>()
-            .register_type::<ActionPoints>()
-            .register_type::<ActionPointsDirty>()
-            .register_type::<HitPoints>()
-            .register_type::<HitPointsDirty>()
             .register_type::<TurnState>()
-            .register_type::<ModifyHP>()
             .register_type::<Team>()
             .register_type::<MovingPlayer>()
             .register_type::<MovingRandom>()
             .register_type::<MovingFovRandom>()
             .register_type::<FieldOfView>()
             .register_type::<FieldOfViewDirty>()
-            .register_type::<DamageKind>()
-            .register_type::<AttributeMultiplier>()
-            .register_type::<Formula>()
-            .register_type::<Rate>()
-            .register_type::<ActionCost>()
-            .register_type::<Damage>()
-            .register_type::<Protect>()
-            .register_type::<Resist>()
-            .register_type::<Protection>()
-            .register_type::<Resistance>()
-            .register_type::<Evasion>()
-            .register_type::<Block>()
-            .register_type::<Evasion>()
-            .register_type::<StatsComputed>()
-            .register_type::<StatsComputedDirty>()
             .register_type::<Quality>()
             .register_type::<HashSet<IVec2>>()
-            .register_type::<Vec<DamageKind>>()
-            .register_type::<Vec<Protect>>()
-            .register_type::<HashSet<Resist>>()
             .register_type::<Range<i32>>()
             .add_event::<SpendAPEvent>()
-            .add_event::<AttackEvent>()
             .add_event::<MoveEvent>()
             .add_event::<ActEvent>()
-            .add_event::<IdleEvent>()
-            .add_event::<CameraFocusEvent>()
-            .add_event::<DeathEvent>();
+            .add_event::<CameraFocusEvent>();
 
         log::info!("Loaded Roguelike Plugin");
     }

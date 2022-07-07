@@ -1,7 +1,6 @@
-use crate::components::*;
 use bevy::reflect::TypeUuid;
+use bevy_roguelike_combat::{stats_derived::*, *};
 use serde::{Deserialize, Serialize};
-
 
 // TODO: each item should define possible artifact bonuses
 #[derive(Serialize, Deserialize, TypeUuid)]
