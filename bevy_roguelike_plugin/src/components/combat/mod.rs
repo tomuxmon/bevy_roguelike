@@ -106,7 +106,7 @@ impl Rate {
 pub struct ActionCost {
     /// cost in action points, [`super::ActionPoints::TURN_READY_DEFAULT`] being one single turn
     pub cost: i16,
-    /// formula to compute the multiplier. using inverted compute.
+    /// formula to compute the multiplier. 
     pub multiplier_inverted: Formula,
 }
 impl ActionCost {
