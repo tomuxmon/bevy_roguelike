@@ -3,15 +3,13 @@ pub use events::DamageHitPointsEvent;
 pub use events::DeathEvent;
 pub use events::IdleEvent;
 pub use events::SpendAPEvent;
-pub use plugin::RogulikeCombatPlugin;
+pub use plugin::RoguelikeCombatPlugin;
 pub use stats::ActionPoints;
 pub use stats::ActionPointsDirty;
 pub use stats::AttributeType;
 pub use stats::Attributes;
 pub use stats::HitPoints;
 pub use stats::HitPointsDirty;
-pub use stats_derived::StatsComputed;
-pub use stats_derived::StatsComputedDirty;
 
 mod events;
 mod plugin;

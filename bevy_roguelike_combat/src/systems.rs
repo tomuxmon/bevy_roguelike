@@ -1,13 +1,13 @@
-use crate::ActionPointsDirty;
-use crate::HitPointsDirty;
-use crate::IdleEvent;
 use crate::events::AttackEvent;
 use crate::events::DamageHitPointsEvent;
 use crate::events::DeathEvent;
 use crate::events::SpendAPEvent;
+use crate::stats_derived::StatsComputed;
 use crate::ActionPoints;
+use crate::ActionPointsDirty;
 use crate::HitPoints;
-use crate::StatsComputed;
+use crate::HitPointsDirty;
+use crate::IdleEvent;
 use bevy::log;
 use bevy::prelude::*;
 use rand::prelude::*;
@@ -83,6 +83,7 @@ pub fn attack(
         let damage = &attacker_stats.damage[rng.gen_range(0..attacker_stats.damage.len())];
 
         // TODO: spawn attack animation (based on damage.kind)
+        // spawn event?
 
         // NOTE: attacker should spend AP regardles of outcome
         let attack_cost = damage.hit_cost.compute(&attacker_stats.attributes);
@@ -100,6 +101,7 @@ pub fn attack(
 
             if evaded {
                 // TODO: spawn evade animation (MISS on the enemy)
+                // spawn event?
                 ap_spend_writer.send(SpendAPEvent::new(e.defender, evade_cost));
                 log::trace!("attack evaded with cost {}", evade_cost);
                 return;
@@ -116,6 +118,7 @@ pub fn attack(
                 );
                 if blocked {
                     // TODO: spawn block animation
+                    // spawn event?
                     ap_spend_writer.send(SpendAPEvent::new(e.defender, block_cost));
                     log::trace!("attack blocked with cost {}", block_cost);
                     return;
@@ -145,6 +148,7 @@ pub fn attack(
                 true_damage
             );
             // TODO: spawn clinc animation
+            // spawn event?
             return;
         }
 
@@ -162,27 +166,24 @@ pub fn attack(
 
         damage_writer.send(DamageHitPointsEvent {
             defender: e.defender,
-            amount: -true_damage as i16,
+            amount: true_damage as u16,
         });
 
         log::trace!("attack damage {}", true_damage);
     }
 }
 
-pub fn apply_damage_hit_points(
+pub fn damage_hit_points(
     mut actors: Query<&mut HitPoints>,
     mut damage_reader: EventReader<DamageHitPointsEvent>,
     mut death_writer: EventWriter<DeathEvent>,
 ) {
     for e in damage_reader.iter() {
         if let Ok(mut hp) = actors.get_mut(e.defender) {
-            hp.apply(e.amount);
+            hp.apply(-(e.amount as i16));
             if hp.current() <= 0 {
                 death_writer.send(DeathEvent { actor: e.defender });
             }
         }
     }
 }
-
-
-

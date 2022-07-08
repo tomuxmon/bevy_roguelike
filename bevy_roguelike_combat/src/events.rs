@@ -27,7 +27,7 @@ pub struct IdleEvent {
 #[derive(Debug, Copy, Clone, Eq, PartialEq, Hash, Component)]
 pub struct DamageHitPointsEvent {
     pub defender: Entity,
-    pub amount: i16,
+    pub amount: u16,
 }
 
 #[derive(Debug, Copy, Clone)]

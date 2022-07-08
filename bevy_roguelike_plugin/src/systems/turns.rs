@@ -92,6 +92,7 @@ pub fn death_read<I: ItemType>(
     }
 }
 
+// TODO: move to bevy_roguelike_turns
 pub fn spend_ap(
     mut actors: Query<(&mut ActionPoints, &mut TurnState, &mut HitPoints)>,
     mut ap_reader: EventReader<SpendAPEvent>,
@@ -133,6 +134,7 @@ pub fn try_move(
     }
 }
 
+// TODO: move to bevy_roguelike_turns
 pub fn gather_action_points(
     pool: Res<ComputeTaskPool>,
     mut actors: Query<(&mut ActionPoints, &mut TurnState)>,
@@ -149,6 +151,7 @@ pub fn gather_action_points(
         }
     });
 }
+// TODO: move to bevy_roguelike_turns
 pub fn turn_end_now_gather(pool: Res<ComputeTaskPool>, mut actors: Query<&mut TurnState>) {
     if actors.iter().all(|ts| *ts == TurnState::End) {
         actors.par_for_each_mut(&*pool, 16, |mut ts| {

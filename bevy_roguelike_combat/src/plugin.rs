@@ -1,11 +1,11 @@
 use crate::{events::*, stats::*, stats_derived::*, systems::*};
 use bevy::{ecs::schedule::StateData, prelude::*, utils::HashSet};
 
-pub struct RogulikeCombatPlugin<S> {
+pub struct RoguelikeCombatPlugin<S> {
     pub state_running: S,
 }
 
-impl<S: StateData> Plugin for RogulikeCombatPlugin<S> {
+impl<S: StateData> Plugin for RoguelikeCombatPlugin<S> {
     fn build(&self, app: &mut App) {
         app.add_system_set_to_stage(
             CoreStage::PreUpdate,
@@ -20,8 +20,8 @@ impl<S: StateData> Plugin for RogulikeCombatPlugin<S> {
         .add_system_set_to_stage(
             CoreStage::PostUpdate,
             SystemSet::on_update(self.state_running.clone())
-                .with_system(apply_damage_hit_points)
-                .with_system(idle_rest.after(apply_damage_hit_points)),
+                .with_system(damage_hit_points)
+                .with_system(idle_rest.after(damage_hit_points)),
         )
         .register_type::<Attributes>()
         .register_type::<AttributeType>()

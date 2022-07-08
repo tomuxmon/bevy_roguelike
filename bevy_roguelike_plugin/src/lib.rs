@@ -1,5 +1,4 @@
 pub mod components;
-// pub mod dragable_ui;
 pub mod events;
 pub mod resources;
 pub mod systems;
@@ -78,7 +77,7 @@ impl<T: StateNext> Plugin for RoguelikePlugin<T> {
                 phantom_1: PhantomData {},
                 phantom_2: PhantomData {},
             })
-            .add_plugin(RogulikeCombatPlugin {
+            .add_plugin(RoguelikeCombatPlugin {
                 state_running: self.state_running.clone(),
             })
             .add_plugin(RonAssetPlugin::<ItemTemplate>::new(&["item.ron"]))
