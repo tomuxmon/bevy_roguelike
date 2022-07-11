@@ -10,6 +10,7 @@ default = []
 debug = ["colored"]
 
 [dependencies]
+vec_walk_dir = { path = "../vec_walk_dir" }
 bevy_roguelike_combat = { path = "../bevy_roguelike_combat" }
 map_generator = { path = "../map_generator" }
 bevy_inventory = { path = "../bevy_inventory" }

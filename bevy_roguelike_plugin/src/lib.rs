@@ -203,8 +203,17 @@ impl<T: StateNext> RoguelikePlugin<T> {
         mut state: ResMut<State<T>>,
         mut loading: ResMut<AssetsLoading>,
     ) {
-        if let Ok(handles) = asset_server.load_folder("") {
-            loading.0.extend(handles);
+        #[cfg(not(target_arch = "wasm32"))]
+        match asset_server.load_folder("") {
+            Ok(handles) => loading.0.extend(handles),
+            Err(err) => bevy::log::error!("{}", err),
+        }
+        #[cfg(target_arch = "wasm32")]
+        {
+            let asset_files: Vec<&str> = vec_walk_dir::vec_walk_dir!("assets");
+            for file in asset_files.into_iter() {
+                loading.0.push(asset_server.load_untyped(file));
+            }
         }
         // NOTE: transitioning from Setup to AssetLoad
         state.set_next();
@@ -248,6 +257,8 @@ impl<T: StateNext> RoguelikePlugin<T> {
         }
 
         let inventory_themes: Vec<_> = inventory_themes.iter().map(|(_, it)| it).collect();
+        bevy::log::info!("inventory theme count: {}", inventory_themes.len());
+
         let inventory_theme = inventory_themes[rng.gen_range(0..inventory_themes.len())];
         cmd.insert_resource(InventoryAssets {
             slot: asset_server.load(inventory_theme.slot.as_str()),
