@@ -2,12 +2,8 @@ use proc_macro2::TokenStream;
 use quote::quote;
 use walkdir::{DirEntry, WalkDir};
 
-pub fn expand_vec_walk_dir(input: syn::ExprLit) -> syn::Result<TokenStream> {
-    let root = match input.lit {
-        syn::Lit::Str(str) => str,
-        _ => panic!("this macro only works with string literals"),
-    }
-    .value();
+pub fn expand_vec_walk_dir(input: syn::LitStr) -> syn::Result<TokenStream> {
+    let root = input.value();
 
     let mut intermediate = Vec::new();
     for path in WalkDir::new(root.clone())
