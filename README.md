@@ -2,7 +2,9 @@
 
 Meet my new baby. A turn based system where each actor has combat capabilities influenced by equiped items. I had a burning desire to learn [Rust](https://www.rust-lang.org/). It appears I also like creating games. Wonderful [Bevy](https://bevyengine.org/) engine was used. Bevy uses only 4 letters to define itself, and so it is concise, and so is Rust. Also humans tend to forget what is in the middle of the text. No one will remember this sentence. Jokes aside It felt really natural to define data structures and write systems that manipulate those data structures. This is my first Rust project so bugs are possible as much as Rust and Bevy allows it. Preview of the running system below.
 
-![bevy roguelike](example.png)
+![a scene from a running game](example.png)
+
+## Running it
 
 To run this game locally you need [rust installed](https://www.rust-lang.org/tools/install). Then you can run it with:
 
@@ -12,7 +14,21 @@ If you would like to try it in the browser (inspiration from [bevy_game_template
 
 - `trunk serve` (serve wasm build)
 
-// todo: live version
+Check out the [live version here](https://tomuxmon.github.io/bevy_roguelike/).
+
+### Controlls
+
+- `up` / `down` / `left` / `right` keys for movement and attack
+- `,` to pick up item
+- `I` to open / close inventory display
+- `D` to drop item (last item from inventory or else equipment)
+
+### Inventiory management
+
+![inventory image](inventory.png)
+
+- `hover` over an item in the inventory / equipment to display a hover tip
+- `mouse click` an item to equip / unequip it
 
 ## bevy inventory
 
