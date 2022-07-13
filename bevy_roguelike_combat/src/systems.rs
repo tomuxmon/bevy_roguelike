@@ -2,6 +2,7 @@ use crate::events::AttackEvent;
 use crate::events::DamageHitPointsEvent;
 use crate::events::DeathEvent;
 use crate::events::SpendAPEvent;
+use crate::stats_derived::DamageKind;
 use crate::stats_derived::StatsComputed;
 use crate::ActionPoints;
 use crate::ActionPointsDirty;
@@ -12,18 +13,18 @@ use bevy::log;
 use bevy::prelude::*;
 use rand::prelude::*;
 
-pub fn attributes_update_action_points(
+pub fn attributes_update_action_points<K: DamageKind>(
     mut cmd: Commands,
-    mut actors: Query<(Entity, &StatsComputed, &mut ActionPoints), With<ActionPointsDirty>>,
+    mut actors: Query<(Entity, &StatsComputed<K>, &mut ActionPoints), With<ActionPointsDirty>>,
 ) {
     for (id, stats, mut ap) in actors.iter_mut() {
         ap.update(&stats.attributes);
         cmd.entity(id).remove::<ActionPointsDirty>();
     }
 }
-pub fn attributes_update_hit_points(
+pub fn attributes_update_hit_points<K: DamageKind>(
     mut cmd: Commands,
-    mut actors: Query<(Entity, &StatsComputed, &mut HitPoints), With<HitPointsDirty>>,
+    mut actors: Query<(Entity, &StatsComputed<K>, &mut HitPoints), With<HitPointsDirty>>,
 ) {
     for (id, stats, mut hp) in actors.iter_mut() {
         hp.update(&stats.attributes);
@@ -45,9 +46,9 @@ pub fn idle_rest(
     }
 }
 
-pub fn attack(
-    attackers: Query<&StatsComputed>,
-    defenders: Query<(&StatsComputed, &ActionPoints)>,
+pub fn attack<K: DamageKind>(
+    attackers: Query<&StatsComputed<K>>,
+    defenders: Query<(&StatsComputed<K>, &ActionPoints)>,
     mut attack_reader: EventReader<AttackEvent>,
     mut ap_spend_writer: EventWriter<SpendAPEvent>,
     mut damage_writer: EventWriter<DamageHitPointsEvent>,

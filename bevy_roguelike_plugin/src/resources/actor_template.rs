@@ -9,10 +9,10 @@ use serde::{Deserialize, Serialize};
 pub struct ActorTemplate {
     pub render: ActorRenderInfo,
     pub attributes: Attributes,
-    pub protection: Protection,
-    pub resistance: Resistance,
+    pub protection: Protection<RogueDamageKind>,
+    pub resistance: Resistance<RogueDamageKind>,
     pub evasion: Evasion,
-    pub damage: DamageList,
+    pub damage: DamageList<RogueDamageKind>,
     pub equipment_display: EquipmentDisplay<RogueItemType>,
     pub inventory_capacity: usize,
     // TODO: initial equipment

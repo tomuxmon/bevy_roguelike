@@ -6,6 +6,8 @@ use rand::prelude::*;
 use std::fmt::Display;
 use std::ops::Range;
 
+use crate::components::RogueDamageKind;
+
 #[derive(Default, Component, Clone, Reflect)]
 #[reflect(Component)]
 pub enum Quality {
@@ -195,7 +197,7 @@ impl MutableQuality for ActionCost {
         }
     }
 }
-impl MutableQuality for Damage {
+impl MutableQuality for Damage<RogueDamageKind> {
     fn mutate_extended(&self, is_direct: bool, quality: &Quality, rng: &mut StdRng) -> Self {
         Self {
             kind: self.kind,
@@ -208,7 +210,7 @@ impl MutableQuality for Damage {
         }
     }
 }
-impl MutableQuality for Protect {
+impl MutableQuality for Protect<RogueDamageKind> {
     fn mutate_extended(&self, is_direct: bool, quality: &Quality, rng: &mut StdRng) -> Self {
         Self {
             kind: self.kind,
@@ -219,7 +221,7 @@ impl MutableQuality for Protect {
         }
     }
 }
-impl MutableQuality for Protection {
+impl MutableQuality for Protection<RogueDamageKind> {
     fn mutate_extended(&self, is_direct: bool, quality: &Quality, rng: &mut StdRng) -> Self {
         Self {
             amounts: self
@@ -237,7 +239,7 @@ impl MutableQuality for Protection {
         }
     }
 }
-impl MutableQuality for Resist {
+impl MutableQuality for Resist<RogueDamageKind> {
     fn mutate_extended(&self, is_direct: bool, quality: &Quality, rng: &mut StdRng) -> Self {
         Self {
             kind: self.kind,
@@ -245,10 +247,10 @@ impl MutableQuality for Resist {
         }
     }
 }
-impl MutableQuality for Resistance {
+impl MutableQuality for Resistance<RogueDamageKind> {
     fn mutate_extended(&self, is_direct: bool, quality: &Quality, rng: &mut StdRng) -> Self {
         Self {
-            amounts: HashSet::from_iter(self.amounts.iter().filter_map(|p| {
+            amounts: Vec::from_iter(self.amounts.iter().filter_map(|p| {
                 let aa = p.mutate_extended(is_direct, quality, rng);
                 if aa.percent > 0 {
                     Some(aa)
@@ -267,7 +269,7 @@ impl MutableQuality for Evasion {
         }
     }
 }
-impl MutableQuality for Block {
+impl MutableQuality for Block<RogueDamageKind> {
     fn mutate_extended(&self, is_direct: bool, quality: &Quality, rng: &mut StdRng) -> Self {
         Self {
             block_type: self.block_type.clone(),

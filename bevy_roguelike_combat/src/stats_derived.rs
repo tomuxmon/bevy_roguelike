@@ -1,47 +1,27 @@
 use super::stats::*;
-use bevy::{prelude::*, reflect::FromReflect, utils::HashSet};
+use bevy::{
+    prelude::*,
+    reflect::{FromReflect, GetTypeRegistration},
+    utils::HashSet,
+};
 use rand::prelude::*;
 use serde::{Deserialize, Serialize};
-use std::{fmt::Display, ops::Range};
+use std::{fmt::Debug, fmt::Display, hash::Hash, ops::Range};
 
-// pub trait ItemType: Component + Copy + Clone + Eq + Hash + Debug + Default {}
-
-/// Type of damage that can be inflicted by actors or environment.
-#[derive(
-    Debug,
-    Default,
-    Clone,
-    Copy,
-    PartialEq,
-    Eq,
-    Hash,
-    Component,
-    Reflect,
-    FromReflect,
-    Serialize,
-    Deserialize,
-)]
-#[reflect(Component)]
-#[reflect_value(PartialEq, Serialize, Deserialize)]
-pub enum DamageKind {
-    /// phisical crushing damage
-    #[default]
-    Blunt,
-    /// phisical puncturing damage
-    Pierce,
-    /// phisical cut damage
-    Slash,
-    /// elemental heat damage
-    Fire,
-    /// elemental cold damage
-    Cold,
-    /// elemental electrical damage
-    Lightning,
-}
-impl Display for DamageKind {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{:?}", self)
-    }
+/// Type of damage that can be inflicted by actors of the environment.
+pub trait DamageKind:
+    Component
+    + Copy
+    + Clone
+    + Eq
+    + Hash
+    + Debug
+    + Display
+    + Default
+    + Reflect
+    + FromReflect
+    + GetTypeRegistration
+{
 }
 
 #[derive(
@@ -128,8 +108,8 @@ impl ActionCost {
     Debug, Default, Clone, PartialEq, Eq, Component, Reflect, FromReflect, Serialize, Deserialize,
 )]
 #[reflect(Component)]
-pub struct DamageList {
-    pub list: Vec<Damage>,
+pub struct DamageList<K: DamageKind> {
+    pub list: Vec<Damage<K>>,
 }
 
 /// Information about damage that can be calculated based on actor attributes.
@@ -137,14 +117,15 @@ pub struct DamageList {
     Debug, Default, Clone, PartialEq, Eq, Component, Reflect, FromReflect, Serialize, Deserialize,
 )]
 #[reflect(Component)]
-pub struct Damage {
-    pub kind: DamageKind,
+pub struct Damage<K: DamageKind> {
+    pub kind: K,
     pub amount: Range<i32>,
     pub amount_multiplier: Formula,
     pub hit_cost: ActionCost,
     pub hit_chance: Rate,
 }
-impl Damage {
+
+impl<K: DamageKind> Damage<K> {
     pub fn compute(&self, attributes: &Attributes, rng: &mut StdRng) -> i32 {
         (self.amount_roll(rng) as f32 * self.amount_multiplier.compute(attributes)) as i32
     }
@@ -160,13 +141,13 @@ impl Damage {
 #[derive(
     Debug, Default, Clone, PartialEq, Eq, Component, Reflect, FromReflect, Serialize, Deserialize,
 )]
-pub struct Protect {
-    pub kind: DamageKind,
+pub struct Protect<K: DamageKind> {
+    pub kind: K,
     pub amount_multiplier: Option<Formula>,
     pub amount: i32,
 }
 
-impl Protect {
+impl<K: DamageKind> Protect<K> {
     pub fn compute(&self, attributes: &Attributes) -> i32 {
         (self.amount as f32
             * if let Some(formula) = &self.amount_multiplier {
@@ -176,7 +157,7 @@ impl Protect {
             }) as i32
     }
 }
-impl Display for Protect {
+impl<K: DamageKind> Display for Protect<K> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         // TODO: also write formula if present
         write!(f, "{} +{}", self.kind, self.amount)
@@ -188,21 +169,21 @@ impl Display for Protect {
     Debug, Default, Clone, PartialEq, Eq, Component, Reflect, FromReflect, Serialize, Deserialize,
 )]
 #[reflect(Component)]
-pub struct Protection {
-    pub amounts: Vec<Protect>,
+pub struct Protection<K: DamageKind> {
+    pub amounts: Vec<Protect<K>>,
 }
-impl Protection {
-    pub fn new(protections: impl IntoIterator<Item = Protect>) -> Self {
+impl<K: DamageKind> Protection<K> {
+    pub fn new(protections: impl IntoIterator<Item = Protect<K>>) -> Self {
         Self {
             amounts: Vec::from_iter(protections),
         }
     }
-    pub fn extend(&mut self, other: &Protection) -> &mut Protection {
+    pub fn extend(&mut self, other: &Protection<K>) -> &mut Protection<K> {
         self.amounts.extend(other.clone().amounts);
         self
     }
 }
-impl Display for Protection {
+impl<K: DamageKind> Display for Protection<K> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(
             f,
@@ -229,12 +210,12 @@ impl Display for Protection {
     Deserialize,
 )]
 #[reflect(Component)]
-pub struct Resist {
-    pub kind: DamageKind,
+pub struct Resist<K: DamageKind> {
+    pub kind: K,
     /// Resistance amount in percents. 100 means fully resists specified [`DamageKind`].
     pub percent: u8,
 }
-impl Display for Resist {
+impl<K: DamageKind> Display for Resist<K> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "{} +{}", self.kind, self.percent)
     }
@@ -242,23 +223,23 @@ impl Display for Resist {
 
 #[derive(Debug, Default, Clone, PartialEq, Eq, Component, Reflect, Serialize, Deserialize)]
 #[reflect(Component)]
-pub struct Resistance {
+pub struct Resistance<K: DamageKind> {
     /// defines resistance in percents per damage kind.
-    pub amounts: HashSet<Resist>,
+    pub amounts: Vec<Resist<K>>,
 }
-impl Resistance {
-    pub fn new(resistances: impl IntoIterator<Item = Resist>) -> Self {
+impl<K: DamageKind> Resistance<K> {
+    pub fn new(resistances: impl IntoIterator<Item = Resist<K>>) -> Self {
         Self {
-            amounts: HashSet::from_iter(resistances),
+            amounts: Vec::from_iter(resistances),
         }
     }
-    pub fn ingest(&mut self, other: &Resistance) -> &mut Resistance {
+    pub fn ingest(&mut self, other: &Resistance<K>) -> &mut Resistance<K> {
         // todo: fix me . instead match on DamageKind
         self.amounts.extend(other.clone().amounts);
         self
     }
 }
-impl Display for Resistance {
+impl<K: DamageKind> Display for Resistance<K> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(
             f,
@@ -284,9 +265,9 @@ pub struct Evasion {
 }
 impl Evasion {
     /// will try to evade damage. returns true and cost if evaded. if not returns false and zero.
-    pub fn try_evade(
+    pub fn try_evade<K: DamageKind>(
         &self,
-        damage: &Damage,
+        damage: &Damage<K>,
         self_attributes: &Attributes,
         attacker_attributes: &Attributes,
         rng: &mut StdRng,
@@ -314,19 +295,19 @@ impl Evasion {
     Debug, Default, Clone, PartialEq, Eq, Component, Reflect, FromReflect, Serialize, Deserialize,
 )]
 #[reflect(Component)]
-pub struct Block {
+pub struct Block<K: DamageKind> {
     // blocks specific damage type?
-    pub block_type: Vec<DamageKind>,
+    pub block_type: Vec<K>,
     pub cost: ActionCost,
     /// Block chance. Compared against [`Damage::hit_rate`].
     pub chance: Rate,
 }
 
-impl Block {
+impl<K: DamageKind> Block<K> {
     /// will try to block damage when block type matches. returns true and cost if blocked. if not returns false and zero.
     pub fn try_block(
         &self,
-        damage: &Damage,
+        damage: &Damage<K>,
         self_attributes: &Attributes,
         attacker_attributes: &Attributes,
         rng: &mut StdRng,
@@ -358,11 +339,11 @@ pub struct StatsComputedDirty;
 
 #[derive(Component, Debug, Default, Clone, Reflect)]
 #[reflect(Component)]
-pub struct StatsComputed {
+pub struct StatsComputed<K: DamageKind> {
     pub attributes: Attributes,
-    pub protection: Protection,
-    pub resistance: Resistance,
+    pub protection: Protection<K>,
+    pub resistance: Resistance<K>,
     pub evasion: Evasion,
-    pub block: Vec<Block>,
-    pub damage: Vec<Damage>,
+    pub block: Vec<Block<K>>,
+    pub damage: Vec<Damage<K>>,
 }

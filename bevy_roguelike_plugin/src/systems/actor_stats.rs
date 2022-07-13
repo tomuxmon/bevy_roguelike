@@ -14,7 +14,7 @@ pub fn actors_fill_text_info(
         &Team,
         &ActionPoints,
         &HitPoints,
-        &StatsComputed,
+        &StatsComputed<RogueDamageKind>,
         &Vector2D,
         Option<&UiTextInfo>,
     )>,
@@ -41,7 +41,10 @@ pub fn actors_fill_text_info(
 
 pub fn attributes_update_field_of_view(
     mut cmd: Commands,
-    mut actors: Query<(Entity, &StatsComputed, &mut FieldOfView), With<FieldOfViewDirty>>,
+    mut actors: Query<
+        (Entity, &StatsComputed<RogueDamageKind>, &mut FieldOfView),
+        With<FieldOfViewDirty>,
+    >,
 ) {
     for (id, stats, mut fov) in actors.iter_mut() {
         fov.update(&stats.attributes);
@@ -55,21 +58,21 @@ pub fn stats_recompute<I: ItemType>(
     mut actors: Query<
         (
             Entity,
-            &mut StatsComputed,
+            &mut StatsComputed<RogueDamageKind>,
             &Attributes,
-            &Protection,
-            &Resistance,
+            &Protection<RogueDamageKind>,
+            &Resistance<RogueDamageKind>,
             &Evasion,
-            &DamageList,
+            &DamageList<RogueDamageKind>,
             &Equipment<I>,
         ),
         With<StatsComputedDirty>,
     >,
     items_atr: Query<&Attributes, (With<I>, Without<Vector2D>)>,
-    items_prt: Query<&Protection, (With<I>, Without<Vector2D>)>,
-    items_res: Query<&Resistance, (With<I>, Without<Vector2D>)>,
-    items_blk: Query<&Block, (With<I>, Without<Vector2D>)>,
-    items_dmg: Query<&Damage, (With<I>, Without<Vector2D>)>,
+    items_prt: Query<&Protection<RogueDamageKind>, (With<I>, Without<Vector2D>)>,
+    items_res: Query<&Resistance<RogueDamageKind>, (With<I>, Without<Vector2D>)>,
+    items_blk: Query<&Block<RogueDamageKind>, (With<I>, Without<Vector2D>)>,
+    items_dmg: Query<&Damage<RogueDamageKind>, (With<I>, Without<Vector2D>)>,
 ) {
     for (
         id,

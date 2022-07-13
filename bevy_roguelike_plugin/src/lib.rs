@@ -77,8 +77,9 @@ impl<T: StateNext> Plugin for RoguelikePlugin<T> {
                 phantom_1: PhantomData {},
                 phantom_2: PhantomData {},
             })
-            .add_plugin(RoguelikeCombatPlugin {
+            .add_plugin(RoguelikeCombatPlugin::<_, RogueDamageKind> {
                 state_running: self.state_running.clone(),
+                phantom_1: PhantomData {},
             })
             .add_plugin(RonAssetPlugin::<ItemTemplate>::new(&["item.ron"]))
             .add_plugin(RonAssetPlugin::<ActorTemplate>::new(&["actor.ron"]))
