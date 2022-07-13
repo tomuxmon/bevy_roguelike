@@ -6,3 +6,4 @@ Credits
 - [Dungeon Crawl Stone Soup tiles](https://opengameart.org/content/dungeon-crawl-32x32-tiles-supplemental)
 - [Fantasy tileset (modified to create inventory theme)](https://opengameart.org/content/32x32-fantasy-tileset)
 - [web build and github deploy from bevy game template](https://github.com/NiklasEi/bevy_game_template)
+- [Procedural Macros tutorial series](https://blog.turbo.fish/proc-macro-basics/)

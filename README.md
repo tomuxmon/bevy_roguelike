@@ -44,6 +44,23 @@ whats inside? where is it? how to use it independently?
 
 ## vec walk dir
 
+They say you can not [load asset folder on the web](https://github.com/bevyengine/bevy/issues/2916). Yes it is true. But yet again, we know asset folder structure at compile time. A dirty macro workaround to the rescue. It is not a good idea to rely on reading folder structure in a macro. But I wanted to write my first macro.
+
+```rust
+#[cfg(target_arch = "wasm32")]
+{
+    let asset_files: Vec<&str> = vec_walk_dir::vec_walk_dir!("assets");
+    for file in asset_files.into_iter() {
+        asset_server.load_untyped(file);
+    }
+}
+```
+
+### Inspiration and learning sources
+
+- [The Little Book of Rust Macros](https://veykril.github.io/tlborm/introduction.html)
+- [Procedural Macros tutorial series](https://blog.turbo.fish/proc-macro-basics/)
+
 ## License
 
 Using the same license as bevy engine does.
