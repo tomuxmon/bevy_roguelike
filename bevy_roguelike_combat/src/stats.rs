@@ -164,6 +164,7 @@ pub struct HitPointsDirty;
 #[derive(Default, Debug, Copy, Clone, Eq, PartialEq, Hash, Component, Reflect)]
 #[reflect(Component)]
 pub struct HitPoints {
+    is_alive: bool,
     full: i16,
     current: i16,
 
@@ -182,6 +183,7 @@ impl HitPoints {
             + atr.get(AttributeType::Strength) as i16
             + (atr.get(AttributeType::Willpower) as f32 / 2.) as i16;
         Self {
+            is_alive: true,
             full,
             current: full,
             regen_ready: HitPoints::REGEN_READY_DEFAULT,
@@ -208,6 +210,9 @@ impl HitPoints {
 
     pub fn apply(&mut self, amount: i16) -> i16 {
         self.current = i16::min(self.current + amount, self.full);
+        if self.current <= 0 {
+            self.is_alive = false;
+        }
         self.current
     }
     pub fn current(&self) -> i16 {
@@ -230,5 +235,9 @@ impl HitPoints {
     }
     pub fn full(&self) -> i16 {
         self.full
+    }
+
+    pub fn is_alive(&self) -> bool {
+        self.is_alive
     }
 }

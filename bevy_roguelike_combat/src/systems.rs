@@ -181,9 +181,13 @@ pub fn damage_hit_points(
 ) {
     for e in damage_reader.iter() {
         if let Ok(mut hp) = actors.get_mut(e.defender) {
-            hp.apply(-(e.amount as i16));
-            if hp.current() <= 0 {
-                death_writer.send(DeathEvent { actor: e.defender });
+            if hp.is_alive() {
+                hp.apply(-(e.amount as i16));
+                if !hp.is_alive() {
+                    death_writer.send(DeathEvent { actor: e.defender });
+                }
+            } else {
+                //TODO: still receives damage  --> trigger overkill
             }
         }
     }
