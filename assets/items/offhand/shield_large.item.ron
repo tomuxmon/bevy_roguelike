@@ -1,0 +1,45 @@
+Shield(( 
+ render: (
+  name: "Large shield",
+  texture_path: "sprites/item/large_shield_1_new.png",
+  texture_equiped_path: Some("sprites/item_equiped/lshield_long_red.png"),
+ ),
+ protection: (
+  amounts: [
+   (
+    kind: Blunt,
+    amount_multiplier: None,
+    amount: 5,
+   ),
+   (
+    kind: Pierce,
+    amount_multiplier: None,
+    amount: 5,
+   ),
+   (
+    kind: Slash,
+    amount_multiplier: None,
+    amount: 5,
+   ),
+  ],
+ ),
+ block: (
+  block_type: [
+   Blunt,
+   Pierce,
+   Slash,
+  ],
+  cost: (
+   cost: 75,
+   multiplier_inverted: (
+    multipliers: [(multiplier:128,attribute:Dexterity)],
+   ),
+  ),
+  chance: (
+   amount: 75,
+   multiplier: (
+    multipliers: [(multiplier:100,attribute:Dexterity)],
+   ),
+  ),
+ ),
+))

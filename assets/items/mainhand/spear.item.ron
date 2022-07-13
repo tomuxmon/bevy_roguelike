@@ -1,0 +1,32 @@
+Weapon((
+ render: (
+  name: "Balanced spear",
+  texture_path: "sprites/item/spear.png",
+  texture_equiped_path: Some("sprites/item_equiped/spear.png"),
+ ),
+ damage: (
+  kind: Pierce,
+  amount: (
+   start: 11,
+   end: 21,
+  ),
+  amount_multiplier: (
+   multipliers: [
+    (multiplier:60,attribute:Strength),
+    (multiplier:20,attribute:Perception),
+   ],
+  ),
+  hit_cost: (
+   cost: 160,
+   multiplier_inverted: (
+    multipliers: [(multiplier:80,attribute:Dexterity)],
+   ),
+  ),
+  hit_chance: (
+   amount: 80,
+   multiplier: (
+    multipliers: [(multiplier:128,attribute:Dexterity)],
+   ),
+  ),
+ ),
+))

@@ -1,0 +1,33 @@
+(
+  floor: [
+    // "sprites/floor/snake_0.png",
+    // "sprites/floor/snake_1.png",
+    // "sprites/floor/snake_2.png",
+    // "sprites/floor/snake_3.png",
+    "sprites/floor/snake-a_0.png",
+    "sprites/floor/snake-a_1.png",
+    "sprites/floor/snake-a_2.png",
+    "sprites/floor/snake-a_3.png",
+    "sprites/floor/snake-c_0.png",
+    "sprites/floor/snake-c_1.png",
+    "sprites/floor/snake-c_2.png",
+    "sprites/floor/snake-c_3.png",
+    "sprites/floor/snake-d_0.png",
+    "sprites/floor/snake-d_1.png",
+    "sprites/floor/snake-d_2.png",
+    "sprites/floor/snake-d_3.png",
+
+  ],
+  wall: [
+    "sprites/walls/snake_0.png",
+    "sprites/walls/snake_1.png",
+    "sprites/walls/snake_2.png",
+    "sprites/walls/snake_3.png",
+    "sprites/walls/snake_4.png",
+    "sprites/walls/snake_5.png",
+    "sprites/walls/snake_6.png",
+    "sprites/walls/snake_7.png",
+    "sprites/walls/snake_8.png",
+    "sprites/walls/snake_9.png",
+  ],
+)

@@ -1,0 +1,26 @@
+Armor((
+ render: (
+  name: "Chainmail",
+  texture_path: "sprites/item/chain_mail_1.png",
+  texture_equiped_path: Some("sprites/item_equiped/chainmail.png"),
+ ),
+ defense: (
+  protection: Some((
+   amounts: [
+    (kind:Blunt,amount_multiplier:None,amount:6),
+    (kind:Pierce,amount_multiplier:None,amount:5),
+    (kind:Slash,amount_multiplier:None,amount:8),
+   ],
+  )),
+  resistance: Some((
+   amounts: [
+    (kind:Blunt,percent:4),
+    (kind:Pierce,percent:3),
+    (kind:Slash,percent:6),
+   ],
+  )),
+ ),
+ enchantment: (
+  attributes: None,
+ ),
+))

@@ -1,0 +1,35 @@
+Weapon((
+ render: (
+  name: "Scorch staff",
+  texture_path: "sprites/item/staff_8.png",
+  texture_equiped_path: Some("sprites/item_equiped/staff_large.png"),
+ ),
+ damage: (
+  kind: Fire,
+  amount: (
+   start: 12,
+   end: 17,
+  ),
+  amount_multiplier: (
+   multipliers: [
+    (multiplier:50,attribute:Inteligence),
+    (multiplier:40,attribute:Willpower),
+   ],
+  ),
+  hit_cost: (
+   cost: 140,
+   multiplier_inverted: (
+    multipliers: [
+        (multiplier:50,attribute:Inteligence),
+        (multiplier:40,attribute:Willpower),
+        ],
+   ),
+  ),
+  hit_chance: (
+   amount: 96,
+   multiplier: (
+    multipliers: [(multiplier:128,attribute:Willpower)],
+   ),
+  ),
+ ),
+))

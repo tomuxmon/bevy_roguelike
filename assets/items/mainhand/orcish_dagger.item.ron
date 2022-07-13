@@ -1,0 +1,32 @@
+Weapon((
+ render: (
+  name: "Orcish dagger",
+  texture_path: "sprites/item/orcish_dagger.png",
+  texture_equiped_path: Some("sprites/item_equiped/dagger_slant.png"),
+ ),
+ damage: (
+  kind: Slash,
+  amount: (
+   start: 6,
+   end: 12,
+  ),
+  amount_multiplier: (
+   multipliers: [
+    (multiplier:50,attribute:Strength),
+    (multiplier:30,attribute:Dexterity),
+   ],
+  ),
+  hit_cost: (
+   cost: 128,
+   multiplier_inverted: (
+    multipliers: [(multiplier:80,attribute:Dexterity)],
+   ),
+  ),
+  hit_chance: (
+   amount: 190,
+   multiplier: (
+    multipliers: [(multiplier:128,attribute:Dexterity)],
+   ),
+  ),
+ ),
+))

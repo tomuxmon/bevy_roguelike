@@ -1,0 +1,83 @@
+(
+ render: (
+  name: "Amoeba",
+  texture_path: "sprites/actors/giant_amoeba.png",
+  texture_path_cosmetics: [],
+ ),
+ attributes: (
+  list: {
+   Inteligence: 1,
+   Willpower: 1,
+   Perception: 2,
+   Toughness: 7,
+   Dexterity: 6,
+   Strength: 3,
+  },
+ ),
+ protection: (
+  amounts: [
+   (
+    kind: Blunt,
+    amount_multiplier: Some((multipliers:[(multiplier:100,attribute:Toughness)])),
+    amount: 1,
+   ),
+   (
+    kind: Pierce,
+    amount_multiplier: Some((multipliers:[(multiplier:100,attribute:Toughness)])),
+    amount: 6,
+   ),
+   (
+    kind: Slash,
+    amount_multiplier: Some((multipliers:[(multiplier:100,attribute:Toughness)])),
+    amount: 3,
+   ),
+  ],
+ ),
+ resistance: (
+  amounts: [
+   (
+    kind: Slash,
+    percent: 5,
+   ),
+   (
+    kind: Blunt,
+    percent: 1,
+   ),
+   (
+    kind: Pierce,
+    percent: 10,
+   ),
+  ],
+ ),
+ evasion: (
+  cost: (
+   cost: 128,
+   multiplier_inverted: (
+    multipliers: [(multiplier:70,attribute:Dexterity)],
+   ),
+  ),
+  chance: (
+   amount: 10,
+   multiplier: (
+    multipliers: [(multiplier:90,attribute:Dexterity)],
+   ),
+  ),
+ ),
+ damage: (
+  list: [
+   (
+    kind: Blunt,
+    amount: (start:2,end:4),
+    amount_multiplier: (multipliers:[(multiplier:80,attribute:Strength)]),
+    hit_cost: (cost:128,multiplier_inverted:(multipliers:[(multiplier:80,attribute:Dexterity)])),
+    hit_chance: (amount:128,multiplier:(multipliers:[(multiplier:128,attribute:Dexterity)])),
+   ),
+  ],
+ ),
+ equipment_display: (
+  items: {
+   (OffHand, 0): (152, 48),
+  },
+ ),
+ inventory_capacity: 8,
+)

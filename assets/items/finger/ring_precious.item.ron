@@ -1,0 +1,35 @@
+Ring((
+ render: (
+  name: "2 precious",
+  texture_path: "sprites/item/gold_green.png",
+  texture_equiped_path: None,
+ ),
+ defense: (
+  protection: Some((
+   amounts: [
+    (kind:Fire,amount_multiplier:None,amount:3),
+    (kind:Lightning,amount_multiplier:None,amount:3),
+    (kind:Cold,amount_multiplier:None,amount:3),
+   ],
+  )),
+  resistance: Some((
+   amounts: [
+    (kind:Fire,percent:5),
+    (kind:Cold,percent:5),
+    (kind:Lightning,percent:5),
+   ],
+  )),
+ ),
+ enchantment: (
+ attributes: Some((
+    list: {
+     Toughness: 2,
+     Willpower: 2,
+     Strength: 2,
+     Dexterity: 2,
+     Inteligence: 2,
+     Perception: 2,
+    },
+   )),
+ ),
+))

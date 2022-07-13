@@ -1,0 +1,32 @@
+Weapon((
+ render: (
+  name: "Elven broadsword",
+  texture_path: "sprites/item/elven_broadsword.png",
+  texture_equiped_path: Some("sprites/item_equiped/heavy_sword.png"),
+ ),
+ damage: (
+  kind: Slash,
+  amount: (
+   start: 12,
+   end: 18,
+  ),
+  amount_multiplier: (
+   multipliers: [
+    (multiplier:60,attribute:Strength),
+    (multiplier:20,attribute:Dexterity),
+   ],
+  ),
+  hit_cost: (
+   cost: 180,
+   multiplier_inverted: (
+    multipliers: [(multiplier:80,attribute:Dexterity)],
+   ),
+  ),
+  hit_chance: (
+   amount: 140,
+   multiplier: (
+    multipliers: [(multiplier:128,attribute:Dexterity)],
+   ),
+  ),
+ ),
+))

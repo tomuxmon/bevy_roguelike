@@ -1,0 +1,93 @@
+(
+ render: (
+  name: "Gnoll",
+  texture_path: "sprites/actors/gnoll.png",
+  texture_path_cosmetics: [],
+ ),
+ attributes: (
+  list: {
+   Inteligence: 4,
+   Willpower: 10,
+   Perception: 8,
+   Toughness: 9,
+   Dexterity: 11,
+   Strength: 9,
+  },
+ ),
+ protection: (
+  amounts: [
+   (
+    kind: Blunt,
+    amount_multiplier: Some((multipliers:[(multiplier:80,attribute:Toughness)])),
+    amount: 1,
+   ),
+   (
+    kind: Pierce,
+    amount_multiplier: Some((multipliers:[(multiplier:80,attribute:Toughness)])),
+    amount: 1,
+   ),
+   (
+    kind: Slash,
+    amount_multiplier: Some((multipliers:[(multiplier:80,attribute:Toughness)])),
+    amount: 1,
+   ),
+  ],
+ ),
+ resistance: (
+  amounts: [
+   (
+    kind: Slash,
+    percent: 5,
+   ),
+   (
+    kind: Blunt,
+    percent: 5,
+   ),
+   (
+    kind: Pierce,
+    percent: 5,
+   ),
+  ],
+ ),
+ evasion: (
+  cost: (
+   cost: 32,
+   multiplier_inverted: (
+    multipliers: [(multiplier:80,attribute:Dexterity)],
+   ),
+  ),
+  chance: (
+   amount: 20,
+   multiplier: (
+    multipliers: [(multiplier:100,attribute:Dexterity)],
+   ),
+  ),
+ ),
+ damage: (
+  list: [
+   (
+    kind: Pierce,
+    amount: (start:4,end:14),
+    amount_multiplier: (multipliers:[(multiplier:60,attribute:Strength),(multiplier:20,attribute:Perception)]),
+    hit_cost: (cost:128,multiplier_inverted:(multipliers:[(multiplier:80,attribute:Dexterity)])),
+    hit_chance: (amount:128,multiplier:(multipliers:[(multiplier:128,attribute:Dexterity)])),
+   ),
+   (
+    kind: Slash,
+    amount: (start:7,end:8),
+    amount_multiplier: (multipliers:[(multiplier:80,attribute:Strength)]),
+    hit_cost: (cost:128,multiplier_inverted:(multipliers:[(multiplier:80,attribute:Dexterity)])),
+    hit_chance: (amount:128,multiplier:(multipliers:[(multiplier:128,attribute:Dexterity)])),
+   ),
+  ],
+ ),
+ equipment_display: (
+  items: {
+   (Finger, 1): (152, 88),
+   (Finger, 0): (72, 88),
+   (Neck, 0): (152, 8),
+   (MainHand, 0): (72, 48),
+  },
+ ),
+ inventory_capacity: 16,
+)
