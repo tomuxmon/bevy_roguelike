@@ -1,4 +1,38 @@
-# bevy_roguelike
+# bevy roguelike
 
-`trunk serve` to serve wasm build (inspiration from [bevy_game_template](https://github.com/NiklasEi/bevy_game_template))
-`cargo run` to run native build (the usual rust build)
+Meet my new baby. A turn based system where each actor has combat capabilities influenced by equiped items. I had a burning desire to learn [Rust](https://www.rust-lang.org/). It appears I also like creating games. Wounderfull [Bevy](https://bevyengine.org/) engine was used. Bevy uses only 4 letters to define itself, and so it is concise, and so is Rust. Jokes aside It felt really natural to define data structures and write systems that manipulate those data structures. This is my first Rust project so bugs are possible as much as Rust and bevy allows it. preview of the running system below.
+
+![bevy roguelike](example.png)
+
+To run this game locally you need [rust installed](https://www.rust-lang.org/tools/install). Then you can run it with:
+
+- `cargo run` (the usual rust build)
+
+If you would like to try it in the browser (inspiration from [bevy_game_template](https://github.com/NiklasEi/bevy_game_template)) you will also need to [install trunk](https://trunkrs.dev/#install), add `wasm32-unknown-unknown` rust target with `rustup target add wasm32-unknown-unknown` command. Then you can try it with:
+
+- `trunk serve` (serve wasm build)
+
+// todo: live version
+
+## bevy inventory
+
+whats inside? where is it? how to use it independently?
+
+## bevy inventory ui
+
+## bevy roguelike combat
+
+## map generator
+
+## vec walk dir
+
+## License
+
+Using the same license as bevy engine does.
+
+- MIT License ([LICENSE-MIT](LICENSE-MIT) or [http://opensource.org/licenses/MIT](http://opensource.org/licenses/MIT))
+- Apache License, Version 2.0 ([LICENSE-APACHE](LICENSE-APACHE) or [http://www.apache.org/licenses/LICENSE-2.0](http://www.apache.org/licenses/LICENSE-2.0))
+
+## Credits
+
+None of this would be possible if not the [wonderfull work done by others](credits/CREDITS.md). This is my first rust project so "would be possible" applies even more :).
