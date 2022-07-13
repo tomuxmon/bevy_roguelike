@@ -1,3 +1,4 @@
+#![allow(clippy::forget_non_drop)] // https://github.com/bevyengine/bevy/issues/4601
 use super::*;
 use crate::resources::ActorTemplate;
 use bevy::{prelude::*, utils::HashMap};
@@ -68,8 +69,8 @@ impl Actor {
                     .collect(),
                 z: 2.,
             },
-            stats_computed: StatsComputed::default(),
             stats_computed_dirty: StatsComputedDirty {},
+            stats_computed: StatsComputed::default(),
         }
     }
 }
