@@ -3,7 +3,7 @@ use crate::resources::ActorTemplate;
 use bevy::{prelude::*, utils::HashMap};
 use bevy_inventory::{Equipment, Inventory, ItemType};
 use bevy_inventory_ui::EquipmentDisplay;
-use bevy_roguelike_combat::{*, stats_derived::*};
+use bevy_roguelike_combat::{stats_derived::*, *};
 
 fn from_display<I: ItemType>(display: &EquipmentDisplay<I>) -> Equipment<I> {
     let mut items = HashMap::default();
@@ -74,17 +74,13 @@ impl Actor {
     }
 }
 
-#[derive(Debug, Copy, Clone, Ord, PartialOrd, Eq, PartialEq, Hash, Component, Reflect)]
+#[derive(Debug, Default, Copy, Clone, Ord, PartialOrd, Eq, PartialEq, Hash, Component, Reflect)]
 #[reflect(Component)]
 pub enum TurnState {
+    #[default]
     Collect,
     Act,
     End,
-}
-impl Default for TurnState {
-    fn default() -> Self {
-        TurnState::Collect
-    }
 }
 
 #[derive(Default, Debug, Copy, Clone, Ord, PartialOrd, Eq, PartialEq, Hash, Component, Reflect)]

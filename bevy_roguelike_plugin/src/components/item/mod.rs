@@ -9,8 +9,9 @@ use serde::Serialize;
 mod from_template;
 mod quality;
 
-#[derive(Debug, Copy, Clone, PartialEq, Eq, Hash, Serialize, Deserialize, Component)]
+#[derive(Debug, Default, Copy, Clone, PartialEq, Eq, Hash, Serialize, Deserialize, Component)]
 pub enum RogueItemType {
+    #[default]
     MainHand,
     OffHand,
     Head,
@@ -18,11 +19,6 @@ pub enum RogueItemType {
     Body,
     Feet,
     Finger,
-}
-impl Default for RogueItemType {
-    fn default() -> Self {
-        Self::MainHand
-    }
 }
 impl ItemType for RogueItemType {}
 

@@ -6,11 +6,12 @@ use rand::prelude::*;
 use std::fmt::Display;
 use std::ops::Range;
 
-#[derive(Component, Clone, Reflect)]
+#[derive(Default, Component, Clone, Reflect)]
 #[reflect(Component)]
 pub enum Quality {
     Broken,
     Damaged,
+    #[default]
     Normal,
     Masterwork,
     Artifact,
@@ -69,11 +70,6 @@ impl Quality {
             Quality::Masterwork => 60..90,
             Quality::Artifact => 20..60,
         }
-    }
-}
-impl Default for Quality {
-    fn default() -> Self {
-        Self::Normal
     }
 }
 

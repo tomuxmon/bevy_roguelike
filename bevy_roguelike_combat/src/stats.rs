@@ -3,22 +3,29 @@ use serde::{Deserialize, Serialize};
 use std::{fmt::Display, iter::Sum, ops::Add};
 
 #[derive(
-    Debug, Clone, Copy, PartialEq, Eq, Hash, Component, Reflect, FromReflect, Serialize, Deserialize,
+    Debug,
+    Default,
+    Clone,
+    Copy,
+    PartialEq,
+    Eq,
+    Hash,
+    Component,
+    Reflect,
+    FromReflect,
+    Serialize,
+    Deserialize,
 )]
 #[reflect(Component)]
 #[reflect_value(PartialEq, Serialize, Deserialize)]
 pub enum AttributeType {
+    #[default]
     Strength,
     Dexterity,
     Inteligence,
     Toughness,
     Perception,
     Willpower,
-}
-impl Default for AttributeType {
-    fn default() -> Self {
-        Self::Strength
-    }
 }
 impl Display for AttributeType {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {

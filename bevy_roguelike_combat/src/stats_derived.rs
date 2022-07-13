@@ -4,14 +4,28 @@ use rand::prelude::*;
 use serde::{Deserialize, Serialize};
 use std::{fmt::Display, ops::Range};
 
+// pub trait ItemType: Component + Copy + Clone + Eq + Hash + Debug + Default {}
+
 /// Type of damage that can be inflicted by actors or environment.
 #[derive(
-    Debug, Clone, Copy, PartialEq, Eq, Hash, Component, Reflect, FromReflect, Serialize, Deserialize,
+    Debug,
+    Default,
+    Clone,
+    Copy,
+    PartialEq,
+    Eq,
+    Hash,
+    Component,
+    Reflect,
+    FromReflect,
+    Serialize,
+    Deserialize,
 )]
 #[reflect(Component)]
 #[reflect_value(PartialEq, Serialize, Deserialize)]
 pub enum DamageKind {
     /// phisical crushing damage
+    #[default]
     Blunt,
     /// phisical puncturing damage
     Pierce,
@@ -23,11 +37,6 @@ pub enum DamageKind {
     Cold,
     /// elemental electrical damage
     Lightning,
-}
-impl Default for DamageKind {
-    fn default() -> Self {
-        Self::Blunt
-    }
 }
 impl Display for DamageKind {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {

@@ -2,9 +2,6 @@ use bevy::prelude::*;
 use bevy_inventory_ui::InventoryDisplayOptions;
 use bevy_roguelike_plugin::{resources::*, RoguelikePlugin, StateNext};
 
-#[cfg(feature = "debug")]
-use bevy_inspector_egui::WorldInspectorPlugin;
-
 #[derive(Debug, Clone, Eq, PartialEq, Hash)]
 pub enum AppState {
     Setup,
@@ -51,7 +48,7 @@ fn main() {
         .add_startup_system(set_options);
 
     #[cfg(feature = "debug")]
-    app.add_plugin(WorldInspectorPlugin::new());
+    app.add_plugin(bevy_inspector_egui::WorldInspectorPlugin::new());
 
     app.run();
 }
