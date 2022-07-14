@@ -76,6 +76,61 @@ impl ItemType for SomeItemType {}
 
 ## bevy inventory ui
 
+This crate contais the implementation of the InventoryDisplay and tooltips both in the world and the ui. To use it first you need to implement a custom ItemType as mentioned in the inventory section. Then implement `ItemTypeUiImage` for your custom item type:
+
+```rust
+use bevy_inventory_ui::ItemTypeUiImage;
+
+#[derive(Debug, Clone)]
+pub struct InventoryAssets {
+    pub body_wear: Handle<Image>,
+    pub right_hand_gear: Handle<Image>,
+    pub left_hand_gear: Handle<Image>,
+}
+
+impl ItemTypeUiImage<SomeItemType> for InventoryAssets {
+    fn get_image(&self, item_type: SomeItemType) -> UiImage {
+        match item_type {
+            SomeItemType::RightHandGear => self.right_hand_gear.clone(),
+            SomeItemType::LeftHandGear => self.left_hand_gear.clone(),
+            SomeItemType::BodyWear => self.body_wear.clone(),
+        }
+        .into()
+    }
+}
+```
+
+You will also need to manually add `InventoryUiAssets` resource:
+
+```rust
+cmd.insert_resource(InventoryUiAssets {
+    slot: asset_server.load("sprites/gui/inventory/slot.png"),
+    hover_cursor_image: asset_server.load("sprites/gui/tooltip/cursor.png"),
+    font: asset_server.load("fonts/pixeled.ttf"),
+});
+```
+
+Then you can add `InventoryUiPlugin`
+
+```rust
+//...
+.add_plugin(InventoryUiPlugin::<_, SomeItemType, InventoryAssets> {
+    state_running: AppState::InGame,
+    phantom_1: PhantomData {},
+    phantom_2: PhantomData {},
+})
+//...
+```
+
+If you know how to eliminate `PhantomData` give it a shout. Here `state_running` is a State where most of the ui systems are running.
+After all that is in place your actors then must have inventory and equipment components in place: `EquipmentDisplay<SomeItemType>` to be able to diplay UI and `Equipment<SomeItemType>` with `Inventory` as underlying containers. to open or close inventory display you must send `InventoryDisplayToggleEvent` event. The result should be similar to what can be seen in the [inventiory management](#inventiory-management) section.
+
+Not really related to the inventory but still in the same crate there is a tooltip implementation. To enable tooltip you just need to fill in `UiTextInfo` for both world entities and UI nodes. It uses fixed z hack. Tooltips are placed at `10.` z.
+
+### Afterthoughts
+
+All ot the UI was implemented using bevy ui library. It is not the most pleasant way to work with UI and the resulting code has a lot of boilerplate. Also looked at bevy_egui, for some reason it did not fit well with this project. Again if you know better alternatives (inventory ui or ui library) please give it a shout.
+
 ## bevy roguelike combat
 
 ## map generator
