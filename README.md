@@ -34,7 +34,45 @@ You can also run and debug it inside VS Code with breakpoints and all the goodne
 
 ## bevy inventory
 
-whats inside? where is it? how to use it independently?
+This crate contains basic implementation of the inventory and equipment containers. Items are Bevy's [Entities](https://docs.rs/bevy/latest/bevy/prelude/struct.Entity.html). Both inventory and equipment implement utility methods to `take` and `add` items. The only difference between inventory and equipment is that the equipment also has a generic type parameter to specify item type. Inventory and Exuipment structures below.
+
+```rust
+//...
+
+pub trait ItemType: Component + Copy + Clone + Eq + Hash + Debug + Default {}
+
+#[derive(Debug, Clone, Component)]
+pub struct Inventory {
+    items: Vec<Option<Entity>>,
+}
+
+#[derive(Debug, Default, Clone, Component)]
+pub struct Equipment<I: ItemType> {
+    pub items: HashMap<(I, u8), Option<Entity>>,
+}
+//...
+```
+
+ItemType is a trait that needs to be implemented in user code. Something like this:
+
+```rust
+#![allow(dead_code)]
+use bevy::prelude::*;
+use bevy_inventory::ItemType;
+
+/// deriving traits required by `ItemType`
+#[derive(Debug, Default, Copy, Clone, PartialEq, Eq, Hash, Component)]
+pub enum SomeItemType {
+    #[default]
+    RightHandGear,
+    LeftHandGear,
+    BodyWear,
+}
+/// manaully implementing. no macro for that so far.
+impl ItemType for SomeItemType {}
+```
+
+`bevy_inventory` is really minimal and it does not contain any bevy systems and the is no plugin for it. To use it just throw it into your workspace or just copy paste what you need. If you have some suggestions or know something better that I could throw in as a replacement please mention it in the discussions.
 
 ## bevy inventory ui
 
