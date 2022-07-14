@@ -1,10 +1,57 @@
 #![allow(clippy::forget_non_drop)] // https://github.com/bevyengine/bevy/issues/4601
 use super::*;
 use crate::resources::ActorTemplate;
-use bevy::{prelude::*, utils::HashMap};
+use bevy::{prelude::*, reflect::FromReflect, utils::HashMap};
 use bevy_inventory::{Equipment, Inventory, ItemType};
 use bevy_inventory_ui::EquipmentDisplay;
 use bevy_roguelike_combat::{stats_derived::*, *};
+use serde::{Deserialize, Serialize};
+use std::fmt::Display;
+use strum_macros::EnumIter;
+
+#[derive(
+    Debug,
+    Default,
+    Clone,
+    Copy,
+    PartialEq,
+    Eq,
+    Hash,
+    Component,
+    Reflect,
+    FromReflect,
+    Serialize,
+    Deserialize,
+    EnumIter,
+)]
+#[reflect(Component)]
+#[reflect_value(PartialEq, Serialize, Deserialize)]
+pub enum RogueAttributeType {
+    #[default]
+    Strength,
+    Dexterity,
+    Inteligence,
+    Toughness,
+    Perception,
+    Willpower,
+}
+impl Display for RogueAttributeType {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(
+            f,
+            "{}",
+            match self {
+                RogueAttributeType::Strength => "str",
+                RogueAttributeType::Dexterity => "dex",
+                RogueAttributeType::Inteligence => "int",
+                RogueAttributeType::Toughness => "tou",
+                RogueAttributeType::Perception => "per",
+                RogueAttributeType::Willpower => "wil",
+            }
+        )
+    }
+}
+impl AttributeType for RogueAttributeType {}
 
 fn from_display<I: ItemType>(display: &EquipmentDisplay<I>) -> Equipment<I> {
     let mut items = HashMap::default();
@@ -19,20 +66,20 @@ pub struct Actor {
     name: Name,
     team: Team,
     state: TurnState,
-    attributes: Attributes,
-    ap: ActionPoints,
-    hp: HitPoints,
-    protection: Protection<RogueDamageKind>,
+    attributes: Attributes<RogueAttributeType>,
+    ap: ActionPoints<RogueAttributeType>,
+    hp: HitPoints<RogueAttributeType>,
+    protection: Protection<RogueDamageKind, RogueAttributeType>,
     resistance: Resistance<RogueDamageKind>,
-    evasion: Evasion,
-    damage: DamageList<RogueDamageKind>,
+    evasion: Evasion<RogueAttributeType>,
+    damage: DamageList<RogueDamageKind, RogueAttributeType>,
     fov: FieldOfView,
     position: Vector2D,
     render_info: RenderInfo,
     equipment_display: EquipmentDisplay<RogueItemType>,
     equipment: Equipment<RogueItemType>,
     inventory: Inventory,
-    stats_computed: StatsComputed<RogueDamageKind>,
+    stats_computed: StatsComputed<RogueDamageKind, RogueAttributeType>,
     stats_computed_dirty: StatsComputedDirty,
 }
 impl Actor {
@@ -43,13 +90,57 @@ impl Actor {
         team: u32,
         position: IVec2,
     ) -> Self {
+        // TODO: ron asset for those formulas;
+        let ap_increment_formula = LinearFormula::<RogueAttributeType>::new(vec![
+            Multiplier::<RogueAttributeType> {
+                multiplier: 70,
+                attribute: RogueAttributeType::Dexterity,
+            },
+            Multiplier::<RogueAttributeType> {
+                multiplier: 30,
+                attribute: RogueAttributeType::Willpower,
+            },
+        ]);
+        let hp_full_formula = LinearFormula::<RogueAttributeType>::new(vec![
+            Multiplier::<RogueAttributeType> {
+                multiplier: 70,
+                attribute: RogueAttributeType::Toughness,
+            },
+            Multiplier::<RogueAttributeType> {
+                multiplier: 20,
+                attribute: RogueAttributeType::Strength,
+            },
+            Multiplier::<RogueAttributeType> {
+                multiplier: 10,
+                attribute: RogueAttributeType::Willpower,
+            },
+        ]);
+        let hp_regen_increment_formula = LinearFormula::<RogueAttributeType>::new(vec![
+            Multiplier::<RogueAttributeType> {
+                multiplier: 80,
+                attribute: RogueAttributeType::Toughness,
+            },
+            Multiplier::<RogueAttributeType> {
+                multiplier: 10,
+                attribute: RogueAttributeType::Strength,
+            },
+            Multiplier::<RogueAttributeType> {
+                multiplier: 10,
+                attribute: RogueAttributeType::Willpower,
+            },
+        ]);
+
         Self {
             name: Name::new(template.render.name.clone()),
             team: Team::new(team),
             state: TurnState::default(),
             attributes: template.attributes.clone(),
-            ap: ActionPoints::new(&template.attributes),
-            hp: HitPoints::new(&template.attributes),
+            ap: ActionPoints::<RogueAttributeType>::new(ap_increment_formula, &template.attributes),
+            hp: HitPoints::<RogueAttributeType>::new(
+                hp_full_formula,
+                hp_regen_increment_formula,
+                &template.attributes,
+            ),
             fov: FieldOfView::new(&template.attributes),
             damage: template.damage.clone(),
             protection: template.protection.clone(),

@@ -6,6 +6,7 @@ use crate::stats_derived::DamageKind;
 use crate::stats_derived::StatsComputed;
 use crate::ActionPoints;
 use crate::ActionPointsDirty;
+use crate::AttributeType;
 use crate::HitPoints;
 use crate::HitPointsDirty;
 use crate::IdleEvent;
@@ -13,18 +14,23 @@ use bevy::log;
 use bevy::prelude::*;
 use rand::prelude::*;
 
-pub fn attributes_update_action_points<K: DamageKind>(
+#[allow(clippy::type_complexity)]
+pub fn attributes_update_action_points<K: DamageKind, A: AttributeType>(
     mut cmd: Commands,
-    mut actors: Query<(Entity, &StatsComputed<K>, &mut ActionPoints), With<ActionPointsDirty>>,
+    mut actors: Query<
+        (Entity, &StatsComputed<K, A>, &mut ActionPoints<A>),
+        With<ActionPointsDirty>,
+    >,
 ) {
     for (id, stats, mut ap) in actors.iter_mut() {
         ap.update(&stats.attributes);
         cmd.entity(id).remove::<ActionPointsDirty>();
     }
 }
-pub fn attributes_update_hit_points<K: DamageKind>(
+#[allow(clippy::type_complexity)]
+pub fn attributes_update_hit_points<K: DamageKind, A: AttributeType>(
     mut cmd: Commands,
-    mut actors: Query<(Entity, &StatsComputed<K>, &mut HitPoints), With<HitPointsDirty>>,
+    mut actors: Query<(Entity, &StatsComputed<K, A>, &mut HitPoints<A>), With<HitPointsDirty>>,
 ) {
     for (id, stats, mut hp) in actors.iter_mut() {
         hp.update(&stats.attributes);
@@ -32,23 +38,26 @@ pub fn attributes_update_hit_points<K: DamageKind>(
     }
 }
 
-pub fn idle_rest(
-    mut actors: Query<(&mut HitPoints, &ActionPoints)>,
+pub fn idle_rest<A: AttributeType>(
+    mut actors: Query<(&mut HitPoints<A>, &ActionPoints<A>)>,
     mut idle_reader: EventReader<IdleEvent>,
     mut ap_spend_writer: EventWriter<SpendAPEvent>,
 ) {
     for e in idle_reader.iter() {
-        ap_spend_writer.send(SpendAPEvent::new(e.id, ActionPoints::IDLE_COST_DEFAULT));
+        ap_spend_writer.send(SpendAPEvent::new(
+            e.id,
+            ActionPoints::<A>::IDLE_COST_DEFAULT,
+        ));
         if let Ok((mut hp, ap)) = actors.get_mut(e.id) {
-            let ratio = ActionPoints::IDLE_COST_DEFAULT as f32 / ap.turn_ready_to_act() as f32;
+            let ratio = ActionPoints::<A>::IDLE_COST_DEFAULT as f32 / ap.turn_ready_to_act() as f32;
             hp.regen_ratio(ratio);
         }
     }
 }
 
-pub fn attack<K: DamageKind>(
-    attackers: Query<&StatsComputed<K>>,
-    defenders: Query<(&StatsComputed<K>, &ActionPoints)>,
+pub fn attack<K: DamageKind, A: AttributeType>(
+    attackers: Query<&StatsComputed<K, A>>,
+    defenders: Query<(&StatsComputed<K, A>, &ActionPoints<A>)>,
     mut attack_reader: EventReader<AttackEvent>,
     mut ap_spend_writer: EventWriter<SpendAPEvent>,
     mut damage_writer: EventWriter<DamageHitPointsEvent>,
@@ -174,8 +183,8 @@ pub fn attack<K: DamageKind>(
     }
 }
 
-pub fn damage_hit_points(
-    mut actors: Query<&mut HitPoints>,
+pub fn damage_hit_points<A: AttributeType>(
+    mut actors: Query<&mut HitPoints<A>>,
     mut damage_reader: EventReader<DamageHitPointsEvent>,
     mut death_writer: EventWriter<DeathEvent>,
 ) {

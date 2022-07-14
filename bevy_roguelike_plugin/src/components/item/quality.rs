@@ -1,12 +1,12 @@
 use bevy::prelude::*;
-use bevy::utils::{HashMap, HashSet};
+use bevy::utils::HashMap;
 use bevy_roguelike_combat::stats_derived::*;
 use bevy_roguelike_combat::*;
 use rand::prelude::*;
 use std::fmt::Display;
 use std::ops::Range;
 
-use crate::components::RogueDamageKind;
+use crate::components::{RogueAttributeType, RogueDamageKind};
 
 #[derive(Default, Component, Clone, Reflect)]
 #[reflect(Component)]
@@ -153,7 +153,7 @@ impl MutableQuality for Range<i32> {
         }
     }
 }
-impl MutableQuality for AttributeMultiplier {
+impl MutableQuality for Multiplier<RogueAttributeType> {
     fn mutate_extended(&self, is_direct: bool, quality: &Quality, rng: &mut StdRng) -> Self {
         Self {
             multiplier: self.multiplier.mutate_extended(is_direct, quality, rng),
@@ -161,10 +161,10 @@ impl MutableQuality for AttributeMultiplier {
         }
     }
 }
-impl MutableQuality for Formula {
+impl MutableQuality for LinearFormula<RogueAttributeType> {
     fn mutate_extended(&self, inverted: bool, quality: &Quality, rng: &mut StdRng) -> Self {
         Self {
-            multipliers: HashSet::from_iter(
+            multipliers: Vec::from_iter(
                 self.multipliers
                     .iter()
                     .map(|m| m.mutate_extended(inverted, quality, rng)),
@@ -172,14 +172,7 @@ impl MutableQuality for Formula {
         }
     }
 }
-impl MutableQuality for Option<Formula> {
-    fn mutate_extended(&self, is_direct: bool, quality: &Quality, rng: &mut StdRng) -> Self {
-        self.as_ref()
-            .map(|f| f.mutate_extended(is_direct, quality, rng))
-    }
-}
-
-impl MutableQuality for Rate {
+impl MutableQuality for Rate<RogueAttributeType> {
     fn mutate_extended(&self, is_direct: bool, quality: &Quality, rng: &mut StdRng) -> Self {
         Self {
             amount: self.amount.mutate_extended(is_direct, quality, rng),
@@ -187,7 +180,7 @@ impl MutableQuality for Rate {
         }
     }
 }
-impl MutableQuality for ActionCost {
+impl MutableQuality for ActionCost<RogueAttributeType> {
     fn mutate_extended(&self, is_direct: bool, quality: &Quality, rng: &mut StdRng) -> Self {
         Self {
             cost: self.cost.mutate_extended(!is_direct, quality, rng),
@@ -197,7 +190,7 @@ impl MutableQuality for ActionCost {
         }
     }
 }
-impl MutableQuality for Damage<RogueDamageKind> {
+impl MutableQuality for Damage<RogueDamageKind, RogueAttributeType> {
     fn mutate_extended(&self, is_direct: bool, quality: &Quality, rng: &mut StdRng) -> Self {
         Self {
             kind: self.kind,
@@ -210,7 +203,7 @@ impl MutableQuality for Damage<RogueDamageKind> {
         }
     }
 }
-impl MutableQuality for Protect<RogueDamageKind> {
+impl MutableQuality for Protect<RogueDamageKind, RogueAttributeType> {
     fn mutate_extended(&self, is_direct: bool, quality: &Quality, rng: &mut StdRng) -> Self {
         Self {
             kind: self.kind,
@@ -221,7 +214,7 @@ impl MutableQuality for Protect<RogueDamageKind> {
         }
     }
 }
-impl MutableQuality for Protection<RogueDamageKind> {
+impl MutableQuality for Protection<RogueDamageKind, RogueAttributeType> {
     fn mutate_extended(&self, is_direct: bool, quality: &Quality, rng: &mut StdRng) -> Self {
         Self {
             amounts: self
@@ -261,7 +254,7 @@ impl MutableQuality for Resistance<RogueDamageKind> {
         }
     }
 }
-impl MutableQuality for Evasion {
+impl MutableQuality for Evasion<RogueAttributeType> {
     fn mutate_extended(&self, is_direct: bool, quality: &Quality, rng: &mut StdRng) -> Self {
         Self {
             cost: self.cost.mutate_extended(is_direct, quality, rng),
@@ -269,7 +262,7 @@ impl MutableQuality for Evasion {
         }
     }
 }
-impl MutableQuality for Block<RogueDamageKind> {
+impl MutableQuality for Block<RogueDamageKind, RogueAttributeType> {
     fn mutate_extended(&self, is_direct: bool, quality: &Quality, rng: &mut StdRng) -> Self {
         Self {
             block_type: self.block_type.clone(),
@@ -278,7 +271,7 @@ impl MutableQuality for Block<RogueDamageKind> {
         }
     }
 }
-impl MutableQuality for Attributes {
+impl MutableQuality for Attributes<RogueAttributeType> {
     fn mutate_extended(&self, is_direct: bool, quality: &Quality, rng: &mut StdRng) -> Self {
         Self {
             list: HashMap::from_iter(self.clone().list.into_iter().filter_map(|(t, v)| {

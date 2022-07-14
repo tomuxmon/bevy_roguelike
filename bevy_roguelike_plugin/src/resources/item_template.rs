@@ -1,4 +1,4 @@
-use crate::components::RogueDamageKind;
+use crate::components::{RogueAttributeType, RogueDamageKind};
 use bevy::reflect::TypeUuid;
 use bevy_roguelike_combat::{stats_derived::*, *};
 use serde::{Deserialize, Serialize};
@@ -23,12 +23,12 @@ pub struct ItemRenderInfo {
 }
 #[derive(Serialize, Deserialize)]
 pub struct ItemDefense {
-    pub protection: Option<Protection<RogueDamageKind>>,
+    pub protection: Option<Protection<RogueDamageKind, RogueAttributeType>>,
     pub resistance: Option<Resistance<RogueDamageKind>>,
 }
 #[derive(Serialize, Deserialize)]
 pub struct ItemEnchantment {
-    pub attributes: Option<Attributes>,
+    pub attributes: Option<Attributes<RogueAttributeType>>,
     // TODO: add various enchantment options.
     // evasion boost
     // speed bost
@@ -37,13 +37,13 @@ pub struct ItemEnchantment {
 #[derive(Serialize, Deserialize)]
 pub struct Weapon {
     pub render: ItemRenderInfo,
-    pub damage: Damage<RogueDamageKind>,
+    pub damage: Damage<RogueDamageKind, RogueAttributeType>,
 }
 #[derive(Serialize, Deserialize)]
 pub struct Shield {
     pub render: ItemRenderInfo,
-    pub protection: Protection<RogueDamageKind>,
-    pub block: Block<RogueDamageKind>,
+    pub protection: Protection<RogueDamageKind, RogueAttributeType>,
+    pub block: Block<RogueDamageKind, RogueAttributeType>,
 }
 #[derive(Serialize, Deserialize)]
 pub struct Helm {

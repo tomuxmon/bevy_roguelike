@@ -8,17 +8,17 @@ Shield((
   amounts: [
    (
     kind: Blunt,
-    amount_multiplier: None,
+    amount_multiplier: (multipliers:[]),
     amount: 5,
    ),
    (
     kind: Pierce,
-    amount_multiplier: None,
+    amount_multiplier: (multipliers:[]),
     amount: 5,
    ),
    (
     kind: Slash,
-    amount_multiplier: None,
+    amount_multiplier: (multipliers:[]),
     amount: 5,
    ),
   ],

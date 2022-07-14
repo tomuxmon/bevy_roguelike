@@ -105,7 +105,7 @@ pub fn unrender_unequiped_items(
 
 pub fn render_hud_health_bar(
     mut cmd: Commands,
-    renderables: Query<Entity, (With<HitPoints>, Without<HudHealthBar>)>,
+    renderables: Query<Entity, (With<HitPoints<RogueAttributeType>>, Without<HudHealthBar>)>,
     map_options: Res<MapOptions>,
 ) {
     for rendity in renderables.iter() {

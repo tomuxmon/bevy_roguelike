@@ -10,8 +10,8 @@ pub fn field_of_view_set_visibility(
     mut visibles: Query<(
         &Vector2D,
         &Children,
-        Option<&ActionPoints>,
-        Option<&HitPoints>,
+        Option<&ActionPoints<RogueAttributeType>>,
+        Option<&HitPoints<RogueAttributeType>>,
         &VisibilityToggle,
     )>,
     mut visible_children: Query<(

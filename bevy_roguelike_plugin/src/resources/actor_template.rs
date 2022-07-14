@@ -8,11 +8,11 @@ use serde::{Deserialize, Serialize};
 #[uuid = "0c475ce2-2031-4259-9e22-6a8f3b94a1d1"]
 pub struct ActorTemplate {
     pub render: ActorRenderInfo,
-    pub attributes: Attributes,
-    pub protection: Protection<RogueDamageKind>,
+    pub attributes: Attributes<RogueAttributeType>,
+    pub protection: Protection<RogueDamageKind, RogueAttributeType>,
     pub resistance: Resistance<RogueDamageKind>,
-    pub evasion: Evasion,
-    pub damage: DamageList<RogueDamageKind>,
+    pub evasion: Evasion<RogueAttributeType>,
+    pub damage: DamageList<RogueDamageKind, RogueAttributeType>,
     pub equipment_display: EquipmentDisplay<RogueItemType>,
     pub inventory_capacity: usize,
     // TODO: initial equipment

@@ -12,9 +12,9 @@ pub fn actors_fill_text_info(
         Entity,
         &Name,
         &Team,
-        &ActionPoints,
-        &HitPoints,
-        &StatsComputed<RogueDamageKind>,
+        &ActionPoints<RogueAttributeType>,
+        &HitPoints<RogueAttributeType>,
+        &StatsComputed<RogueDamageKind, RogueAttributeType>,
         &Vector2D,
         Option<&UiTextInfo>,
     )>,
@@ -39,10 +39,15 @@ pub fn actors_fill_text_info(
     }
 }
 
+#[allow(clippy::type_complexity)]
 pub fn attributes_update_field_of_view(
     mut cmd: Commands,
     mut actors: Query<
-        (Entity, &StatsComputed<RogueDamageKind>, &mut FieldOfView),
+        (
+            Entity,
+            &StatsComputed<RogueDamageKind, RogueAttributeType>,
+            &mut FieldOfView,
+        ),
         With<FieldOfViewDirty>,
     >,
 ) {
@@ -58,21 +63,24 @@ pub fn stats_recompute<I: ItemType>(
     mut actors: Query<
         (
             Entity,
-            &mut StatsComputed<RogueDamageKind>,
-            &Attributes,
-            &Protection<RogueDamageKind>,
+            &mut StatsComputed<RogueDamageKind, RogueAttributeType>,
+            &Attributes<RogueAttributeType>,
+            &Protection<RogueDamageKind, RogueAttributeType>,
             &Resistance<RogueDamageKind>,
-            &Evasion,
-            &DamageList<RogueDamageKind>,
+            &Evasion<RogueAttributeType>,
+            &DamageList<RogueDamageKind, RogueAttributeType>,
             &Equipment<I>,
         ),
         With<StatsComputedDirty>,
     >,
-    items_atr: Query<&Attributes, (With<I>, Without<Vector2D>)>,
-    items_prt: Query<&Protection<RogueDamageKind>, (With<I>, Without<Vector2D>)>,
+    items_atr: Query<&Attributes<RogueAttributeType>, (With<I>, Without<Vector2D>)>,
+    items_prt: Query<
+        &Protection<RogueDamageKind, RogueAttributeType>,
+        (With<I>, Without<Vector2D>),
+    >,
     items_res: Query<&Resistance<RogueDamageKind>, (With<I>, Without<Vector2D>)>,
-    items_blk: Query<&Block<RogueDamageKind>, (With<I>, Without<Vector2D>)>,
-    items_dmg: Query<&Damage<RogueDamageKind>, (With<I>, Without<Vector2D>)>,
+    items_blk: Query<&Block<RogueDamageKind, RogueAttributeType>, (With<I>, Without<Vector2D>)>,
+    items_dmg: Query<&Damage<RogueDamageKind, RogueAttributeType>, (With<I>, Without<Vector2D>)>,
 ) {
     for (
         id,
@@ -86,22 +94,29 @@ pub fn stats_recompute<I: ItemType>(
     ) in actors.iter_mut()
     {
         // NOTE: a lot of cloning, but hopefully not a common action to equip / unequip stuff
-        stats.attributes =
-            equipment.list(&items_atr).into_iter().sum::<Attributes>() + innate_attributes.clone();
+        stats.attributes = innate_attributes.clone()
+            + equipment
+                .list(&items_atr)
+                .into_iter()
+                .sum::<Attributes<RogueAttributeType>>();
+
         stats.protection = equipment
             .list(&items_prt)
             .iter()
             .fold(&mut Protection::default(), |acc, p| acc.extend(p))
             .extend(innate_protection)
             .clone();
+
         stats.resistance = equipment
             .list(&items_res)
             .iter()
             .fold(&mut Resistance::default(), |acc, p| acc.ingest(p))
             .ingest(innate_resistance)
             .clone();
+
         stats.evasion = evasion.clone();
         stats.block = equipment.list(&items_blk);
+
         let mut damage = equipment.list(&items_dmg);
         if damage.is_empty() {
             damage.extend(unarmed_damage.list.clone());

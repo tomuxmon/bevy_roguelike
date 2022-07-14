@@ -8,6 +8,7 @@ edition = "2021"
 [dependencies]
 serde = "~1.0"
 rand = "~0.8"
+strum = "~0.24"
 
 [dependencies.bevy]
 version = "~0.7"

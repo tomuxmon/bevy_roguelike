@@ -3,6 +3,7 @@ pub use actor::HudHealthBar;
 pub use actor::MovingFovRandom;
 pub use actor::MovingPlayer;
 pub use actor::MovingRandom;
+pub use actor::RogueAttributeType;
 pub use actor::Team;
 pub use actor::TurnState;
 pub use damage::RogueDamageKind;

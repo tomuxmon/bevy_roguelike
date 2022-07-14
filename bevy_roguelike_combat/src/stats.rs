@@ -1,86 +1,54 @@
-use bevy::{prelude::*, reflect::FromReflect, utils::HashMap};
+use crate::stats_derived::LinearFormula;
+use bevy::{
+    prelude::*,
+    reflect::{FromReflect, GetTypeRegistration},
+    utils::HashMap,
+};
 use serde::{Deserialize, Serialize};
-use std::{fmt::Display, iter::Sum, ops::Add};
+use std::{fmt::Debug, fmt::Display, hash::Hash, iter::Sum, ops::Add};
+use strum::IntoEnumIterator;
 
-#[derive(
-    Debug,
-    Default,
-    Clone,
-    Copy,
-    PartialEq,
-    Eq,
-    Hash,
-    Component,
-    Reflect,
-    FromReflect,
-    Serialize,
-    Deserialize,
-)]
+pub trait AttributeType:
+    Component
+    + Copy
+    + Clone
+    + Eq
+    + Hash
+    + Debug
+    + Display
+    + Default
+    + Reflect
+    + FromReflect
+    + GetTypeRegistration
+    + IntoEnumIterator
+{
+}
+
+#[derive(Debug, Clone, Eq, PartialEq, Component, Reflect, FromReflect, Serialize, Deserialize)]
 #[reflect(Component)]
-#[reflect_value(PartialEq, Serialize, Deserialize)]
-pub enum AttributeType {
-    #[default]
-    Strength,
-    Dexterity,
-    Inteligence,
-    Toughness,
-    Perception,
-    Willpower,
+pub struct Attributes<A: AttributeType> {
+    pub list: HashMap<A, u8>,
 }
-impl Display for AttributeType {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(
-            f,
-            "{}",
-            match self {
-                AttributeType::Strength => "str",
-                AttributeType::Dexterity => "dex",
-                AttributeType::Inteligence => "int",
-                AttributeType::Toughness => "tou",
-                AttributeType::Perception => "per",
-                AttributeType::Willpower => "wil",
-            }
-        )
-    }
-}
+// TODO: default should fill the full list with attributes;
 
-#[derive(Debug, Clone, Eq, PartialEq, Component, Reflect, Serialize, Deserialize)]
-#[reflect(Component)]
-pub struct Attributes {
-    pub list: HashMap<AttributeType, u8>,
-}
-impl Attributes {
-    pub fn new(
-        strength: u8,
-        dexterity: u8,
-        inteligence: u8,
-        toughness: u8,
-        perception: u8,
-        willpower: u8,
-    ) -> Self {
-        Self {
-            list: HashMap::from_iter(vec![
-                (AttributeType::Strength, strength),
-                (AttributeType::Dexterity, dexterity),
-                (AttributeType::Inteligence, inteligence),
-                (AttributeType::Toughness, toughness),
-                (AttributeType::Perception, perception),
-                (AttributeType::Willpower, willpower),
-            ]),
-        }
-    }
-
-    pub fn get(&self, attribute_type: AttributeType) -> u8 {
+impl<A: AttributeType> Attributes<A> {
+    pub fn get(&self, attribute_type: A) -> u8 {
         *self.list.get(&attribute_type).unwrap_or(&0)
     }
-}
-impl Default for Attributes {
-    fn default() -> Self {
-        Self::new(0, 0, 0, 0, 0, 0)
+    pub fn with_all(value: u8) -> Self {
+        Self {
+            list: HashMap::from_iter(A::iter().map(|a| (a, value))),
+        }
     }
 }
-impl Add for Attributes {
-    type Output = Attributes;
+impl<A: AttributeType> Default for Attributes<A> {
+    fn default() -> Self {
+        Self::with_all(0)
+    }
+}
+
+impl<A: AttributeType> Add for Attributes<A> {
+    type Output = Attributes<A>;
 
     fn add(self, rhs: Self) -> Self::Output {
         Self {
@@ -88,12 +56,12 @@ impl Add for Attributes {
         }
     }
 }
-impl Sum for Attributes {
+impl<A: AttributeType> Sum for Attributes<A> {
     fn sum<I: Iterator<Item = Self>>(iter: I) -> Self {
         iter.fold(Attributes::default(), |acc, a| acc + a)
     }
 }
-impl Display for Attributes {
+impl<A: AttributeType> Display for Attributes<A> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(
             f,
@@ -110,33 +78,34 @@ impl Display for Attributes {
 #[reflect(Component)]
 pub struct ActionPointsDirty;
 
-#[derive(Default, Debug, Copy, Clone, Eq, PartialEq, Hash, Component, Reflect)]
+#[derive(Default, Debug, Clone, Eq, PartialEq, Hash, Component, Reflect, FromReflect)]
 #[reflect(Component)]
-pub struct ActionPoints {
+pub struct ActionPoints<A: AttributeType> {
     turn_ready: i16,
     current: i16,
     increment: i16,
+    increment_formula: LinearFormula<A>,
 }
-impl ActionPoints {
+impl<A: AttributeType> ActionPoints<A> {
+    // TODO: move consts out. no need to be generic here
     pub const MOVE_COST_DEFAULT: i16 = 100;
     pub const IDLE_COST_DEFAULT: i16 = 64;
     pub const TURN_READY_DEFAULT: i16 = 128;
     pub const INCREMENT_MIN: i16 = 64;
 
-    pub fn new(atr: &Attributes) -> Self {
+    pub fn new(increment_formula: LinearFormula<A>, atr: &Attributes<A>) -> Self {
         Self {
-            turn_ready: ActionPoints::TURN_READY_DEFAULT,
-            increment: ActionPoints::INCREMENT_MIN
-                + (atr.get(AttributeType::Dexterity) as i16) * 7
-                + (atr.get(AttributeType::Willpower) as i16) * 3,
+            turn_ready: ActionPoints::<A>::TURN_READY_DEFAULT,
+            increment: ActionPoints::<A>::INCREMENT_MIN
+                + (increment_formula.compute(atr) * 64.) as i16,
+            increment_formula,
             current: 0,
         }
     }
-    pub fn update(&mut self, atr: &Attributes) {
-        self.turn_ready = ActionPoints::TURN_READY_DEFAULT;
-        self.increment = ActionPoints::INCREMENT_MIN
-            + (atr.get(AttributeType::Dexterity) as i16) * 7
-            + (atr.get(AttributeType::Willpower) as i16) * 3;
+    pub fn update(&mut self, atr: &Attributes<A>) {
+        self.turn_ready = ActionPoints::<A>::TURN_READY_DEFAULT;
+        self.increment =
+            ActionPoints::<A>::INCREMENT_MIN + (self.increment_formula.compute(atr) * 64.) as i16;
     }
 
     pub fn turn_ready_to_act(&self) -> i16 {
@@ -161,9 +130,9 @@ impl ActionPoints {
 #[derive(Default, Component, Reflect)]
 #[reflect(Component)]
 pub struct HitPointsDirty;
-#[derive(Default, Debug, Copy, Clone, Eq, PartialEq, Hash, Component, Reflect)]
+#[derive(Default, Debug, Clone, Eq, PartialEq, Hash, Component, Reflect, FromReflect)]
 #[reflect(Component)]
-pub struct HitPoints {
+pub struct HitPoints<A: AttributeType> {
     is_alive: bool,
     full: i16,
     current: i16,
@@ -171,41 +140,41 @@ pub struct HitPoints {
     regen_ready: i16,
     regen_current: i16,
     regen_increment: i16,
+
+    full_formula: LinearFormula<A>,
+    regen_increment_formula: LinearFormula<A>,
 }
-impl HitPoints {
+impl<A: AttributeType> HitPoints<A> {
+    // TODO: move consts out. no need to be generic here
     pub const FULL_MIN: i16 = 20;
     pub const REGEN_READY_DEFAULT: i16 = 128;
     pub const REGEN_INCREMENT_MIN: i16 = 16;
 
-    pub fn new(atr: &Attributes) -> Self {
-        let full = HitPoints::FULL_MIN
-            + atr.get(AttributeType::Toughness) as i16 * 4
-            + atr.get(AttributeType::Strength) as i16
-            + (atr.get(AttributeType::Willpower) as f32 / 2.) as i16;
+    pub fn new(
+        full_formula: LinearFormula<A>,
+        regen_increment_formula: LinearFormula<A>,
+        atr: &Attributes<A>,
+    ) -> Self {
+        let full = HitPoints::<A>::FULL_MIN + (full_formula.compute(atr) * 20.) as i16;
         Self {
             is_alive: true,
             full,
             current: full,
-            regen_ready: HitPoints::REGEN_READY_DEFAULT,
+            regen_ready: HitPoints::<A>::REGEN_READY_DEFAULT,
             regen_current: 0,
-            regen_increment: HitPoints::REGEN_INCREMENT_MIN
-                + atr.get(AttributeType::Toughness) as i16 * 4
-                + atr.get(AttributeType::Strength) as i16 * 2
-                + atr.get(AttributeType::Willpower) as i16,
+            regen_increment: HitPoints::<A>::REGEN_INCREMENT_MIN
+                + (regen_increment_formula.compute(atr) * 16.) as i16,
+            full_formula,
+            regen_increment_formula,
         }
     }
-    pub fn update(&mut self, atr: &Attributes) {
+    pub fn update(&mut self, atr: &Attributes<A>) {
         let current_ratio = self.current as f32 / self.full as f32;
-        self.full = HitPoints::FULL_MIN
-            + atr.get(AttributeType::Toughness) as i16 * 4
-            + atr.get(AttributeType::Strength) as i16
-            + (atr.get(AttributeType::Willpower) as f32 / 2.) as i16;
+        self.full = HitPoints::<A>::FULL_MIN + (self.full_formula.compute(atr) * 20.) as i16;
         self.current = (current_ratio * self.full as f32) as i16;
-        self.regen_ready = HitPoints::REGEN_READY_DEFAULT;
-        self.regen_increment = HitPoints::REGEN_INCREMENT_MIN
-            + atr.get(AttributeType::Toughness) as i16 * 4
-            + atr.get(AttributeType::Strength) as i16 * 2
-            + atr.get(AttributeType::Willpower) as i16;
+        self.regen_ready = HitPoints::<A>::REGEN_READY_DEFAULT;
+        self.regen_increment = HitPoints::<A>::REGEN_INCREMENT_MIN
+            + (self.regen_increment_formula.compute(atr) * 16.) as i16;
     }
 
     pub fn apply(&mut self, amount: i16) -> i16 {

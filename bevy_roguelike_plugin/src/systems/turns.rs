@@ -61,10 +61,17 @@ pub fn act(
     }
 }
 
+#[allow(clippy::type_complexity)]
 pub fn death_read<I: ItemType>(
     mut cmd: Commands,
     mut death_reader: EventReader<DeathEvent>,
-    actors: Query<(&Vector2D, &Name, &HitPoints, &Inventory, &Equipment<I>)>,
+    actors: Query<(
+        &Vector2D,
+        &Name,
+        &HitPoints<RogueAttributeType>,
+        &Inventory,
+        &Equipment<I>,
+    )>,
     inventory_displays: Query<(Entity, &InventoryDisplayOwner)>,
 ) {
     for death in death_reader.iter() {
@@ -94,7 +101,11 @@ pub fn death_read<I: ItemType>(
 
 // TODO: move to bevy_roguelike_turns
 pub fn spend_ap(
-    mut actors: Query<(&mut ActionPoints, &mut TurnState, &mut HitPoints)>,
+    mut actors: Query<(
+        &mut ActionPoints<RogueAttributeType>,
+        &mut TurnState,
+        &mut HitPoints<RogueAttributeType>,
+    )>,
     mut ap_reader: EventReader<SpendAPEvent>,
 ) {
     for e in ap_reader.iter() {
@@ -106,8 +117,6 @@ pub fn spend_ap(
         }
     }
 }
-
-
 
 pub fn try_move(
     mut actors: Query<(&mut Vector2D, &Team, &mut FieldOfView)>,
@@ -126,7 +135,10 @@ pub fn try_move(
                 );
                 continue;
             }
-            ap_spend_writer.send(SpendAPEvent::new(e.actor, ActionPoints::MOVE_COST_DEFAULT));
+            ap_spend_writer.send(SpendAPEvent::new(
+                e.actor,
+                ActionPoints::<RogueAttributeType>::MOVE_COST_DEFAULT,
+            ));
             team_pt.entry(e.to).insert(e.team);
             *pt = Vector2D::from(e.to);
             fov.is_dirty = true;
@@ -137,7 +149,7 @@ pub fn try_move(
 // TODO: move to bevy_roguelike_turns
 pub fn gather_action_points(
     pool: Res<ComputeTaskPool>,
-    mut actors: Query<(&mut ActionPoints, &mut TurnState)>,
+    mut actors: Query<(&mut ActionPoints<RogueAttributeType>, &mut TurnState)>,
 ) {
     actors.par_for_each_mut(&*pool, 16, |(mut ap, mut ts)| {
         if *ts == TurnState::Collect {

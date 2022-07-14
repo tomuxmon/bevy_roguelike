@@ -7,9 +7,9 @@ Amulet((
  defense: (
   protection: Some((
    amounts: [
-    (kind:Fire,amount_multiplier:None,amount:1),
-    (kind:Lightning,amount_multiplier:None,amount:5),
-    (kind:Cold,amount_multiplier:None,amount:6),
+    (kind:Fire,amount_multiplier:(multipliers:[]),amount:1),
+    (kind:Lightning,amount_multiplier:(multipliers:[]),amount:5),
+    (kind:Cold,amount_multiplier:(multipliers:[]),amount:6),
    ],
   )),
   resistance: Some((

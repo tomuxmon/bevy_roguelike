@@ -2,7 +2,6 @@ use super::stats::*;
 use bevy::{
     prelude::*,
     reflect::{FromReflect, GetTypeRegistration},
-    utils::HashSet,
 };
 use rand::prelude::*;
 use serde::{Deserialize, Serialize};
@@ -38,33 +37,53 @@ pub trait DamageKind:
     Deserialize,
 )]
 #[reflect(Component)]
-pub struct AttributeMultiplier {
+pub struct Multiplier<A: AttributeType> {
     /// multiplier taking into account amount of governing attribute.
     /// multiplier = 100; attribute = 10; will result in multiplier equal to 1.
     pub multiplier: u8,
     /// attribute that is taken into account when calculating the multiplier
-    pub attribute: AttributeType,
+    pub attribute: A,
 }
-impl AttributeMultiplier {
-    pub fn compute(&self, attributes: &Attributes) -> f32 {
+impl<A: AttributeType> Multiplier<A> {
+    pub fn compute(&self, attributes: &Attributes<A>) -> f32 {
         attributes.get(self.attribute) as f32 * self.multiplier as f32 / 1000.
     }
 }
 
 #[derive(
-    Debug, Default, Clone, PartialEq, Eq, Component, Reflect, FromReflect, Serialize, Deserialize,
+    Debug,
+    Default,
+    Clone,
+    PartialEq,
+    Eq,
+    Hash,
+    Component,
+    Reflect,
+    FromReflect,
+    Serialize,
+    Deserialize,
 )]
 #[reflect(Component)]
-pub struct Formula {
-    pub multipliers: HashSet<AttributeMultiplier>,
+pub struct LinearFormula<A: AttributeType> {
+    // TODO: include scale factor here
+    // pub scale: f32,
+    pub multipliers: Vec<Multiplier<A>>,
 }
-impl Formula {
-    pub fn new(multipls: impl IntoIterator<Item = AttributeMultiplier>) -> Self {
+impl<A: AttributeType> LinearFormula<A> {
+    pub fn new(multipls: impl IntoIterator<Item = Multiplier<A>>) -> Self {
         Self {
-            multipliers: HashSet::from_iter(multipls),
+            multipliers: Vec::from_iter(multipls),
         }
     }
-    pub fn compute(&self, attributes: &Attributes) -> f32 {
+    pub fn empty() -> Self {
+        Self {
+            multipliers: Vec::new(),
+        }
+    }
+    pub fn compute(&self, attributes: &Attributes<A>) -> f32 {
+        if self.multipliers.is_empty() {
+            return 1.;
+        }
         self.multipliers
             .iter()
             .map(|m| m.compute(attributes))
@@ -77,13 +96,13 @@ impl Formula {
     Debug, Default, Clone, PartialEq, Eq, Component, Reflect, FromReflect, Serialize, Deserialize,
 )]
 #[reflect(Component)]
-pub struct Rate {
+pub struct Rate<A: AttributeType> {
     /// A chance to perform action modifier where 100 means a normal chance.
     pub amount: u8,
-    pub multiplier: Formula,
+    pub multiplier: LinearFormula<A>,
 }
-impl Rate {
-    pub fn compute(&self, attributes: &Attributes) -> i32 {
+impl<A: AttributeType> Rate<A> {
+    pub fn compute(&self, attributes: &Attributes<A>) -> i32 {
         (self.multiplier.compute(attributes) * self.amount as f32) as i32
     }
 }
@@ -92,14 +111,14 @@ impl Rate {
     Debug, Default, Clone, PartialEq, Eq, Component, Reflect, FromReflect, Serialize, Deserialize,
 )]
 #[reflect(Component)]
-pub struct ActionCost {
+pub struct ActionCost<A: AttributeType> {
     /// cost in action points, [`super::ActionPoints::TURN_READY_DEFAULT`] being one single turn
     pub cost: i16,
     /// formula to compute the multiplier.
-    pub multiplier_inverted: Formula,
+    pub multiplier_inverted: LinearFormula<A>,
 }
-impl ActionCost {
-    pub fn compute(&self, attributes: &Attributes) -> i16 {
+impl<A: AttributeType> ActionCost<A> {
+    pub fn compute(&self, attributes: &Attributes<A>) -> i16 {
         (self.cost as f32 / self.multiplier_inverted.compute(attributes)) as i16
     }
 }
@@ -108,8 +127,8 @@ impl ActionCost {
     Debug, Default, Clone, PartialEq, Eq, Component, Reflect, FromReflect, Serialize, Deserialize,
 )]
 #[reflect(Component)]
-pub struct DamageList<K: DamageKind> {
-    pub list: Vec<Damage<K>>,
+pub struct DamageList<K: DamageKind, A: AttributeType> {
+    pub list: Vec<Damage<K, A>>,
 }
 
 /// Information about damage that can be calculated based on actor attributes.
@@ -117,16 +136,16 @@ pub struct DamageList<K: DamageKind> {
     Debug, Default, Clone, PartialEq, Eq, Component, Reflect, FromReflect, Serialize, Deserialize,
 )]
 #[reflect(Component)]
-pub struct Damage<K: DamageKind> {
+pub struct Damage<K: DamageKind, A: AttributeType> {
     pub kind: K,
     pub amount: Range<i32>,
-    pub amount_multiplier: Formula,
-    pub hit_cost: ActionCost,
-    pub hit_chance: Rate,
+    pub amount_multiplier: LinearFormula<A>,
+    pub hit_cost: ActionCost<A>,
+    pub hit_chance: Rate<A>,
 }
 
-impl<K: DamageKind> Damage<K> {
-    pub fn compute(&self, attributes: &Attributes, rng: &mut StdRng) -> i32 {
+impl<K: DamageKind, A: AttributeType> Damage<K, A> {
+    pub fn compute(&self, attributes: &Attributes<A>, rng: &mut StdRng) -> i32 {
         (self.amount_roll(rng) as f32 * self.amount_multiplier.compute(attributes)) as i32
     }
     fn amount_roll(&self, rng: &mut StdRng) -> i32 {
@@ -139,25 +158,30 @@ impl<K: DamageKind> Damage<K> {
 }
 
 #[derive(
-    Debug, Default, Clone, PartialEq, Eq, Component, Reflect, FromReflect, Serialize, Deserialize,
+    Debug,
+    Default,
+    Clone,
+    PartialEq,
+    Eq,
+    Hash,
+    Component,
+    Reflect,
+    FromReflect,
+    Serialize,
+    Deserialize,
 )]
-pub struct Protect<K: DamageKind> {
+pub struct Protect<K: DamageKind, A: AttributeType> {
     pub kind: K,
-    pub amount_multiplier: Option<Formula>,
+    pub amount_multiplier: LinearFormula<A>,
     pub amount: i32,
 }
 
-impl<K: DamageKind> Protect<K> {
-    pub fn compute(&self, attributes: &Attributes) -> i32 {
-        (self.amount as f32
-            * if let Some(formula) = &self.amount_multiplier {
-                formula.compute(attributes)
-            } else {
-                1.
-            }) as i32
+impl<K: DamageKind, A: AttributeType> Protect<K, A> {
+    pub fn compute(&self, attributes: &Attributes<A>) -> i32 {
+        (self.amount as f32 * self.amount_multiplier.compute(attributes)) as i32
     }
 }
-impl<K: DamageKind> Display for Protect<K> {
+impl<K: DamageKind, A: AttributeType> Display for Protect<K, A> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         // TODO: also write formula if present
         write!(f, "{} +{}", self.kind, self.amount)
@@ -166,24 +190,34 @@ impl<K: DamageKind> Display for Protect<K> {
 
 /// Protective Value (PV) or the amount of direct damage negated
 #[derive(
-    Debug, Default, Clone, PartialEq, Eq, Component, Reflect, FromReflect, Serialize, Deserialize,
+    Debug,
+    Default,
+    Clone,
+    PartialEq,
+    Eq,
+    Hash,
+    Component,
+    Reflect,
+    FromReflect,
+    Serialize,
+    Deserialize,
 )]
 #[reflect(Component)]
-pub struct Protection<K: DamageKind> {
-    pub amounts: Vec<Protect<K>>,
+pub struct Protection<K: DamageKind, A: AttributeType> {
+    pub amounts: Vec<Protect<K, A>>,
 }
-impl<K: DamageKind> Protection<K> {
-    pub fn new(protections: impl IntoIterator<Item = Protect<K>>) -> Self {
+impl<K: DamageKind, A: AttributeType> Protection<K, A> {
+    pub fn new(protections: impl IntoIterator<Item = Protect<K, A>>) -> Self {
         Self {
             amounts: Vec::from_iter(protections),
         }
     }
-    pub fn extend(&mut self, other: &Protection<K>) -> &mut Protection<K> {
+    pub fn extend(&mut self, other: &Protection<K, A>) -> &mut Protection<K, A> {
         self.amounts.extend(other.clone().amounts);
         self
     }
 }
-impl<K: DamageKind> Display for Protection<K> {
+impl<K: DamageKind, A: AttributeType> Display for Protection<K, A> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(
             f,
@@ -221,7 +255,9 @@ impl<K: DamageKind> Display for Resist<K> {
     }
 }
 
-#[derive(Debug, Default, Clone, PartialEq, Eq, Component, Reflect, Serialize, Deserialize)]
+#[derive(
+    Debug, Default, Clone, PartialEq, Eq, Component, Reflect, FromReflect, Serialize, Deserialize,
+)]
 #[reflect(Component)]
 pub struct Resistance<K: DamageKind> {
     /// defines resistance in percents per damage kind.
@@ -253,23 +289,25 @@ impl<K: DamageKind> Display for Resistance<K> {
 }
 
 /// Evasion works on any damage type.
-#[derive(Debug, Default, Clone, PartialEq, Eq, Component, Reflect, Serialize, Deserialize)]
+#[derive(
+    Debug, Default, Clone, PartialEq, Eq, Component, Reflect, FromReflect, Serialize, Deserialize,
+)]
 #[reflect(Component)]
-pub struct Evasion {
+pub struct Evasion<A: AttributeType> {
     /// Cost in action points, [`super::ActionPoints::TURN_READY_DEFAULT`] being one single turn.
     /// Usually it should be close to 0.3 of the turn (posibility to avoid 3 attacks per turn).
     /// Usually dexterity should influence it
-    pub cost: ActionCost,
+    pub cost: ActionCost<A>,
     /// Evasion chance. Compared against [`Damage::hit_rate`].
-    pub chance: Rate,
+    pub chance: Rate<A>,
 }
-impl Evasion {
+impl<A: AttributeType> Evasion<A> {
     /// will try to evade damage. returns true and cost if evaded. if not returns false and zero.
     pub fn try_evade<K: DamageKind>(
         &self,
-        damage: &Damage<K>,
-        self_attributes: &Attributes,
-        attacker_attributes: &Attributes,
+        damage: &Damage<K, A>,
+        self_attributes: &Attributes<A>,
+        attacker_attributes: &Attributes<A>,
         rng: &mut StdRng,
     ) -> (bool, i16) {
         let rate_evade = self.chance.compute(self_attributes);
@@ -295,21 +333,21 @@ impl Evasion {
     Debug, Default, Clone, PartialEq, Eq, Component, Reflect, FromReflect, Serialize, Deserialize,
 )]
 #[reflect(Component)]
-pub struct Block<K: DamageKind> {
+pub struct Block<K: DamageKind, A: AttributeType> {
     // blocks specific damage type?
     pub block_type: Vec<K>,
-    pub cost: ActionCost,
+    pub cost: ActionCost<A>,
     /// Block chance. Compared against [`Damage::hit_rate`].
-    pub chance: Rate,
+    pub chance: Rate<A>,
 }
 
-impl<K: DamageKind> Block<K> {
+impl<K: DamageKind, A: AttributeType> Block<K, A> {
     /// will try to block damage when block type matches. returns true and cost if blocked. if not returns false and zero.
     pub fn try_block(
         &self,
-        damage: &Damage<K>,
-        self_attributes: &Attributes,
-        attacker_attributes: &Attributes,
+        damage: &Damage<K, A>,
+        self_attributes: &Attributes<A>,
+        attacker_attributes: &Attributes<A>,
         rng: &mut StdRng,
     ) -> (bool, i16) {
         if !self.block_type.iter().any(|k| *k == damage.kind) {
@@ -339,11 +377,11 @@ pub struct StatsComputedDirty;
 
 #[derive(Component, Debug, Default, Clone, Reflect)]
 #[reflect(Component)]
-pub struct StatsComputed<K: DamageKind> {
-    pub attributes: Attributes,
-    pub protection: Protection<K>,
+pub struct StatsComputed<K: DamageKind, A: AttributeType> {
+    pub attributes: Attributes<A>,
+    pub protection: Protection<K, A>,
     pub resistance: Resistance<K>,
-    pub evasion: Evasion,
-    pub block: Vec<Block<K>>,
-    pub damage: Vec<Damage<K>>,
+    pub evasion: Evasion<A>,
+    pub block: Vec<Block<K, A>>,
+    pub damage: Vec<Damage<K, A>>,
 }

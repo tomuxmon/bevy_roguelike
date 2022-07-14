@@ -1,5 +1,6 @@
+use super::RogueAttributeType;
 use bevy::{prelude::*, utils::HashSet};
-use bevy_roguelike_combat::{AttributeType, Attributes};
+use bevy_roguelike_combat::Attributes;
 
 #[derive(Default, Component, Reflect)]
 #[reflect(Component)]
@@ -22,20 +23,21 @@ pub struct FieldOfView {
 impl FieldOfView {
     pub const MIN_RADIUS: i32 = 2;
 
-    pub fn new(atr: &Attributes) -> Self {
+    pub fn new(atr: &Attributes<RogueAttributeType>) -> Self {
         Self {
             radius: FieldOfView::MIN_RADIUS
-                + (atr.get(AttributeType::Perception) as f32 / 3.
-                    + atr.get(AttributeType::Inteligence) as f32 / 10.) as i32,
+                + (atr.get(RogueAttributeType::Perception) as f32 / 3.
+                    + atr.get(RogueAttributeType::Inteligence) as f32 / 10.)
+                    as i32,
             tiles_visible: HashSet::default(),
             tiles_revealed: HashSet::default(),
             is_dirty: true,
         }
     }
-    pub fn update(&mut self, atr: &Attributes) {
+    pub fn update(&mut self, atr: &Attributes<RogueAttributeType>) {
         self.radius = FieldOfView::MIN_RADIUS
-            + (atr.get(AttributeType::Perception) as f32 / 3.
-                + atr.get(AttributeType::Inteligence) as f32 / 10.) as i32;
+            + (atr.get(RogueAttributeType::Perception) as f32 / 3.
+                + atr.get(RogueAttributeType::Inteligence) as f32 / 10.) as i32;
         self.is_dirty = true;
     }
 }

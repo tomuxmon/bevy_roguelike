@@ -7,9 +7,9 @@ Helm((
  defense: (
   protection: Some((
    amounts: [
-    (kind:Blunt,amount_multiplier:None,amount:3),
-    (kind:Pierce,amount_multiplier:None,amount:3),
-    (kind:Slash,amount_multiplier:None,amount:3),
+    (kind:Blunt,amount_multiplier:(multipliers:[]),amount:3),
+    (kind:Pierce,amount_multiplier:(multipliers:[]),amount:3),
+    (kind:Slash,amount_multiplier:(multipliers:[]),amount:3),
    ],
   )),
   resistance: None,
