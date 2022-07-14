@@ -127,13 +127,17 @@ After all that is in place your actors then must have inventory and equipment co
 
 Not really related to the inventory but still in the same crate there is a tooltip implementation. To enable tooltip you just need to fill in `UiTextInfo` for both world entities and UI nodes. It uses fixed z hack. Tooltips are placed at `10.` z.
 
-### Afterthoughts
+### UI afterthoughts
 
 All ot the UI was implemented using bevy ui library. It is not the most pleasant way to work with UI and the resulting code has a lot of boilerplate. Also looked at bevy_egui, for some reason it did not fit well with this project. Again if you know better alternatives (inventory ui or ui library) please give it a shout.
 
 ## bevy roguelike combat
 
+// WIP
+
 ## map generator
+
+This crate is a direct result of reading the [Hands-on Rust](https://pragprog.com/titles/hwrust/hands-on-rust/) book. Many thanks to Herbert Wolverson, author of the book! Since the underlying algorithms and structures are independant, there is no need to depend on bevy. The most interesting part of it is the drunkard map generator (`DrunkardGenerator`). the algorithm is so simple and the results are mostly satisfying. `ConwayLifeGenerator` also produces interesting results but it happens most of the time that unreachable regions are present in the map. no pathfinding algorithms were used so far and there is no way to validate the generated map. This crate is still in a TODO phase but was sufficient to test and develop bevy game systems. Yet again if you know better alternatives please give it a shout
 
 ## vec walk dir
 
