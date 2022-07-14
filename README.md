@@ -72,7 +72,7 @@ pub enum SomeItemType {
 impl ItemType for SomeItemType {}
 ```
 
-`bevy_inventory` is really minimal and it does not contain any bevy systems and the is no plugin for it. To use it just throw it into your workspace or just copy paste what you need. If you have some suggestions or know something better that I could throw in as a replacement please mention it in the discussions.
+`bevy_inventory` is really minimal and it does not contain any bevy systems also there is no plugin for it. To use it just copy it into your workspace or just copy paste what you actually need. If you have some suggestions or know something better that I could use instead please mention it in the discussions.
 
 ## bevy inventory ui
 
