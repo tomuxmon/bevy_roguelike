@@ -92,20 +92,20 @@ impl Actor {
     ) -> Self {
         // TODO: ron asset for those formulas;
         let ap_increment_formula = LinearFormula::<RogueAttributeType>::new(
-            6400,
+            6144,
             vec![
                 Multiplier::<RogueAttributeType> {
-                    multiplier: 70,
+                    multiplier: 80,
                     attribute: RogueAttributeType::Dexterity,
                 },
                 Multiplier::<RogueAttributeType> {
-                    multiplier: 30,
+                    multiplier: 20,
                     attribute: RogueAttributeType::Willpower,
                 },
             ],
         );
         let hp_full_formula = LinearFormula::<RogueAttributeType>::new(
-            2000,
+            7168,
             vec![
                 Multiplier::<RogueAttributeType> {
                     multiplier: 70,
@@ -122,7 +122,7 @@ impl Actor {
             ],
         );
         let hp_regen_increment_formula = LinearFormula::<RogueAttributeType>::new(
-            1600,
+            1024,
             vec![
                 Multiplier::<RogueAttributeType> {
                     multiplier: 80,

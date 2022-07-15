@@ -11,6 +11,7 @@ Weapon((
    end: 21,
   ),
   amount_multiplier: (
+   scale: 100,
    multipliers: [
     (multiplier:60,attribute:Strength),
     (multiplier:20,attribute:Perception),
@@ -19,12 +20,14 @@ Weapon((
   hit_cost: (
    cost: 160,
    multiplier_inverted: (
+    scale: 100,
     multipliers: [(multiplier:80,attribute:Dexterity)],
    ),
   ),
   hit_chance: (
    amount: 80,
    multiplier: (
+    scale: 100,
     multipliers: [(multiplier:128,attribute:Dexterity)],
    ),
   ),

@@ -7,9 +7,9 @@ Armor((
  defense: (
   protection: Some((
    amounts: [
-    (kind:Blunt,amount_multiplier:(multipliers:[]),amount:1),
-    (kind:Pierce,amount_multiplier:(multipliers:[]),amount:1),
-    (kind:Slash,amount_multiplier:(multipliers:[]),amount:1),
+    (kind:Blunt,amount_multiplier:(scale:100,multipliers:[]),amount:1),
+    (kind:Pierce,amount_multiplier:(scale:100,multipliers:[]),amount:1),
+    (kind:Slash,amount_multiplier:(scale:100,multipliers:[]),amount:1),
    ],
   )),
   resistance: Some((
