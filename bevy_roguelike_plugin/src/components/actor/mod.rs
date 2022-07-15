@@ -4,7 +4,7 @@ use crate::resources::ActorTemplate;
 use bevy::{prelude::*, reflect::FromReflect, utils::HashMap};
 use bevy_inventory::{Equipment, Inventory, ItemType};
 use bevy_inventory_ui::EquipmentDisplay;
-use bevy_roguelike_combat::{stats_derived::*, *};
+use bevy_roguelike_combat::*;
 use serde::{Deserialize, Serialize};
 use std::fmt::Display;
 use strum_macros::EnumIter;

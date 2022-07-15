@@ -23,6 +23,7 @@ pub struct FieldOfView {
 impl FieldOfView {
     pub const MIN_RADIUS: i32 = 2;
 
+    // TODO: use formula instead like the rest of the attribute dependant derived attributes
     pub fn new(atr: &Attributes<RogueAttributeType>) -> Self {
         Self {
             radius: FieldOfView::MIN_RADIUS

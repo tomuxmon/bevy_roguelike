@@ -1,6 +1,6 @@
 use crate::components::{RogueAttributeType, RogueDamageKind};
 use bevy::reflect::TypeUuid;
-use bevy_roguelike_combat::{stats_derived::*, *};
+use bevy_roguelike_combat::*;
 use serde::{Deserialize, Serialize};
 
 // TODO: each item should define possible artifact bonuses

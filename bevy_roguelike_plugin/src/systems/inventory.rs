@@ -2,7 +2,7 @@ use crate::components::*;
 use bevy::prelude::*;
 use bevy_inventory::{Equipment, Inventory, ItemDropEvent, ItemPickUpEvent, ItemType};
 use bevy_inventory_ui::{EquipmentDisplay, InventoryDisplayToggleEvent, UiTextInfo};
-use bevy_roguelike_combat::{stats_derived::*, *};
+use bevy_roguelike_combat::*;
 
 #[allow(clippy::type_complexity)]
 pub fn item_fill_text_info<I: ItemType>(

@@ -135,10 +135,7 @@ pub fn try_move(
                 );
                 continue;
             }
-            ap_spend_writer.send(SpendAPEvent::new(
-                e.actor,
-                ActionPoints::<RogueAttributeType>::MOVE_COST_DEFAULT,
-            ));
+            ap_spend_writer.send(SpendAPEvent::new(e.actor, AP_MOVE_COST_DEFAULT));
             team_pt.entry(e.to).insert(e.team);
             *pt = Vector2D::from(e.to);
             fov.is_dirty = true;

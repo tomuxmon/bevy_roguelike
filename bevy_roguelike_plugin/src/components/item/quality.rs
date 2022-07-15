@@ -1,6 +1,5 @@
 use bevy::prelude::*;
 use bevy::utils::HashMap;
-use bevy_roguelike_combat::stats_derived::*;
 use bevy_roguelike_combat::*;
 use rand::prelude::*;
 use std::fmt::Display;

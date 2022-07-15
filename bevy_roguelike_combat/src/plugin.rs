@@ -1,4 +1,4 @@
-use crate::{events::*, stats::*, stats_derived::*, systems::*};
+use crate::{components::*, events::*, systems::*};
 use bevy::{ecs::schedule::StateData, prelude::*};
 use std::marker::PhantomData;
 

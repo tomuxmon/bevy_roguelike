@@ -1,5 +1,5 @@
 use bevy::{prelude::*, reflect::FromReflect};
-use bevy_roguelike_combat::stats_derived::DamageKind;
+use bevy_roguelike_combat::DamageKind;
 use serde::{Deserialize, Serialize};
 use std::fmt::Display;
 

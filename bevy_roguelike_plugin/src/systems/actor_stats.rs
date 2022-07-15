@@ -2,7 +2,7 @@ use crate::components::*;
 use bevy::prelude::*;
 use bevy_inventory::{Equipment, ItemType};
 use bevy_inventory_ui::UiTextInfo;
-use bevy_roguelike_combat::{stats_derived::*, *};
+use bevy_roguelike_combat::*;
 
 #[allow(clippy::type_complexity)]
 pub fn actors_fill_text_info(

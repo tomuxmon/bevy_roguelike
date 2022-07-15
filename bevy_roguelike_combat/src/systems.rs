@@ -1,15 +1,5 @@
-use crate::events::AttackEvent;
-use crate::events::DamageHitPointsEvent;
-use crate::events::DeathEvent;
-use crate::events::SpendAPEvent;
-use crate::stats_derived::DamageKind;
-use crate::stats_derived::StatsComputed;
-use crate::ActionPoints;
-use crate::ActionPointsDirty;
-use crate::AttributeType;
-use crate::HitPoints;
-use crate::HitPointsDirty;
-use crate::IdleEvent;
+use crate::components::*;
+use crate::events::*;
 use bevy::log;
 use bevy::prelude::*;
 use rand::prelude::*;
@@ -44,12 +34,9 @@ pub fn idle_rest<A: AttributeType>(
     mut ap_spend_writer: EventWriter<SpendAPEvent>,
 ) {
     for e in idle_reader.iter() {
-        ap_spend_writer.send(SpendAPEvent::new(
-            e.id,
-            ActionPoints::<A>::IDLE_COST_DEFAULT,
-        ));
+        ap_spend_writer.send(SpendAPEvent::new(e.id, AP_IDLE_COST_DEFAULT));
         if let Ok((mut hp, ap)) = actors.get_mut(e.id) {
-            let ratio = ActionPoints::<A>::IDLE_COST_DEFAULT as f32 / ap.turn_ready_to_act() as f32;
+            let ratio = AP_IDLE_COST_DEFAULT as f32 / ap.turn_ready_to_act() as f32;
             hp.regen_ratio(ratio);
         }
     }

@@ -1,7 +1,7 @@
 use crate::components::*;
 use bevy::reflect::TypeUuid;
 use bevy_inventory_ui::EquipmentDisplay;
-use bevy_roguelike_combat::{stats_derived::*, *};
+use bevy_roguelike_combat::*;
 use serde::{Deserialize, Serialize};
 
 #[derive(Serialize, Deserialize, TypeUuid)]
