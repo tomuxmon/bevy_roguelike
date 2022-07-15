@@ -11,6 +11,7 @@ Weapon((
    end: 17,
   ),
   amount_multiplier: (
+   scale: 100,
    multipliers: [
     (multiplier:50,attribute:Inteligence),
     (multiplier:40,attribute:Willpower),
@@ -19,6 +20,7 @@ Weapon((
   hit_cost: (
    cost: 140,
    multiplier_inverted: (
+    scale: 100,
     multipliers: [
         (multiplier:50,attribute:Inteligence),
         (multiplier:40,attribute:Willpower),
@@ -28,6 +30,7 @@ Weapon((
   hit_chance: (
    amount: 96,
    multiplier: (
+    scale: 100,
     multipliers: [(multiplier:128,attribute:Willpower)],
    ),
   ),

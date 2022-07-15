@@ -7,9 +7,9 @@ Ring((
  defense: (
   protection: Some((
    amounts: [
-    (kind:Fire,amount_multiplier:None,amount:3),
-    (kind:Lightning,amount_multiplier:None,amount:3),
-    (kind:Cold,amount_multiplier:None,amount:3),
+    (kind:Fire,amount_multiplier:(scale:100,multipliers:[]),amount:3),
+    (kind:Lightning,amount_multiplier:(scale:100,multipliers:[]),amount:3),
+    (kind:Cold,amount_multiplier:(scale:100,multipliers:[]),amount:3),
    ],
   )),
   resistance: Some((

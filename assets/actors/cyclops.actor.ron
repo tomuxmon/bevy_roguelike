@@ -18,17 +18,17 @@
   amounts: [
    (
     kind: Blunt,
-    amount_multiplier: Some((multipliers:[(multiplier:100,attribute:Toughness)])),
+    amount_multiplier: (scale:100,multipliers:[(multiplier:100,attribute:Toughness)]),
     amount: 2,
    ),
    (
     kind: Pierce,
-    amount_multiplier: Some((multipliers:[(multiplier:100,attribute:Toughness)])),
+    amount_multiplier: (scale:100,multipliers:[(multiplier:100,attribute:Toughness)]),
     amount: 2,
    ),
    (
     kind: Slash,
-    amount_multiplier: Some((multipliers:[(multiplier:100,attribute:Toughness)])),
+    amount_multiplier: (scale:100,multipliers:[(multiplier:100,attribute:Toughness)]),
     amount: 2,
    ),
   ],
@@ -53,12 +53,14 @@
   cost: (
    cost: 64,
    multiplier_inverted: (
+    scale: 100,
     multipliers: [(multiplier:70,attribute:Dexterity)],
    ),
   ),
   chance: (
    amount: 18,
    multiplier: (
+    scale: 100,
     multipliers: [(multiplier:90,attribute:Dexterity)],
    ),
   ),
@@ -68,9 +70,9 @@
    (
     kind: Blunt,
     amount: (start:12,end:14),
-    amount_multiplier: (multipliers:[(multiplier:80,attribute:Strength)]),
-    hit_cost: (cost:128,multiplier_inverted:(multipliers:[(multiplier:80,attribute:Dexterity)])),
-    hit_chance: (amount:128,multiplier:(multipliers:[(multiplier:128,attribute:Dexterity)])),
+    amount_multiplier: (scale:100,multipliers:[(multiplier:80,attribute:Strength)]),
+    hit_cost: (cost:128,multiplier_inverted:(scale:100,multipliers:[(multiplier:80,attribute:Dexterity)])),
+    hit_chance: (amount:128,multiplier:(scale:100,multipliers:[(multiplier:128,attribute:Dexterity)])),
    ),
   ],
  ),

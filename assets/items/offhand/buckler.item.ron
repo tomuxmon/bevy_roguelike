@@ -8,17 +8,17 @@ Shield((
   amounts: [
    (
     kind: Blunt,
-    amount_multiplier: None,
+    amount_multiplier: (scale:100,multipliers:[]),
     amount: 2,
    ),
    (
     kind: Pierce,
-    amount_multiplier: None,
+    amount_multiplier: (scale:100,multipliers:[]),
     amount: 2,
    ),
    (
     kind: Slash,
-    amount_multiplier: None,
+    amount_multiplier: (scale:100,multipliers:[]),
     amount: 2,
    ),
   ],
@@ -32,12 +32,14 @@ Shield((
   cost: (
    cost: 45,
    multiplier_inverted: (
+    scale: 100,
     multipliers: [(multiplier:128,attribute:Dexterity)],
    ),
   ),
   chance: (
    amount: 50,
    multiplier: (
+    scale: 100,
     multipliers: [(multiplier:100,attribute:Dexterity)],
    ),
   ),
