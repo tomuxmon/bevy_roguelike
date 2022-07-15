@@ -34,6 +34,8 @@ You can also run and debug it inside VS Code with breakpoints and all the goodne
 - `hover` over an item in the inventory / equipment to display a hover tip
 - `mouse click` an item to equip / unequip it
 
+## implementation details
+
 This project was developed with an effort to separate distinct concerns into crates as much as possible. Same as bevy engine does it. There are 3 noteworthy crates usable independantly:
 
 - [bevy_inventory](bevy_inventory/)
@@ -42,7 +44,7 @@ This project was developed with an effort to separate distinct concerns into cra
 
 Separate crates are discussed below.
 
-## bevy inventory
+### bevy inventory
 
 This crate contains basic implementation of the inventory and equipment containers. Items are Bevy's [Entities](https://docs.rs/bevy/latest/bevy/prelude/struct.Entity.html). Both inventory and equipment implement utility methods to `take` and `add` items. The only difference between inventory and equipment is that the equipment also has a generic type parameter to specify item type. Inventory and Equipment structures below.
 
@@ -84,7 +86,7 @@ impl ItemType for SomeItemType {}
 
 `bevy_inventory` is really minimal and it does not contain any bevy systems also there is no plugin for it. To use it just copy it into your workspace or just copy paste what you actually need. If you have some suggestions or know something better that I could use instead please mention it in the discussions.
 
-## bevy inventory ui
+### bevy inventory ui
 
 This crate contais the implementation of the InventoryDisplay and tooltips both in the world and the ui. To use it first you need to implement a custom ItemType as mentioned in the inventory section. Then implement `ItemTypeUiImage` for your custom item type:
 
@@ -137,19 +139,19 @@ After all that is in place your actors then must have inventory and equipment co
 
 Not really related to the inventory but still in the same crate there is a tooltip implementation. To enable tooltip you just need to fill in `UiTextInfo` for both world entities and UI nodes. It uses fixed z hack. Tooltips are placed at `10.` z.
 
-### UI afterthoughts
+#### UI afterthoughts
 
 All ot the UI was implemented using bevy ui library. It is not the most pleasant way to work with UI and the resulting code has a lot of boilerplate. Also looked at bevy_egui, for some reason it did not fit well with this project. Again if you know better alternatives (inventory ui or ui library) please give it a shout.
 
-## bevy roguelike combat
+### bevy roguelike combat
 
 // WIP
 
-## map generator
+### map generator
 
 This crate is a direct result of reading the [Hands-on Rust](https://pragprog.com/titles/hwrust/hands-on-rust/) book. Many thanks to Herbert Wolverson, author of the book! Since the underlying algorithms and structures are independant, there is no need to depend on bevy. The most interesting part of it is the drunkard map generator (`DrunkardGenerator`). the algorithm is so simple and the results are mostly satisfying. `ConwayLifeGenerator` also produces interesting results but it happens most of the time that unreachable regions are present in the map. no pathfinding algorithms were used so far and there is no way to validate the generated map. This crate is still in a TODO phase but was sufficient to test and develop bevy game systems. Yet again if you know better alternatives please give it a shout.
 
-## vec walk dir
+### vec walk dir
 
 They say you can not [load asset folder on the web](https://github.com/bevyengine/bevy/issues/2916). Yes it is true. But yet again, we know asset folder structure at compile time. A dirty macro workaround to the rescue. It is not a good idea to rely on reading folder structure in a macro. But I wanted to write my first macro.
 
@@ -163,7 +165,7 @@ They say you can not [load asset folder on the web](https://github.com/bevyengin
 }
 ```
 
-### Inspiration and learning sources
+#### Inspiration and learning sources
 
 - [The Little Book of Rust Macros](https://veykril.github.io/tlborm/introduction.html)
 - [Procedural Macros tutorial series](https://blog.turbo.fish/proc-macro-basics/)
