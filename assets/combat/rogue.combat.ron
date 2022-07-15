@@ -1,0 +1,25 @@
+(
+    ap_increment_formula: (
+        scale:6144,
+        multipliers:[
+            (multiplier:80,attribute:Dexterity),
+            (multiplier:20,attribute:Willpower),
+            ]
+        ),
+    hp_full_formula: (
+        scale:7168,
+        multipliers:[
+            (multiplier:70,attribute:Toughness),
+            (multiplier:20,attribute:Strength),
+            (multiplier:10,attribute:Willpower),
+            ]
+        ),
+    hp_regen_increment_formula: (
+        scale:1024,
+        multipliers:[
+            (multiplier:80,attribute:Toughness),
+            (multiplier:10,attribute:Strength),
+            (multiplier:10,attribute:Willpower),
+            ]
+        ),
+)

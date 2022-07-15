@@ -90,6 +90,7 @@ impl<T: StateNext> Plugin for RoguelikePlugin<T> {
             .add_plugin(RonAssetPlugin::<InventoryTheme>::new(&[
                 "inventorytheme.ron",
             ]))
+            .add_plugin(RonAssetPlugin::<CombatSettings>::new(&["combat.ron"]))
             .insert_resource(AssetsLoading::default())
             .add_startup_system(Self::rogue_setup)
             .add_startup_system(setup_camera)
@@ -232,6 +233,7 @@ impl<T: StateNext> RoguelikePlugin<T> {
         map_themes: Res<Assets<MapTheme>>,
         item_templates: Res<Assets<ItemTemplate>>,
         inventory_themes: Res<Assets<InventoryTheme>>,
+        combat_settings: Res<Assets<CombatSettings>>,
         actor_templates: Res<Assets<ActorTemplate>>,
         mut cameras: Query<&mut Transform, With<Camera2d>>,
     ) {
@@ -340,6 +342,10 @@ impl<T: StateNext> RoguelikePlugin<T> {
             })
             .id();
 
+        let combat_settings: Vec<_> = combat_settings.iter().map(|(_, it)| it).collect();
+        bevy::log::info!("combat settings count: {}", combat_settings.len());
+        let combat_settings = combat_settings[0];
+
         if let Some(player_template) = actor_templates.get("actors/human.actor.ron") {
             let team_player = 1;
             cmd.spawn()
@@ -347,6 +353,7 @@ impl<T: StateNext> RoguelikePlugin<T> {
                 .insert_bundle(Actor::new(
                     asset_server.clone(),
                     player_template,
+                    combat_settings,
                     team_player,
                     info.player_start,
                 ));
@@ -369,6 +376,7 @@ impl<T: StateNext> RoguelikePlugin<T> {
                         .insert_bundle(Actor::new(
                             asset_server.clone(),
                             monster_template,
+                            combat_settings,
                             team_monster,
                             mpt,
                         ));

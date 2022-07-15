@@ -1,6 +1,6 @@
 #![allow(clippy::forget_non_drop)] // https://github.com/bevyengine/bevy/issues/4601
 use super::*;
-use crate::resources::ActorTemplate;
+use crate::resources::{ActorTemplate, CombatSettings};
 use bevy::{prelude::*, reflect::FromReflect, utils::HashMap};
 use bevy_inventory::{Equipment, Inventory, ItemType};
 use bevy_inventory_ui::EquipmentDisplay;
@@ -87,67 +87,22 @@ impl Actor {
     pub fn new(
         asset_server: AssetServer,
         template: &ActorTemplate,
+        combat_settings: &CombatSettings,
         team: u32,
         position: IVec2,
     ) -> Self {
-        // TODO: ron asset for those formulas;
-        let ap_increment_formula = LinearFormula::<RogueAttributeType>::new(
-            6144,
-            vec![
-                Multiplier::<RogueAttributeType> {
-                    multiplier: 80,
-                    attribute: RogueAttributeType::Dexterity,
-                },
-                Multiplier::<RogueAttributeType> {
-                    multiplier: 20,
-                    attribute: RogueAttributeType::Willpower,
-                },
-            ],
-        );
-        let hp_full_formula = LinearFormula::<RogueAttributeType>::new(
-            7168,
-            vec![
-                Multiplier::<RogueAttributeType> {
-                    multiplier: 70,
-                    attribute: RogueAttributeType::Toughness,
-                },
-                Multiplier::<RogueAttributeType> {
-                    multiplier: 20,
-                    attribute: RogueAttributeType::Strength,
-                },
-                Multiplier::<RogueAttributeType> {
-                    multiplier: 10,
-                    attribute: RogueAttributeType::Willpower,
-                },
-            ],
-        );
-        let hp_regen_increment_formula = LinearFormula::<RogueAttributeType>::new(
-            1024,
-            vec![
-                Multiplier::<RogueAttributeType> {
-                    multiplier: 80,
-                    attribute: RogueAttributeType::Toughness,
-                },
-                Multiplier::<RogueAttributeType> {
-                    multiplier: 10,
-                    attribute: RogueAttributeType::Strength,
-                },
-                Multiplier::<RogueAttributeType> {
-                    multiplier: 10,
-                    attribute: RogueAttributeType::Willpower,
-                },
-            ],
-        );
-
         Self {
             name: Name::new(template.render.name.clone()),
             team: Team::new(team),
             state: TurnState::default(),
             attributes: template.attributes.clone(),
-            ap: ActionPoints::<RogueAttributeType>::new(ap_increment_formula, &template.attributes),
+            ap: ActionPoints::<RogueAttributeType>::new(
+                combat_settings.ap_increment_formula.clone(),
+                &template.attributes,
+            ),
             hp: HitPoints::<RogueAttributeType>::new(
-                hp_full_formula,
-                hp_regen_increment_formula,
+                combat_settings.hp_full_formula.clone(),
+                combat_settings.hp_regen_increment_formula.clone(),
                 &template.attributes,
             ),
             fov: FieldOfView::new(&template.attributes),
