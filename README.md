@@ -32,6 +32,14 @@ You can also run and debug it inside VS Code with breakpoints and all the goodne
 - `hover` over an item in the inventory / equipment to display a hover tip
 - `mouse click` an item to equip / unequip it
 
+This project was developed with an effort to separate distinct concerns into crates as much as possible. Same as bevy engine does it. There are 3 notworthy crates usable independantly:
+
+- [bevy_inventory](bevy_inventory/)
+- [bevy_inventory_ui](bevy_inventory_ui/)
+- [bevy_roguelike_combat](bevy_roguelike_combat/)
+
+Each separate crate is discussed below.
+
 ## bevy inventory
 
 This crate contains basic implementation of the inventory and equipment containers. Items are Bevy's [Entities](https://docs.rs/bevy/latest/bevy/prelude/struct.Entity.html). Both inventory and equipment implement utility methods to `take` and `add` items. The only difference between inventory and equipment is that the equipment also has a generic type parameter to specify item type. Inventory and Equipment structures below.
