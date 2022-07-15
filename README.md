@@ -21,6 +21,8 @@ You can also run and debug it inside VS Code with breakpoints and all the goodne
 ### Controlls
 
 - `up` / `down` / `left` / `right` keys for movement and attack
+- `space` skip turn
+- `Z` skip turns continuously and heal
 - `,` to pick up item
 - `I` to open / close inventory display
 - `D` to drop item (last item from inventory or else equipment)
@@ -32,13 +34,13 @@ You can also run and debug it inside VS Code with breakpoints and all the goodne
 - `hover` over an item in the inventory / equipment to display a hover tip
 - `mouse click` an item to equip / unequip it
 
-This project was developed with an effort to separate distinct concerns into crates as much as possible. Same as bevy engine does it. There are 3 notworthy crates usable independantly:
+This project was developed with an effort to separate distinct concerns into crates as much as possible. Same as bevy engine does it. There are 3 noteworthy crates usable independantly:
 
 - [bevy_inventory](bevy_inventory/)
 - [bevy_inventory_ui](bevy_inventory_ui/)
 - [bevy_roguelike_combat](bevy_roguelike_combat/)
 
-Each separate crate is discussed below.
+Separate crates are discussed below.
 
 ## bevy inventory
 
