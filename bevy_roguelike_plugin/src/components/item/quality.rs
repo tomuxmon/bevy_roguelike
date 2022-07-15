@@ -100,6 +100,23 @@ impl MutableQuality for u8 {
         }
     }
 }
+impl MutableQuality for u16 {
+    fn mutate_extended(&self, is_direct: bool, quality: &Quality, rng: &mut StdRng) -> Self {
+        let Range { start, end } = if is_direct {
+            quality.get_multiplier()
+        } else {
+            quality.get_multiplier_inverse()
+        };
+        let t_start = (*self as f32 * start as f32 / 100.) as u16;
+        let t_end = (*self as f32 * end as f32 / 100.) as u16;
+        let range = t_start..t_end;
+        if range.is_empty() {
+            range.start
+        } else {
+            rng.gen_range(range)
+        }
+    }
+}
 impl MutableQuality for i16 {
     fn mutate_extended(&self, is_direct: bool, quality: &Quality, rng: &mut StdRng) -> Self {
         let Range { start, end } = if is_direct {
@@ -163,6 +180,7 @@ impl MutableQuality for Multiplier<RogueAttributeType> {
 impl MutableQuality for LinearFormula<RogueAttributeType> {
     fn mutate_extended(&self, inverted: bool, quality: &Quality, rng: &mut StdRng) -> Self {
         Self {
+            scale: self.scale.mutate_extended(inverted, quality, rng),
             multipliers: Vec::from_iter(
                 self.multipliers
                     .iter()

@@ -23,14 +23,14 @@ impl<A: AttributeType> ActionPoints<A> {
     pub fn new(increment_formula: LinearFormula<A>, atr: &Attributes<A>) -> Self {
         Self {
             turn_ready: AP_TURN_READY_DEFAULT,
-            increment: AP_INCREMENT_MIN + (increment_formula.compute(atr) * 64.) as i16,
+            increment: AP_INCREMENT_MIN + increment_formula.compute(atr) as i16,
             increment_formula,
             current: 0,
         }
     }
     pub fn update(&mut self, atr: &Attributes<A>) {
         self.turn_ready = AP_TURN_READY_DEFAULT;
-        self.increment = AP_INCREMENT_MIN + (self.increment_formula.compute(atr) * 64.) as i16;
+        self.increment = AP_INCREMENT_MIN + self.increment_formula.compute(atr) as i16;
     }
 
     pub fn turn_ready_to_act(&self) -> i16 {

@@ -45,28 +45,33 @@ impl<A: AttributeType> Multiplier<A> {
 )]
 #[reflect(Component)]
 pub struct LinearFormula<A: AttributeType> {
-    // TODO: include scale factor here
-    // pub scale: f32,
+    /// multiplier for the multipliers. 100 means it will be multiplied by 1.
+    pub scale: u16,
+    /// multipliers per attribute that will be summed up when computing.
     pub multipliers: Vec<Multiplier<A>>,
 }
 impl<A: AttributeType> LinearFormula<A> {
-    pub fn new(multipls: impl IntoIterator<Item = Multiplier<A>>) -> Self {
+    pub fn new(scale: u16, multipls: impl IntoIterator<Item = Multiplier<A>>) -> Self {
         Self {
+            scale,
             multipliers: Vec::from_iter(multipls),
         }
     }
     pub fn empty() -> Self {
         Self {
+            scale: 100,
             multipliers: Vec::new(),
         }
     }
     pub fn compute(&self, attributes: &Attributes<A>) -> f32 {
-        if self.multipliers.is_empty() {
-            return 1.;
-        }
-        self.multipliers
-            .iter()
-            .map(|m| m.compute(attributes))
-            .sum::<f32>()
+        (self.scale as f32 / 100.)
+            * if self.multipliers.is_empty() {
+                1.
+            } else {
+                self.multipliers
+                    .iter()
+                    .map(|m| m.compute(attributes))
+                    .sum::<f32>()
+            }
     }
 }

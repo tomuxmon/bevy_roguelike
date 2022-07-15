@@ -30,26 +30,25 @@ impl<A: AttributeType> HitPoints<A> {
         regen_increment_formula: LinearFormula<A>,
         atr: &Attributes<A>,
     ) -> Self {
-        let full = HP_FULL_MIN + (full_formula.compute(atr) * 20.) as i16;
+        let full = HP_FULL_MIN + full_formula.compute(atr) as i16;
         Self {
             is_alive: true,
             full,
             current: full,
             regen_ready: HP_REGEN_READY_DEFAULT,
             regen_current: 0,
-            regen_increment: HP_REGEN_INCREMENT_MIN
-                + (regen_increment_formula.compute(atr) * 16.) as i16,
+            regen_increment: HP_REGEN_INCREMENT_MIN + regen_increment_formula.compute(atr) as i16,
             full_formula,
             regen_increment_formula,
         }
     }
     pub fn update(&mut self, atr: &Attributes<A>) {
         let current_ratio = self.current as f32 / self.full as f32;
-        self.full = HP_FULL_MIN + (self.full_formula.compute(atr) * 20.) as i16;
+        self.full = HP_FULL_MIN + self.full_formula.compute(atr) as i16;
         self.current = (current_ratio * self.full as f32) as i16;
         self.regen_ready = HP_REGEN_READY_DEFAULT;
         self.regen_increment =
-            HP_REGEN_INCREMENT_MIN + (self.regen_increment_formula.compute(atr) * 16.) as i16;
+            HP_REGEN_INCREMENT_MIN + self.regen_increment_formula.compute(atr) as i16;
     }
 
     pub fn apply(&mut self, amount: i16) -> i16 {

@@ -91,44 +91,53 @@ impl Actor {
         position: IVec2,
     ) -> Self {
         // TODO: ron asset for those formulas;
-        let ap_increment_formula = LinearFormula::<RogueAttributeType>::new(vec![
-            Multiplier::<RogueAttributeType> {
-                multiplier: 70,
-                attribute: RogueAttributeType::Dexterity,
-            },
-            Multiplier::<RogueAttributeType> {
-                multiplier: 30,
-                attribute: RogueAttributeType::Willpower,
-            },
-        ]);
-        let hp_full_formula = LinearFormula::<RogueAttributeType>::new(vec![
-            Multiplier::<RogueAttributeType> {
-                multiplier: 70,
-                attribute: RogueAttributeType::Toughness,
-            },
-            Multiplier::<RogueAttributeType> {
-                multiplier: 20,
-                attribute: RogueAttributeType::Strength,
-            },
-            Multiplier::<RogueAttributeType> {
-                multiplier: 10,
-                attribute: RogueAttributeType::Willpower,
-            },
-        ]);
-        let hp_regen_increment_formula = LinearFormula::<RogueAttributeType>::new(vec![
-            Multiplier::<RogueAttributeType> {
-                multiplier: 80,
-                attribute: RogueAttributeType::Toughness,
-            },
-            Multiplier::<RogueAttributeType> {
-                multiplier: 10,
-                attribute: RogueAttributeType::Strength,
-            },
-            Multiplier::<RogueAttributeType> {
-                multiplier: 10,
-                attribute: RogueAttributeType::Willpower,
-            },
-        ]);
+        let ap_increment_formula = LinearFormula::<RogueAttributeType>::new(
+            6400,
+            vec![
+                Multiplier::<RogueAttributeType> {
+                    multiplier: 70,
+                    attribute: RogueAttributeType::Dexterity,
+                },
+                Multiplier::<RogueAttributeType> {
+                    multiplier: 30,
+                    attribute: RogueAttributeType::Willpower,
+                },
+            ],
+        );
+        let hp_full_formula = LinearFormula::<RogueAttributeType>::new(
+            2000,
+            vec![
+                Multiplier::<RogueAttributeType> {
+                    multiplier: 70,
+                    attribute: RogueAttributeType::Toughness,
+                },
+                Multiplier::<RogueAttributeType> {
+                    multiplier: 20,
+                    attribute: RogueAttributeType::Strength,
+                },
+                Multiplier::<RogueAttributeType> {
+                    multiplier: 10,
+                    attribute: RogueAttributeType::Willpower,
+                },
+            ],
+        );
+        let hp_regen_increment_formula = LinearFormula::<RogueAttributeType>::new(
+            1600,
+            vec![
+                Multiplier::<RogueAttributeType> {
+                    multiplier: 80,
+                    attribute: RogueAttributeType::Toughness,
+                },
+                Multiplier::<RogueAttributeType> {
+                    multiplier: 10,
+                    attribute: RogueAttributeType::Strength,
+                },
+                Multiplier::<RogueAttributeType> {
+                    multiplier: 10,
+                    attribute: RogueAttributeType::Willpower,
+                },
+            ],
+        );
 
         Self {
             name: Name::new(template.render.name.clone()),
