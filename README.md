@@ -286,13 +286,9 @@ This crate is decoupled from other crates like inventory. That means that you wi
 
 - Fill `StatsComputed` in your code in order for combat system to work (example system [stats_recompute](bevy_roguelike_plugin/src/systems/actor_stats.rs)).
 - Handle `ActionCompletedEvent` events (example system [action_completed](bevy_roguelike_plugin/src/systems/turns.rs)).
-- Handle `DeathEvent` events (example system [death_read](bevy_roguelike_plugin/src/systems/turns.rs)).
+- Handle `DeathEvent` events (example system [death_read](bevy_roguelike_plugin/src/systems/action.rs)).
 
 For formulas I could probably create a parser with [Nom](https://github.com/Geal/nom) or just use expressions from something like [rhai](https://crates.io/crates/rhai). But maybe later™. For now it sattisfies the needs of the main game plugin. Any suyggestions are welcome.
-
-### bevy roguelike plugin
-
-// WIP
 
 ### map generator
 
@@ -316,6 +312,12 @@ They say you can not [load asset folder on the web](https://github.com/bevyengin
 
 - [The Little Book of Rust Macros](https://veykril.github.io/tlborm/introduction.html)
 - [Procedural Macros tutorial series](https://blog.turbo.fish/proc-macro-basics/)
+
+### bevy roguelike plugin
+
+This crate is a spahgeti soup of code that uses the rest of the crates and defines things like [item templates](bevy_roguelike_plugin/src/resources/item_template.rs), [actor templates](bevy_roguelike_plugin/src/resources/actor_template.rs), [field of view](bevy_roguelike_plugin/src/systems/fov.rs), [turns](bevy_roguelike_plugin/src/systems/turns.rs).
+
+The biggest influence on this project was from [Hands-on Rust](https://pragprog.com/titles/hwrust/hands-on-rust/) book and [Bevy Minesweeper](https://dev.to/qongzi/bevy-minesweeper-introduction-4l7f) tutorial series. Go ahead and check them out! Have fun exploring 🦊.
 
 ## License
 
