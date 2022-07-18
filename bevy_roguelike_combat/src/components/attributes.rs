@@ -9,11 +9,9 @@ use strum::IntoEnumIterator;
 
 pub trait AttributeType:
     Component
-    + Copy
     + Clone
     + Eq
     + Hash
-    + Debug
     + Display
     + Default
     + Reflect
@@ -29,8 +27,8 @@ pub struct Attributes<A: AttributeType> {
     pub list: HashMap<A, u8>,
 }
 impl<A: AttributeType> Attributes<A> {
-    pub fn get(&self, attribute_type: A) -> u8 {
-        *self.list.get(&attribute_type).unwrap_or(&0)
+    pub fn get(&self, attribute_type: &A) -> u8 {
+        *self.list.get(attribute_type).unwrap_or(&0)
     }
     pub fn with_all(value: u8) -> Self {
         Self {
@@ -49,7 +47,7 @@ impl<A: AttributeType> Add for Attributes<A> {
 
     fn add(self, rhs: Self) -> Self::Output {
         Self {
-            list: HashMap::from_iter(self.list.into_iter().map(|(t, v)| (t, v + rhs.get(t)))),
+            list: HashMap::from_iter(self.list.iter().map(|(t, v)| (t.clone(), *v + rhs.get(t)))),
         }
     }
 }
@@ -65,7 +63,7 @@ impl<A: AttributeType> Display for Attributes<A> {
             "{}",
             self.list
                 .iter()
-                .map(|(&attribute_type, &amount)| format!("{} +{}", attribute_type, amount))
+                .map(|(attribute_type, &amount)| format!("{} +{}", attribute_type, amount))
                 .fold("".to_string(), |acc, x| format!("{}, {}", x, acc))
         )
     }

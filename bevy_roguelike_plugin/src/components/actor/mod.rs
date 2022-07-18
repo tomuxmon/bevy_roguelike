@@ -66,21 +66,14 @@ pub struct Actor {
     name: Name,
     team: Team,
     state: TurnState,
-    attributes: Attributes<RogueAttributeType>,
-    ap: ActionPoints<RogueAttributeType>,
-    hp: HitPoints<RogueAttributeType>,
-    protection: Protection<RogueDamageKind, RogueAttributeType>,
-    resistance: Resistance<RogueDamageKind>,
-    evasion: Evasion<RogueAttributeType>,
-    damage: DamageList<RogueDamageKind, RogueAttributeType>,
+    #[bundle]
+    combat: Combat<RogueDamageKind, RogueAttributeType>,
     fov: FieldOfView,
     position: Vector2D,
     render_info: RenderInfo,
     equipment_display: EquipmentDisplay<RogueItemType>,
     equipment: Equipment<RogueItemType>,
     inventory: Inventory,
-    stats_computed: StatsComputed<RogueDamageKind, RogueAttributeType>,
-    stats_computed_dirty: StatsComputedDirty,
 }
 impl Actor {
     /// Creates a new [`Actor`] using specified [`ActorTemplate`].
@@ -95,21 +88,17 @@ impl Actor {
             name: Name::new(template.render.name.clone()),
             team: Team::new(team),
             state: TurnState::default(),
-            attributes: template.attributes.clone(),
-            ap: ActionPoints::<RogueAttributeType>::new(
-                combat_settings.ap_increment_formula.clone(),
+            combat: Combat::new(
                 &template.attributes,
-            ),
-            hp: HitPoints::<RogueAttributeType>::new(
+                combat_settings.ap_increment_formula.clone(),
                 combat_settings.hp_full_formula.clone(),
                 combat_settings.hp_regen_increment_formula.clone(),
-                &template.attributes,
+                template.damage.clone(),
+                template.protection.clone(),
+                template.evasion.clone(),
+                template.resistance.clone(),
             ),
             fov: FieldOfView::new(&template.attributes),
-            damage: template.damage.clone(),
-            protection: template.protection.clone(),
-            evasion: template.evasion.clone(),
-            resistance: template.resistance.clone(),
             inventory: Inventory::with_capacity(template.inventory_capacity),
             equipment_display: template.equipment_display.clone(),
             equipment: from_display(&template.equipment_display),
@@ -124,8 +113,6 @@ impl Actor {
                     .collect(),
                 z: 2.,
             },
-            stats_computed_dirty: StatsComputedDirty {},
-            stats_computed: StatsComputed::default(),
         }
     }
 }

@@ -26,7 +26,7 @@ pub struct Multiplier<A: AttributeType> {
 }
 impl<A: AttributeType> Multiplier<A> {
     pub fn compute(&self, attributes: &Attributes<A>) -> f32 {
-        attributes.get(self.attribute) as f32 * self.multiplier as f32 / 1000.
+        attributes.get(&self.attribute) as f32 * self.multiplier as f32 / 1000.
     }
 }
 

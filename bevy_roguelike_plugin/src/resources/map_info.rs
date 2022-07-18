@@ -53,7 +53,7 @@ impl MapInfo {
     }
 
     pub fn to_colorized_string(&self) -> String {
-        format!(" player star: {}", self.player_start)
+        format!("player star: {}", self.player_start)
     }
 }
 

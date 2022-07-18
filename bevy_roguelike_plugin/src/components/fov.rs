@@ -27,8 +27,8 @@ impl FieldOfView {
     pub fn new(atr: &Attributes<RogueAttributeType>) -> Self {
         Self {
             radius: FieldOfView::MIN_RADIUS
-                + (atr.get(RogueAttributeType::Perception) as f32 / 3.
-                    + atr.get(RogueAttributeType::Inteligence) as f32 / 10.)
+                + (atr.get(&RogueAttributeType::Perception) as f32 / 3.
+                    + atr.get(&RogueAttributeType::Inteligence) as f32 / 10.)
                     as i32,
             tiles_visible: HashSet::default(),
             tiles_revealed: HashSet::default(),
@@ -37,8 +37,8 @@ impl FieldOfView {
     }
     pub fn update(&mut self, atr: &Attributes<RogueAttributeType>) {
         self.radius = FieldOfView::MIN_RADIUS
-            + (atr.get(RogueAttributeType::Perception) as f32 / 3.
-                + atr.get(RogueAttributeType::Inteligence) as f32 / 10.) as i32;
+            + (atr.get(&RogueAttributeType::Perception) as f32 / 3.
+                + atr.get(&RogueAttributeType::Inteligence) as f32 / 10.) as i32;
         self.is_dirty = true;
     }
 }

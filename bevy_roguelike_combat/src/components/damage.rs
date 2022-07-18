@@ -9,17 +9,7 @@ use std::{fmt::Debug, fmt::Display, hash::Hash, ops::Range};
 
 /// Type of damage that can be inflicted by actors of the environment.
 pub trait DamageKind:
-    Component
-    + Copy
-    + Clone
-    + Eq
-    + Hash
-    + Debug
-    + Display
-    + Default
-    + Reflect
-    + FromReflect
-    + GetTypeRegistration
+    Component + Clone + Eq + Hash + Display + Default + Reflect + FromReflect + GetTypeRegistration
 {
 }
 
