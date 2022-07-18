@@ -1,6 +1,6 @@
 # bevy roguelike
 
-Meet my new baby. It lives [here](https://tomuxmon.github.io/bevy_roguelike/). A turn based system where each actor has combat capabilities influenced by equiped items. I had a burning desire to learn [Rust](https://www.rust-lang.org/). It appears I also like creating games. Wonderful [Bevy](https://bevyengine.org/) engine was used. Bevy uses only 4 letters to define itself, and so it is concise, and so is Rust. Also humans tend to forget what is in the middle of the text. No one will remember this sentence. Jokes aside It felt really natural to define data structures and write systems that manipulate those data structures. This is my first Rust project so bugs are possible as much as Rust and Bevy allows it. Preview of the running system below.
+Meet my new baby. It lives [here](https://tomuxmon.github.io/bevy_roguelike/). A turn-based system where each actor has combat capabilities influenced by equipped items. I had a burning desire to learn [Rust](https://www.rust-lang.org/). It appears I also like creating games. Wonderful [Bevy](https://bevyengine.org/) engine was used. Bevy uses only 4 letters to define itself, and so it is concise, and so is Rust. Also, humans tend to forget what is in the middle of the text. No one will remember this sentence. Jokes aside It felt really natural to define data structures and write systems that manipulate those data structures. This is my first Rust project so bugs are possible as much as Rust and Bevy allow it. Preview of the running system below.
 
 ![a scene from a running game](example.png)
 
@@ -16,18 +16,18 @@ If you would like to try it in the browser (inspiration from [bevy_game_template
 
 Check out the [live version here](https://tomuxmon.github.io/bevy_roguelike/).
 
-You can also run and debug it inside VS Code with breakpoints and all the goodness. [launch.json](.vscode/launch.json) together with a couple of extensions allows that. Personally I just use [rust-extension-pack](https://marketplace.visualstudio.com/items?itemName=Zerotaskx.rust-extension-pack).
+You can also run and debug it inside VS Code with breakpoints and all the goodness. [launch.json](.vscode/launch.json) together with a couple of extensions allows that. Personally, I just use [rust-extension-pack](https://marketplace.visualstudio.com/items?itemName=Zerotaskx.rust-extension-pack).
 
-### Controlls
+### Controls
 
 - `up` / `down` / `left` / `right` keys for movement and attack
 - `space` skip turn
 - `Z` skip turns continuously and heal
-- `,` to pick up item
+- `,` to pick up as item
 - `I` to open / close inventory display
-- `D` to drop item (last item from inventory or else equipment)
+- `D` to drop an item (last item from inventory or else equipment)
 
-### Inventiory management
+### Inventory management
 
 ![inventory image](inventory.png)
 
@@ -36,7 +36,7 @@ You can also run and debug it inside VS Code with breakpoints and all the goodne
 
 ## implementation details
 
-This project was developed with an effort to separate distinct concerns into crates as much as possible. Same as bevy engine does it. There are 3 noteworthy crates usable independantly:
+This project was developed with an effort to separate distinct concerns into crates as much as possible. Same as the Bevy engine does it. There are 3 noteworthy crates usable independently:
 
 - [bevy_inventory](bevy_inventory/)
 - [bevy_inventory_ui](bevy_inventory_ui/)
@@ -46,7 +46,7 @@ Separate crates are discussed below.
 
 ### bevy inventory
 
-This crate contains basic implementation of the inventory and equipment containers. Items are Bevy's [Entities](https://docs.rs/bevy/latest/bevy/prelude/struct.Entity.html). Both inventory and equipment implement utility methods to `take` and `add` items. The only difference between inventory and equipment is that the equipment also has a generic type parameter to specify item type. Inventory and Equipment structures below.
+This crate contains a basic implementation of the inventory and equipment containers. Items are Bevy's [Entities](https://docs.rs/bevy/latest/bevy/prelude/struct.Entity.html). Both inventory and equipment implement utility methods to `take` and `add` items. The only difference between inventory and equipment is that the equipment also has a generic type parameter to specify item type. Inventory and Equipment structures are below.
 
 ```rust
 //...
@@ -80,15 +80,15 @@ pub enum SomeItemType {
     LeftHandGear,
     BodyWear,
 }
-/// manaully implementing. no macro for that so far.
+/// manually implementing. no macro for that so far.
 impl ItemType for SomeItemType {}
 ```
 
-`bevy_inventory` is really minimal and it does not contain any bevy systems also there is no plugin for it. To use it just copy it into your workspace or just copy paste what you actually need. If you have some suggestions or know something better that I could use instead please mention it in the discussions.
+`bevy_inventory` is minimal and it does not contain any bevy systems, also there is no plugin for it. To use it just copy it into your workspace or just copy-paste what you need. If you have some suggestions or know something better that I could use instead please mention it in the discussions.
 
-### bevy inventory ui
+### bevy inventory UI
 
-This crate contais the implementation of the InventoryDisplay and tooltips both in the world and the ui. To use it first you need to implement a custom ItemType as mentioned in the inventory section. Then implement `ItemTypeUiImage` for your custom item type:
+This crate contains the implementation of the InventoryDisplay and tooltips both in the world and the UI. To use it first you need to implement a custom ItemType as mentioned in the inventory section. Then implement `ItemTypeUiImage` for your custom item type:
 
 ```rust
 use bevy_inventory_ui::ItemTypeUiImage;
@@ -134,18 +134,18 @@ Then you can add `InventoryUiPlugin`
 //...
 ```
 
-If you know how to eliminate `PhantomData` give it a shout. Here `state_running` is a State where most of the ui systems are running.
-After all that is in place your actors then must have inventory and equipment components in place: `EquipmentDisplay<SomeItemType>` to be able to diplay UI and `Equipment<SomeItemType>` with `Inventory` as underlying containers. to open or close inventory display you must send `InventoryDisplayToggleEvent` event. The result should be similar to what can be seen in the [inventiory management](#inventiory-management) section.
+If you know how to eliminate `PhantomData` give it a shout. Here `state_running` is a State where most of the UI systems are running.
+After all that is in place, your actors then must have inventory and equipment components in place: `EquipmentDisplay<SomeItemType>` to be able to display UI and `Equipment<SomeItemType>` with `Inventory` as underlying containers. To open or close the inventory display you must send `InventoryDisplayToggleEvent` event. The result should be similar to what can be seen in the [inventory management](#inventory-management) section.
 
-Not really related to the inventory but still in the same crate there is a tooltip implementation. To enable tooltip you just need to fill in `UiTextInfo` for both world entities and UI nodes. It uses fixed z hack. Tooltips are placed at `10.` z.
+Not really related to the inventory but still in the same crate there is a tooltip implementation. To enable the tooltip you just need to fill in `UiTextInfo` for both world entities and UI nodes. It uses a fixed z hack. Tooltips are placed at `10.` z.
 
 #### UI afterthoughts
 
-All ot the UI was implemented using bevy ui library. It is not the most pleasant way to work with UI and the resulting code has a lot of boilerplate. Also looked at bevy_egui, for some reason it did not fit well with this project. Again if you know better alternatives (inventory ui or ui library) please give it a shout.
+All of the UI was implemented using bevy UI library. It is not the most pleasant way to work with UI and the resulting code has a lot of boilerplate. Also looked at bevy_egui, for some reason it did not fit well with this project. Again if you know better alternatives (inventory UI or UI library) please give it a shout.
 
 ### bevy roguelike combat
 
-As name suggests this crate takes care of the brutal interaction between actors in your environment. To use Roguelike combat you need to implement 2 traits: `DamageKind` and `AttributeType`. in code it would look similar to example below.
+As the name suggests this crate takes care of the brutal interaction between actors in your environment. To use Roguelike combat you need to implement 2 traits: `DamageKind` and `AttributeType`. in code it would look similar to the example below.
 
 ```rust
 #![allow(dead_code)]
@@ -204,7 +204,7 @@ Dependency on [strum_macros](https://crates.io/crates/strum_macros) is needed so
 //...
 ```
 
-When plugin is loaded you also need to give your actors all the required components. Just use the `Combat` bundle.
+When the plugin is loaded you also need to give your actors all the required components. Just use the `Combat` bundle.
 
 ```rust
 
@@ -281,22 +281,22 @@ let combat = Combat::new(
 
 ```
 
-Wow that is a lot of characters to type in 😃. For breviety purposes most of the formulas are just placeholders always returning `1.`. In your own project you are probably better off using something like [bevy_asset_ron](https://github.com/IyesGames/bevy_asset_ron) and define your actor capabilities in your asset files. Check out [actor_template.rs](bevy_roguelike_plugin/src/resources/actor_template.rs) and [actor bundle](bevy_roguelike_plugin/src/components/actor/mod.rs) for example.
+Wow, that is a lot of characters to type in 😃. For brevity purposes, most of the formulas are just placeholders always returning `1.`. In your project, you are probably better off using something like [bevy_asset_ron](https://github.com/IyesGames/bevy_asset_ron) and defining your actor capabilities in your asset files. Check out [actor_template.rs](bevy_roguelike_plugin/src/resources/actor_template.rs) and [actor bundle](bevy_roguelike_plugin/src/components/actor/mod.rs) for example.
 This crate is decoupled from other crates like inventory. That means that you will have to manually take care of some stuff.
 
-- Fill `StatsComputed` in your code in order for combat system to work (example system [stats_recompute](bevy_roguelike_plugin/src/systems/actor_stats.rs)).
+- Fill `StatsComputed` in your code for the combat system to work (example system [stats_recompute](bevy_roguelike_plugin/src/systems/actor_stats.rs)).
 - Handle `ActionCompletedEvent` events (example system [action_completed](bevy_roguelike_plugin/src/systems/turns.rs)).
 - Handle `DeathEvent` events (example system [death_read](bevy_roguelike_plugin/src/systems/action.rs)).
 
-For formulas I could probably create a parser with [Nom](https://github.com/Geal/nom) or just use expressions from something like [rhai](https://crates.io/crates/rhai). But maybe later™. For now it sattisfies the needs of the main game plugin. Any suyggestions are welcome.
+For formulas, I could probably create a parser with [Nom](https://github.com/Geal/nom) or just use expressions from something like [rhai](https://crates.io/crates/rhai). But maybe later™. For now, it satisfies the needs of the main game plugin. Any suggestions are welcome.
 
 ### map generator
 
-This crate is a direct result of reading the [Hands-on Rust](https://pragprog.com/titles/hwrust/hands-on-rust/) book. Many thanks to Herbert Wolverson, author of the book! Since the underlying algorithms and structures are independant, there is no need to depend on bevy. The most interesting part of it is the drunkard map generator (`DrunkardGenerator`). the algorithm is so simple and the results are mostly satisfying. `ConwayLifeGenerator` also produces interesting results but it happens most of the time that unreachable regions are present in the map. no pathfinding algorithms were used so far and there is no way to validate the generated map. This crate is still in a TODO phase but was sufficient to test and develop bevy game systems. Yet again if you know better alternatives please give it a shout.
+This crate is a direct result of reading the [Hands-on Rust](https://pragprog.com/titles/hwrust/hands-on-rust/) book. Many thanks to Herbert Wolverson, author of the book! Since the underlying algorithms and structures are independent, there is no need to depend on bevy. The most interesting part of it is the drunkard map generator (`DrunkardGenerator`). the algorithm is so simple and the results are mostly satisfying. `ConwayLifeGenerator` also produces interesting results but it happens most of the time that unreachable regions are present on the map. no pathfinding algorithms were used so far and there is no way to validate the generated map. This crate is still in a TODO phase but was sufficient to test and develop Bevy game systems. Yet again if you know better alternatives please give it a shout.
 
 ### vec walk dir
 
-They say you can not [load asset folder on the web](https://github.com/bevyengine/bevy/issues/2916). Yes it is true. But yet again, we know asset folder structure at compile time. A dirty macro workaround to the rescue. It is not a good idea to rely on reading folder structure in a macro. But I wanted to write my first macro.
+They say you can not [load the asset folder on the web](https://github.com/bevyengine/bevy/issues/2916). Yes it is true. But yet again, we know asset folder structure at compile time. A dirty macro workaround to the rescue. It is not a good idea to rely on reading folder structure in a macro. But I wanted to write my first macro.
 
 ```rust
 #[cfg(target_arch = "wasm32")]
@@ -315,7 +315,7 @@ They say you can not [load asset folder on the web](https://github.com/bevyengin
 
 ### bevy roguelike plugin
 
-This crate is a spahgeti soup of code that uses the rest of the crates and defines things like [item templates](bevy_roguelike_plugin/src/resources/item_template.rs), [actor templates](bevy_roguelike_plugin/src/resources/actor_template.rs), [field of view](bevy_roguelike_plugin/src/systems/fov.rs), [turns](bevy_roguelike_plugin/src/systems/turns.rs).
+This crate is a spaghetti soup of code that uses the rest of the crates and defines things like [item templates](bevy_roguelike_plugin/src/resources/item_template.rs), [actor templates](bevy_roguelike_plugin/src/resources/actor_template.rs), [field of view](bevy_roguelike_plugin/src/systems/fov.rs), [turns](bevy_roguelike_plugin/src/systems/turns.rs).
 
 The biggest influence on this project was from [Hands-on Rust](https://pragprog.com/titles/hwrust/hands-on-rust/) book and [Bevy Minesweeper](https://dev.to/qongzi/bevy-minesweeper-introduction-4l7f) tutorial series. Go ahead and check them out! Have fun exploring 🦊.
 
@@ -328,4 +328,4 @@ Using the same license as bevy engine does.
 
 ## Credits
 
-None of this would be possible if not the [wonderful work done by others](credits/CREDITS.md). This is my first rust project so "would be possible" applies even more :).
+None of this would be possible if not for the [wonderful work done by others](credits/CREDITS.md). This is my first rust project so "would be possible" applies even more :).
