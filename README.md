@@ -1,6 +1,6 @@
 # bevy roguelike
 
-Meet my new baby. It lives [here](https://tomuxmon.github.io/bevy_roguelike/). A turn-based system where each actor has combat capabilities influenced by equipped items. I had a burning desire to learn [Rust](https://www.rust-lang.org/). It appears I also like creating games. Wonderful [Bevy](https://bevyengine.org/) engine was used. Bevy uses only 4 letters to define itself, and so it is concise, and so is Rust. Also, humans tend to forget what is in the middle of the text. No one will remember this sentence. Jokes aside It felt really natural to define data structures and write systems that manipulate those data structures. This is my first Rust project so bugs are possible as much as Rust and Bevy allow it. Preview of the running system below.
+Meet my new baby. It lives [here](https://tomuxmon.github.io/bevy_roguelike/). A turn-based system where each actor has combat capabilities influenced by equipped items. I had a burning desire to learn [Rust](https://www.rust-lang.org/). It appears I also like creating games. Wonderful [Bevy](https://bevyengine.org/) engine was used. Bevy uses only 4 letters to define itself, and so it is concise, and so is Rust. Also, humans tend to forget what is in the middle of the text. No one will remember this sentence. Jokes aside It felt natural to define data structures and write systems that manipulate those data structures. This is my first Rust project so bugs are possible as much as Rust and Bevy allow it. Preview of the running system below.
 
 ![a scene from a running game](example.png)
 
@@ -23,7 +23,7 @@ You can also run and debug it inside VS Code with breakpoints and all the goodne
 - `up` / `down` / `left` / `right` keys for movement and attack
 - `space` skip turn
 - `Z` skip turns continuously and heal
-- `,` to pick up as item
+- `,` to pick up an item
 - `I` to open / close inventory display
 - `D` to drop an item (last item from inventory or else equipment)
 
@@ -141,7 +141,7 @@ Not really related to the inventory but still in the same crate there is a toolt
 
 #### UI afterthoughts
 
-All of the UI was implemented using bevy UI library. It is not the most pleasant way to work with UI and the resulting code has a lot of boilerplate. Also looked at bevy_egui, for some reason it did not fit well with this project. Again if you know better alternatives (inventory UI or UI library) please give it a shout.
+All of the UI was implemented using the Bevy UI library. It is not the most pleasant way to work with UI and the resulting code has a lot of boilerplate. Also looked at bevy_egui, for some reason it did not fit well with this project. Again if you know better alternatives (inventory UI or UI library) please give it a shout.
 
 ### bevy roguelike combat
 
@@ -296,7 +296,7 @@ This crate is a direct result of reading the [Hands-on Rust](https://pragprog.co
 
 ### vec walk dir
 
-They say you can not [load the asset folder on the web](https://github.com/bevyengine/bevy/issues/2916). Yes it is true. But yet again, we know asset folder structure at compile time. A dirty macro workaround to the rescue. It is not a good idea to rely on reading folder structure in a macro. But I wanted to write my first macro.
+They say you can not [load the asset folder on the web](https://github.com/bevyengine/bevy/issues/2916). Yes, it is true. But yet again, we know asset folder structure at compile time. A dirty macro workaround to the rescue. It is not a good idea to rely on reading folder structure in a macro. But I wanted to write my first macro.
 
 ```rust
 #[cfg(target_arch = "wasm32")]
@@ -321,7 +321,7 @@ The biggest influence on this project was from [Hands-on Rust](https://pragprog.
 
 ## License
 
-Using the same license as bevy engine does.
+Using the same license as Bevy engine does.
 
 - MIT License ([LICENSE-MIT](LICENSE-MIT) or [http://opensource.org/licenses/MIT](http://opensource.org/licenses/MIT))
 - Apache License, Version 2.0 ([LICENSE-APACHE](LICENSE-APACHE) or [http://www.apache.org/licenses/LICENSE-2.0](http://www.apache.org/licenses/LICENSE-2.0))
