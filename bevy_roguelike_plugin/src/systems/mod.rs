@@ -1,3 +1,4 @@
+pub mod action;
 pub mod actor_stats;
 pub mod camera;
 pub mod fov;
