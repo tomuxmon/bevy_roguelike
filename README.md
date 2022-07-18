@@ -145,7 +145,7 @@ All ot the UI was implemented using bevy ui library. It is not the most pleasant
 
 ### bevy roguelike combat
 
-As name suggests this crate takes care of the brutal interaction between actors in your environment. To use Roguleke combat you need to implement 2 traits: `DamageKind` and `AttributeType`. in code it would look similar to example below.
+As name suggests this crate takes care of the brutal interaction between actors in your environment. To use Roguelike combat you need to implement 2 traits: `DamageKind` and `AttributeType`. in code it would look similar to example below.
 
 ```rust
 #![allow(dead_code)]
@@ -204,7 +204,7 @@ Dependency on [strum_macros](https://crates.io/crates/strum_macros) is needed so
 //...
 ```
 
-When plugin is loaded you also need to give your actors All the required components. Or just use `Combat` bundle.
+When plugin is loaded you also need to give your actors all the required components. Just use the `Combat` bundle.
 
 ```rust
 
