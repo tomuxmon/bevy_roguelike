@@ -28,6 +28,20 @@ pub fn attributes_update_hit_points<K: DamageKind, A: AttributeType>(
     }
 }
 
+pub fn spend_ap<A: AttributeType>(
+    mut actors: Query<&mut ActionPoints<A>>,
+    mut ap_reader: EventReader<SpendAPEvent>,
+    mut action_completed_writer: EventWriter<ActionCompletedEvent>,
+) {
+    for e in ap_reader.iter() {
+        if let Ok(mut ap) = actors.get_mut(e.id) {
+            if ap.current_minus(e.amount) < ap.turn_ready_to_act() {
+                action_completed_writer.send(ActionCompletedEvent { id: e.id });
+            }
+        }
+    }
+}
+
 pub fn idle_rest<A: AttributeType>(
     mut actors: Query<(&mut HitPoints<A>, &ActionPoints<A>)>,
     mut idle_reader: EventReader<IdleEvent>,

@@ -133,8 +133,8 @@ impl<T: StateNext> Plugin for RoguelikePlugin<T> {
                     .with_system(unrender_unequiped_items)
                     .with_system(render_hud_health_bar)
                     .with_system(act)
-                    .with_system(spend_ap.after(act))
-                    .with_system(try_move.after(act).after(spend_ap)),
+                    .with_system(action_completed)
+                    .with_system(try_move.after(act)),
             )
             .add_system_set_to_stage(
                 CoreStage::PostUpdate,
@@ -160,7 +160,6 @@ impl<T: StateNext> Plugin for RoguelikePlugin<T> {
             .register_type::<Quality>()
             .register_type::<HashSet<IVec2>>()
             .register_type::<Range<i32>>()
-            .add_event::<SpendAPEvent>()
             .add_event::<MoveEvent>()
             .add_event::<ActEvent>()
             .add_event::<CameraFocusEvent>();

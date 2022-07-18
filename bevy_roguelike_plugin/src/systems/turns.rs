@@ -99,21 +99,16 @@ pub fn death_read<I: ItemType>(
     }
 }
 
-// TODO: move to bevy_roguelike_turns
-pub fn spend_ap(
-    mut actors: Query<(
-        &mut ActionPoints<RogueAttributeType>,
-        &mut TurnState,
-        &mut HitPoints<RogueAttributeType>,
-    )>,
-    mut ap_reader: EventReader<SpendAPEvent>,
+
+
+pub fn action_completed(
+    mut actors: Query<(&mut TurnState, &mut HitPoints<RogueAttributeType>)>,
+    mut action_completed_reader: EventReader<ActionCompletedEvent>,
 ) {
-    for e in ap_reader.iter() {
-        if let Ok((mut ap, mut ts, mut hp)) = actors.get_mut(e.id) {
-            if ap.current_minus(e.amount) < ap.turn_ready_to_act() {
-                *ts = TurnState::End;
-                hp.regen();
-            }
+    for e in action_completed_reader.iter() {
+        if let Ok((mut ts, mut hp)) = actors.get_mut(e.id) {
+            *ts = TurnState::End;
+            hp.regen();
         }
     }
 }

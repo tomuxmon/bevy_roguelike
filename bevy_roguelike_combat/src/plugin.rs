@@ -18,7 +18,9 @@ impl<S: StateData, K: DamageKind, A: AttributeType> Plugin for RoguelikeCombatPl
         )
         .add_system_set_to_stage(
             CoreStage::Update,
-            SystemSet::on_update(self.state_running.clone()).with_system(attack::<K, A>),
+            SystemSet::on_update(self.state_running.clone())
+                .with_system(attack::<K, A>)
+                .with_system(spend_ap::<A>),
         )
         .add_system_set_to_stage(
             CoreStage::PostUpdate,
@@ -46,6 +48,8 @@ impl<S: StateData, K: DamageKind, A: AttributeType> Plugin for RoguelikeCombatPl
         .register_type::<StatsComputed<K, A>>()
         .register_type::<StatsComputedDirty>()
         .register_type::<K>()
+        .add_event::<SpendAPEvent>()
+        .add_event::<ActionCompletedEvent>()
         .add_event::<AttackEvent>()
         .add_event::<IdleEvent>()
         .add_event::<DeathEvent>()

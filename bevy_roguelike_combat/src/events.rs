@@ -12,6 +12,11 @@ pub struct SpendAPEvent {
     pub amount: i16,
 }
 
+#[derive(Debug, Copy, Clone)]
+pub struct ActionCompletedEvent {
+    pub id: Entity,
+}
+
 impl SpendAPEvent {
     pub fn new(id: Entity, amount: i16) -> Self {
         Self { id, amount }
