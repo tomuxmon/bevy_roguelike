@@ -57,7 +57,8 @@ impl<A: AttributeType> LinearFormula<A> {
             multipliers: Vec::from_iter(multipls),
         }
     }
-    pub fn empty() -> Self {
+    /// formula where compute result is 1.
+    pub fn one() -> Self {
         Self {
             scale: 100,
             multipliers: Vec::new(),
