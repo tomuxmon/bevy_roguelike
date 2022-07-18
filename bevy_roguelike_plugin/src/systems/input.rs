@@ -1,5 +1,8 @@
 use crate::{components::*, events::*};
-use bevy::{prelude::*, utils::HashMap};
+use bevy::{
+    prelude::*,
+    utils::{HashMap, HashSet},
+};
 use bevy_inventory::{Equipment, Inventory, ItemDropEvent, ItemPickUpEvent, ItemType};
 use line_drawing::WalkGrid;
 use map_generator::*;
@@ -49,17 +52,31 @@ pub fn input_player<I: ItemType>(
     }
 }
 
+#[allow(clippy::type_complexity)]
 pub fn input_fov_rand(
     mut rng: ResMut<StdRng>,
-    actors: Query<(Entity, &Vector2D, &Team, &TurnState, &FieldOfView), With<MovingFovRandom>>,
+    actors: Query<
+        (
+            Entity,
+            &Vector2D,
+            &Team,
+            &TurnState,
+            &FieldOfView,
+            &Inventory,
+        ),
+        With<MovingFovRandom>,
+    >,
+    items: Query<&Vector2D, With<RogueItemType>>,
     actors_all: Query<(&Vector2D, &Team)>,
     mut act_writer: EventWriter<ActEvent>,
+    mut pick_up_writer: EventWriter<ItemPickUpEvent>,
     map: Res<Map>,
 ) {
     let team_pt: HashMap<_, _> = actors_all.iter().map(|(p, t)| (**p, *t)).collect();
-    for (id, pt, team, _, fov) in actors
+    let item_pt: HashSet<_> = items.iter().map(|p| **p).collect();
+    for (id, pt, team, _, fov, inv) in actors
         .iter()
-        .filter(|(_, _, _, ts, _)| **ts == TurnState::Act)
+        .filter(|(_, _, _, ts, _, _)| **ts == TurnState::Act)
     {
         let deltas = vec![
             IVec2::new(0, 1),
@@ -87,9 +104,27 @@ pub fn input_fov_rand(
                 }
             }
         }
+        // NOTE: moving towards an item
+        let mut item_dest = false;
+        if pt_move_target.is_none() && !inv.is_full() {
+            distance_last = ((fov.radius + 1) * (fov.radius + 1)) as f32;
+            for pt_visible in fov.tiles_visible.iter() {
+                if let Some(pt) = item_pt.get(pt_visible) {
+                    let distance = pt_visible.as_vec2().distance_squared(pt.as_vec2());
+                    if distance < distance_last {
+                        item_dest = true;
+                        pt_move_target = Some(*pt_visible);
+                        distance_last = distance;
+                    }
+                }
+            }
+        }
 
         let mut delta = IVec2::new(0, 0);
         if let Some(tgt) = pt_move_target {
+            if item_dest && distance_last < 1.1 {
+                pick_up_writer.send(ItemPickUpEvent { picker: id });
+            }
             if let Some((x, y)) = WalkGrid::new((pt.x, pt.y), (tgt.x, tgt.y)).take(2).last() {
                 let dest = IVec2::new(x, y);
                 if map[dest] == Tile::Floor

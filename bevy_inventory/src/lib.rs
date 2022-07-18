@@ -135,6 +135,10 @@ impl Inventory {
         self.items.iter().filter_map(|i| *i)
     }
 
+    pub fn is_full(&self) -> bool {
+        self.items.iter().all(|i| i.is_some())
+    }
+
     pub fn len(&self) -> usize {
         self.items.len()
     }
