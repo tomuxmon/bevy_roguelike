@@ -145,6 +145,153 @@ All ot the UI was implemented using bevy ui library. It is not the most pleasant
 
 ### bevy roguelike combat
 
+As name suggests this crate takes care of the brutal interaction between actors in your environment. To use Roguleke combat you need to implement 2 traits: `DamageKind` and `AttributeType`. in code it would look similar to example below.
+
+```rust
+#![allow(dead_code)]
+use bevy::{prelude::*, reflect::FromReflect};
+use bevy_roguelike_combat::*;
+use std::fmt::Display;
+use strum_macros::EnumIter;
+
+#[derive(Debug, Default, Clone, PartialEq, Eq, Hash, Component, Reflect, FromReflect, EnumIter)]
+#[reflect(Component)]
+pub enum SimpleAttribute {
+    #[default]
+    Strength,
+    Inteligence,
+}
+impl Display for SimpleAttribute {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(
+            f,
+            "{}",
+            match self {
+                SimpleAttribute::Strength => "str",
+                SimpleAttribute::Inteligence => "int",
+            }
+        )
+    }
+}
+impl AttributeType for SimpleAttribute {}
+
+#[derive(Debug, Default, Clone, Copy, PartialEq, Eq, Hash, Component, Reflect, FromReflect)]
+#[reflect(Component)]
+pub enum SimpleDamage {
+    #[default]
+    Physical,
+    Magical,
+}
+impl Display for SimpleDamage {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{:?}", self)
+    }
+}
+impl DamageKind for SimpleDamage {}
+```
+
+Dependency on [strum_macros](https://crates.io/crates/strum_macros) is needed so we can enumerate enums. Everything else is Bevy and standard Rust specific. Having those two implemented you can then hook up `RoguelikeCombatPlugin`.
+
+```rust
+//...
+.add_plugin(
+    RoguelikeCombatPlugin::<_, SimpleDamage, SimpleAttribute> {
+        state_running: self.state_running.clone(),
+        phantom_1: PhantomData {},
+        phantom_2: PhantomData {},
+    },
+)
+//...
+```
+
+When plugin is loaded you also need to give your actors All the required components. Or just use `Combat` bundle.
+
+```rust
+
+let attributes = Attributes::<SimpleAttribute>::with_all(10);
+
+let ap_increment_formula = LinearFormula {
+    scale: 4096,
+    multipliers: vec![
+        Multiplier {
+            attribute: SimpleAttribute::Inteligence,
+            multiplier: 50,
+        },
+        Multiplier {
+            attribute: SimpleAttribute::Strength,
+            multiplier: 50,
+        },
+    ],
+};
+let hp_full_formula = LinearFormula::one();
+let hp_regen_increment_formula = LinearFormula::one();
+
+let damage = DamageList {
+    list: vec![Damage {
+        kind: SimpleDamage::Physical,
+        amount: 10..20,
+        amount_multiplier: LinearFormula::one(),
+        hit_cost: ActionCost {
+            cost: 128,
+            multiplier_inverted: LinearFormula::one(),
+        },
+        hit_chance: Rate {
+            amount: 128,
+            multiplier: LinearFormula::one(),
+        },
+    }],
+};
+
+let protection = Protection {
+    amounts: vec![Protect {
+        kind: SimpleDamage::Magical,
+        amount_multiplier: LinearFormula::one(),
+        amount: 5,
+    }],
+};
+
+let evasion = Evasion {
+    cost: ActionCost {
+        cost: 32,
+        multiplier_inverted: LinearFormula::one(),
+    },
+    chance: Rate {
+        amount: 96,
+        multiplier: LinearFormula::one(),
+    },
+};
+
+let resistance = Resistance {
+    amounts: vec![Resist {
+        kind: SimpleDamage::Magical,
+        percent: 30,
+    }],
+};
+
+let combat = Combat::new(
+    &attributes,
+    ap_increment_formula,
+    hp_full_formula,
+    hp_regen_increment_formula,
+    damage,
+    protection,
+    evasion,
+    resistance,
+);
+
+```
+
+Wow that is a lot of characters to type in 😃. For breviety purposes most of the formulas are just placeholders always returning `1.`. In your own project you are probably better off using something like [bevy_asset_ron](https://github.com/IyesGames/bevy_asset_ron) and define your actor capabilities in your asset files. Check out [actor_template.rs](bevy_roguelike_plugin/src/resources/actor_template.rs) and [actor bundle](bevy_roguelike_plugin/src/components/actor/mod.rs) for example.
+This crate is decoupled from other crates like inventory. That means that you will have to manually take care of some stuff.
+
+- Fill `StatsComputed` in your code in order for combat system to work (example system [stats_recompute](bevy_roguelike_plugin/src/systems/actor_stats.rs)).
+- Handle `ActionCompletedEvent` events (example system [action_completed](bevy_roguelike_plugin/src/systems/turns.rs)).
+- Handle `DeathEvent` events (example system [death_read](bevy_roguelike_plugin/src/systems/turns.rs)).
+
+For formulas I could probably create a parser with [Nom](https://github.com/Geal/nom) or just use expressions from something like [rhai](https://crates.io/crates/rhai). But maybe later™. For now it sattisfies the needs of the main game plugin. Any suyggestions are welcome.
+
+### bevy roguelike plugin
+
 // WIP
 
 ### map generator
