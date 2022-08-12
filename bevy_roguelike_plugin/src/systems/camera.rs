@@ -2,7 +2,6 @@ use crate::components::*;
 use crate::events::CameraFocusEvent;
 use crate::resources::*;
 use bevy::prelude::*;
-use bevy::render::camera::Camera2d;
 use bevy_tweening::lens::*;
 use bevy_tweening::*;
 use std::time::Duration;

@@ -4,11 +4,11 @@ use bevy::prelude::*;
 pub struct DragableUI {
     is_started: bool,
     current_cursor_position: Vec2,
-    last_ui_position: Rect<Val>,
+    last_ui_position: UiRect<Val>,
     last_cursor_position: Vec2,
 }
 
-pub (crate) fn ui_drag_interaction(
+pub(crate) fn ui_drag_interaction(
     mut cursor_moved_reader: EventReader<CursorMoved>,
     mut interactive_dragables: Query<(&Interaction, &Style, &mut DragableUI)>,
 ) {
@@ -17,7 +17,7 @@ pub (crate) fn ui_drag_interaction(
             if d.is_started {
                 if *i != Interaction::Clicked {
                     d.is_started = false;
-                    d.last_ui_position = Rect::default();
+                    d.last_ui_position = UiRect::default();
                     d.last_cursor_position = Vec2::ZERO;
                     d.current_cursor_position = Vec2::ZERO;
                 }

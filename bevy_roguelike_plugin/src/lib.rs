@@ -8,9 +8,8 @@ use crate::events::*;
 use bevy::ecs::schedule::StateData;
 use bevy::log;
 use bevy::prelude::*;
-use bevy::render::camera::Camera2d;
 use bevy::utils::HashSet;
-use bevy_asset_ron::RonAssetPlugin;
+use bevy_common_assets::ron::RonAssetPlugin;
 use bevy_inventory_ui::InventoryUiAssets;
 use bevy_inventory_ui::InventoryUiPlugin;
 use bevy_roguelike_combat::*;
@@ -48,8 +47,13 @@ pub trait StateSetNext {
 impl<T: StateNext> StateSetNext for State<T> {
     fn set_next(&mut self) {
         let current = self.current();
+
         if let Some(next) = current.next() {
-            if let Err(error) = self.set(next) {
+            bevy::log::info!("transitioning state from {:?} to {:?}", current, next);
+            // TODO: investigate why only transition from Construct to InGame fails:
+            // TODO: change back to self.set()
+            // Attempted to queue a state change, but there was already a state queued.
+            if let Err(error) = self.overwrite_set(next) {
                 bevy::log::error!("Error setting next state. {}", error);
             }
         } else {
@@ -252,7 +256,7 @@ impl<T: StateNext> RoguelikePlugin<T> {
         let info = MapInfo::from_map(&map, &mut rng);
 
         #[cfg(feature = "debug")]
-        log::info!("{}", map.to_colorized_string());
+        log::trace!("{}", map.to_colorized_string());
         #[cfg(feature = "debug")]
         log::info!("{}", info.to_colorized_string());
 
@@ -287,8 +291,7 @@ impl<T: StateNext> RoguelikePlugin<T> {
         let map_id = cmd
             .spawn()
             .insert(Name::new("RogueMap"))
-            .insert(Transform::default())
-            .insert(GlobalTransform::default())
+            .insert_bundle(SpatialBundle::default())
             .with_children(|rogue_map| {
                 for (pt, tile) in map.enumerate() {
                     let texture = asset_server.load(
@@ -323,8 +326,7 @@ impl<T: StateNext> RoguelikePlugin<T> {
         let items_id = cmd
             .spawn()
             .insert(Name::new("Items"))
-            .insert(Transform::default())
-            .insert(GlobalTransform::default())
+            .insert_bundle(SpatialBundle::default())
             .with_children(|cb| {
                 for ipt in info.item_spawns.clone() {
                     let template = item_templates[rng.gen_range(0..item_templates.len())];
@@ -346,7 +348,9 @@ impl<T: StateNext> RoguelikePlugin<T> {
         bevy::log::info!("combat settings count: {}", combat_settings.len());
         let combat_settings = combat_settings[0];
 
-        if let Some(player_template) = actor_templates.get("actors/human.actor.ron") {
+        if let Some(player_template) =
+            actor_templates.get(&asset_server.load("actors/human.actor.ron"))
+        {
             let team_player = 1;
             cmd.spawn()
                 .insert(MovingPlayer {})
@@ -365,8 +369,7 @@ impl<T: StateNext> RoguelikePlugin<T> {
         let enemies_id = cmd
             .spawn()
             .insert(Name::new("Enemies"))
-            .insert(Transform::default())
-            .insert(GlobalTransform::default())
+            .insert_bundle(SpatialBundle::default())
             .with_children(|enms| {
                 for mpt in info.monster_spawns.clone() {
                     let monster_template = actor_templates[rng.gen_range(0..actor_templates.len())];
@@ -399,6 +402,5 @@ impl<T: StateNext> RoguelikePlugin<T> {
 }
 
 fn setup_camera(mut cmd: Commands) {
-    cmd.spawn_bundle(OrthographicCameraBundle::new_2d());
-    cmd.spawn_bundle(UiCameraBundle::default());
+    cmd.spawn_bundle(Camera2dBundle::default());
 }

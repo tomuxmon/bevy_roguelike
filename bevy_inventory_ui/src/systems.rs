@@ -4,12 +4,7 @@ use crate::{
     InventoryDisplayOwner, InventoryDisplaySlot, InventoryDisplayToggleEvent, ItemTypeUiImage,
     UiFixedZ, UiHoverTip, UiRenderInfo, UiTextInfo, Unequipable, WorldHoverTip,
 };
-use bevy::{
-    ecs::system::EntityCommands,
-    prelude::*,
-    render::camera::{Camera2d, RenderTarget},
-    ui::*,
-};
+use bevy::{ecs::system::EntityCommands, prelude::*, render::camera::RenderTarget, ui::*};
 use bevy_inventory::{Equipment, Inventory, ItemDropEvent, ItemType};
 
 pub(crate) fn toggle_inventory_open<I: ItemType>(
@@ -46,7 +41,7 @@ pub(crate) fn toggle_inventory_open<I: ItemType>(
                     flex_direction: FlexDirection::ColumnReverse,
                     size: Size::new(Val::Px(256.0), Val::Auto),
                     position_type: PositionType::Absolute,
-                    position: Rect {
+                    position: UiRect {
                         top: Val::Px(10.0),
                         right: Val::Px(10.0),
                         ..default()
@@ -91,7 +86,7 @@ pub(crate) fn toggle_inventory_open<I: ItemType>(
                                             Val::Px(inventory_options.tile_size),
                                         ),
                                         position_type: PositionType::Absolute,
-                                        position: Rect {
+                                        position: UiRect {
                                             left: Val::Px(position.x),
                                             top: Val::Px(position.y),
                                             ..default()
@@ -335,7 +330,9 @@ pub(crate) fn ui_apply_fixed_z(
 ) {
     for (mut transform, mut global_transform, fixed) in node_query.iter_mut() {
         transform.translation.z = fixed.z;
-        global_transform.translation.z = fixed.z;
+        let mut tr = global_transform.compute_transform();
+        tr.translation.z = fixed.z;
+        *global_transform = GlobalTransform::from(tr);
     }
 }
 
@@ -355,8 +352,8 @@ pub(crate) fn ui_hovertip_interaction<I: ItemType>(
     };
 
     for (entity, transform, &interaction, mut hover_tip) in interactive_hovertip.iter_mut() {
-        let x_first_half = transform.translation.x < window.width() / 2.;
-        let y_first_half = transform.translation.y < window.height() / 2.;
+        let x_first_half = transform.affine().translation.x < window.width() / 2.;
+        let y_first_half = transform.affine().translation.y < window.height() / 2.;
 
         // TODO: extract function to show hovertip
 
@@ -515,10 +512,10 @@ pub(crate) fn world_hovertip_interaction(
         let is_hovered = if let Some(cursor_screen_pos) = cursor_position {
             // NOTE: cursor_world_pos compute stolen from https://bevy-cheatbook.github.io/cookbook/cursor2world.html
             let cursor_world_pos = (cam2d_transform.compute_matrix()
-                * cam2d.projection_matrix.inverse())
+                * cam2d.projection_matrix().inverse())
             .project_point3(((cursor_screen_pos / window_size) * 2.0 - Vec2::ONE).extend(-1.0));
 
-            let thing_pos = transform.translation.truncate();
+            let thing_pos = transform.affine().translation.truncate();
             let extents = inventory_display_options.tile_size / 2.0;
             let min = thing_pos - extents;
             let max = thing_pos + extents;
@@ -529,8 +526,8 @@ pub(crate) fn world_hovertip_interaction(
             false
         };
 
-        let ui_screen_pos = transform.translation.truncate()
-            - cam2d_transform.translation.truncate()
+        let ui_screen_pos = transform.affine().translation.truncate()
+            - cam2d_transform.affine().translation.truncate()
             + (window_size / 2.)
             - (inventory_display_options.tile_size / 2.);
 
@@ -548,7 +545,7 @@ pub(crate) fn world_hovertip_interaction(
                             Val::Px(inventory_display_options.tile_size),
                         ),
                         position_type: PositionType::Absolute,
-                        position: Rect {
+                        position: UiRect {
                             left: Val::Px(ui_screen_pos.x),
                             bottom: Val::Px(ui_screen_pos.y),
                             ..default()
@@ -606,7 +603,7 @@ fn insert_tooltip(
                 min_size: Size::new(Val::Px(128.), Val::Auto),
                 max_size: Size::new(Val::Px(256.), Val::Auto),
                 position_type: PositionType::Absolute,
-                position: Rect {
+                position: UiRect {
                     top: if !y_first_half {
                         Val::Px(tile_size)
                     } else {
@@ -638,17 +635,16 @@ fn insert_tooltip(
                 .insert(UiFixedZ { z: 11. })
                 .insert_bundle(TextBundle {
                     style: Style {
-                        margin: Rect::all(Val::Px(4.0)),
+                        margin: UiRect::all(Val::Px(4.0)),
                         ..default()
                     },
-                    text: Text::with_section(
+                    text: Text::from_section(
                         info.name.as_str(),
                         TextStyle {
                             font: font.clone(),
                             font_size: 24.0,
                             color: Color::WHITE,
                         },
-                        Default::default(),
                     ),
                     ..default()
                 });
@@ -657,17 +653,16 @@ fn insert_tooltip(
                     .insert(UiFixedZ { z: 12. })
                     .insert_bundle(TextBundle {
                         style: Style {
-                            margin: Rect::all(Val::Px(2.0)),
+                            margin: UiRect::all(Val::Px(2.0)),
                             ..default()
                         },
-                        text: Text::with_section(
+                        text: Text::from_section(
                             format!("{}: {}", title, description),
                             TextStyle {
                                 font: font.clone(),
                                 font_size: 18.0,
                                 color: Color::WHITE,
                             },
-                            Default::default(),
                         ),
                         ..default()
                     });

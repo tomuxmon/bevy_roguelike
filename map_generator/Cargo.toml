@@ -5,5 +5,5 @@ edition = "2021"
 
 [dependencies]
 rand = "~0.8"
-glam = "~0.20"
+glam = "~0.21"
 line_drawing = "~1.0"

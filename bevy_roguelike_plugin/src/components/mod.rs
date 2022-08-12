@@ -10,7 +10,6 @@ pub use damage::RogueDamageKind;
 pub use environment::MapTile;
 pub use fov::FieldOfView;
 pub use fov::FieldOfViewDirty;
-pub use fov::VisibilityToggle;
 pub use item::spawn_item;
 pub use item::EquipedRenderedItem;
 pub use item::EquipedRendition;

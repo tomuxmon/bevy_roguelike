@@ -1,5 +1,5 @@
 use crate::{components::*, resources::MapOptions};
-use bevy::{prelude::*, tasks::*, utils::HashSet};
+use bevy::{prelude::*, utils::HashSet};
 use bevy_roguelike_combat::{ActionPoints, HitPoints};
 use line_drawing::{BresenhamCircle, Supercover};
 use map_generator::*;
@@ -12,7 +12,6 @@ pub fn field_of_view_set_visibility(
         &Children,
         Option<&ActionPoints<RogueAttributeType>>,
         Option<&HitPoints<RogueAttributeType>>,
-        &VisibilityToggle,
     )>,
     mut visible_children: Query<(
         &mut Sprite,
@@ -23,7 +22,7 @@ pub fn field_of_view_set_visibility(
     map_options: Res<MapOptions>,
 ) {
     for fov in players.iter() {
-        visibles.for_each_mut(|(pt, children, cp, hp, _)| {
+        visibles.for_each_mut(|(pt, children, cp, hp)| {
             let is_revealed = fov.tiles_revealed.contains(pt);
             let is_visible = fov.tiles_visible.contains(pt);
             let is_ambient = cp.is_none();
@@ -56,12 +55,8 @@ pub fn field_of_view_set_visibility(
     }
 }
 
-pub fn field_of_view_recompute(
-    pool: Res<AsyncComputeTaskPool>,
-    mut actors: Query<(&Vector2D, &mut FieldOfView)>,
-    map: Res<Map>,
-) {
-    actors.par_for_each_mut(&*pool, 16, |(pt, mut fov)| {
+pub fn field_of_view_recompute(mut actors: Query<(&Vector2D, &mut FieldOfView)>, map: Res<Map>) {
+    actors.par_for_each_mut(16, |(pt, mut fov)| {
         if !fov.is_dirty {
             return;
         }

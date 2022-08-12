@@ -93,7 +93,7 @@ pub fn pick_up_items<I: ItemType>(
         (
             With<Transform>,
             With<GlobalTransform>,
-            With<VisibilityToggle>,
+            With<Visibility>,
         ),
     >,
 ) {
@@ -110,7 +110,7 @@ pub fn pick_up_items<I: ItemType>(
                         .remove::<Vector2D>()
                         .remove::<Transform>()
                         .remove::<GlobalTransform>()
-                        .remove::<VisibilityToggle>();
+                        .remove::<Visibility>();
                 }
             }
         }

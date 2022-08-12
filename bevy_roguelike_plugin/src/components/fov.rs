@@ -2,9 +2,9 @@ use super::RogueAttributeType;
 use bevy::{prelude::*, utils::HashSet};
 use bevy_roguelike_combat::Attributes;
 
-#[derive(Default, Component, Reflect)]
-#[reflect(Component)]
-pub struct VisibilityToggle;
+// #[derive(Default, Component, Reflect)]
+// #[reflect(Component)]
+// pub struct VisibilityToggle;
 
 #[derive(Default, Component, Reflect)]
 #[reflect(Component)]

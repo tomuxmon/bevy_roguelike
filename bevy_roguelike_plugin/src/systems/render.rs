@@ -5,16 +5,18 @@ use bevy_roguelike_combat::HitPoints;
 
 pub fn render_body(
     mut cmd: Commands,
-    renderables: Query<(Entity, &Vector2D, &RenderInfo), Without<VisibilityToggle>>,
+    renderables: Query<(Entity, &Vector2D, &RenderInfo), Without<Visibility>>,
     map_options: Res<MapOptions>,
 ) {
     for (rendity, pt, info) in renderables.iter() {
         cmd.entity(rendity)
-            .insert(VisibilityToggle::default())
-            .insert(Transform::from_translation(
-                map_options.to_world_position(**pt).extend(info.z),
-            ))
-            .insert(GlobalTransform::default())
+            .insert_bundle(SpatialBundle {
+                visibility: Visibility { is_visible: true },
+                transform: Transform::from_translation(
+                    map_options.to_world_position(**pt).extend(info.z),
+                ),
+                ..default()
+            })
             .with_children(|renderable| {
                 renderable
                     .spawn()
