@@ -631,41 +631,37 @@ fn insert_tooltip(
             ..default()
         })
         .with_children(|cb| {
-            cb.spawn()
-                .insert(UiFixedZ { z: 11. })
-                .insert_bundle(TextBundle {
+            cb.spawn().insert_bundle(TextBundle {
+                style: Style {
+                    margin: UiRect::all(Val::Px(4.0)),
+                    ..default()
+                },
+                text: Text::from_section(
+                    info.name.as_str(),
+                    TextStyle {
+                        font: font.clone(),
+                        font_size: 24.0,
+                        color: Color::WHITE,
+                    },
+                ),
+                ..default()
+            });
+            for (title, description) in info.titles_descriptions.iter() {
+                cb.spawn().insert_bundle(TextBundle {
                     style: Style {
-                        margin: UiRect::all(Val::Px(4.0)),
+                        margin: UiRect::all(Val::Px(2.0)),
                         ..default()
                     },
                     text: Text::from_section(
-                        info.name.as_str(),
+                        format!("{}: {}", title, description),
                         TextStyle {
                             font: font.clone(),
-                            font_size: 24.0,
+                            font_size: 18.0,
                             color: Color::WHITE,
                         },
                     ),
                     ..default()
                 });
-            for (title, description) in info.titles_descriptions.iter() {
-                cb.spawn()
-                    .insert(UiFixedZ { z: 12. })
-                    .insert_bundle(TextBundle {
-                        style: Style {
-                            margin: UiRect::all(Val::Px(2.0)),
-                            ..default()
-                        },
-                        text: Text::from_section(
-                            format!("{}: {}", title, description),
-                            TextStyle {
-                                font: font.clone(),
-                                font_size: 18.0,
-                                color: Color::WHITE,
-                            },
-                        ),
-                        ..default()
-                    });
             }
         });
 }
