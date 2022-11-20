@@ -1,4 +1,4 @@
-use crate::{components::*, events::*};
+use crate::{components::*, events::*, resources::RogueMap};
 use bevy::{log, prelude::*, utils::HashMap};
 use bevy_inventory::{Equipment, Inventory, ItemType};
 use bevy_inventory_ui::InventoryDisplayOwner;
@@ -13,7 +13,7 @@ pub fn act(
     mut attack_writer: EventWriter<AttackEvent>,
     mut move_writer: EventWriter<MoveEvent>,
     mut idle_writer: EventWriter<IdleEvent>,
-    map: Res<Map>,
+    map: Res<RogueMap>,
 ) {
     let team_pt: HashMap<_, _> = actors.iter().map(|(t, p)| (**p, *t)).collect();
     for e in act_reader.iter() {

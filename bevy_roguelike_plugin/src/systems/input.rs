@@ -1,9 +1,10 @@
-use crate::{components::*, events::*};
+use crate::{components::*, events::*, resources::RogueMap};
 use bevy::{
     prelude::*,
     utils::{HashMap, HashSet},
 };
 use bevy_inventory::{Equipment, Inventory, ItemDropEvent, ItemPickUpEvent, ItemType};
+use bevy_roguelike_combat::RogueRng;
 use line_drawing::WalkGrid;
 use map_generator::*;
 use rand::prelude::*;
@@ -54,7 +55,7 @@ pub fn input_player<I: ItemType>(
 
 #[allow(clippy::type_complexity)]
 pub fn input_fov_rand(
-    mut rng: ResMut<StdRng>,
+    mut rng: ResMut<RogueRng>,
     actors: Query<
         (
             Entity,
@@ -70,7 +71,7 @@ pub fn input_fov_rand(
     actors_all: Query<(&Vector2D, &Team)>,
     mut act_writer: EventWriter<ActEvent>,
     mut pick_up_writer: EventWriter<ItemPickUpEvent>,
-    map: Res<Map>,
+    map: Res<RogueMap>,
 ) {
     let team_pt: HashMap<_, _> = actors_all.iter().map(|(p, t)| (**p, *t)).collect();
     let item_pt: HashSet<_> = items.iter().map(|p| **p).collect();

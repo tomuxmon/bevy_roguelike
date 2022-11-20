@@ -28,7 +28,6 @@ pub fn camera_focus_smooth(
         for (camera_entity, camera_transform) in cameras.iter() {
             cmd.entity(camera_entity).insert(Animator::new(Tween::new(
                 EaseFunction::QuinticOut,
-                TweeningType::Once,
                 Duration::from_millis(350),
                 TransformPositionLens {
                     start: camera_transform.translation,

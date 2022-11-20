@@ -10,7 +10,7 @@ serde = "~1.0"
 bevy_inventory = { path = "../bevy_inventory" }
 
 [dependencies.bevy]
-version = "~0.8"
+version = "~0.9"
 default-features = false
 features = ["render"]
 

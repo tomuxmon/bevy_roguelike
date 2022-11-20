@@ -24,7 +24,7 @@ impl<S: StateData, I: ItemType, T: ItemTypeUiImage<I>> Plugin for InventoryUiPlu
             .add_system_to_stage(
                 CoreStage::PostUpdate,
                 ui_apply_fixed_z
-                    .after(bevy::ui::update::ui_z_system)
+                    // .after(bevy::ui::update::ui_z_system)
                     .before(bevy::transform::TransformSystem::TransformPropagate),
             )
             .add_system_set(

@@ -62,10 +62,10 @@ impl<T: StateNext> StateSetNext for State<T> {
     }
 }
 
-#[derive(Default)]
+#[derive(Resource, Default)]
 pub struct AssetsLoading(pub Vec<HandleUntyped>);
 
-#[derive(Debug)]
+#[derive(Resource, Debug)]
 pub struct MapEntities {
     map_id: Entity,
     enemies_id: Entity,
@@ -289,9 +289,8 @@ impl<T: StateNext> RoguelikePlugin<T> {
         let map_themes: Vec<_> = map_themes.iter().map(|(_, it)| it).collect();
         let map_theme = map_themes[rng.gen_range(0..map_themes.len())];
         let map_id = cmd
-            .spawn()
+            .spawn(SpatialBundle::default())
             .insert(Name::new("RogueMap"))
-            .insert_bundle(SpatialBundle::default())
             .with_children(|rogue_map| {
                 for (pt, tile) in map.enumerate() {
                     let texture = asset_server.load(
@@ -306,9 +305,8 @@ impl<T: StateNext> RoguelikePlugin<T> {
                         .as_str(),
                     );
                     rogue_map
-                        .spawn()
+                        .spawn(Vector2D::from(pt))
                         .insert(Name::new(format!("Tile {}", pt)))
-                        .insert(Vector2D::from(pt))
                         .insert(match tile {
                             Tile::Wall => MapTile { is_passable: false },
                             Tile::Floor => MapTile { is_passable: true },
@@ -324,15 +322,13 @@ impl<T: StateNext> RoguelikePlugin<T> {
 
         let item_templates: Vec<_> = item_templates.iter().map(|(_, it)| it).collect();
         let items_id = cmd
-            .spawn()
+            .spawn(SpatialBundle::default())
             .insert(Name::new("Items"))
-            .insert_bundle(SpatialBundle::default())
             .with_children(|cb| {
                 for ipt in info.item_spawns.clone() {
                     let template = item_templates[rng.gen_range(0..item_templates.len())];
                     let quality = Quality::roll(&mut rng);
-                    let mut ecmd = cb.spawn();
-                    ecmd.insert(Vector2D::from(ipt));
+                    let mut ecmd = cb.spawn(Vector2D::from(ipt));
                     spawn_item(
                         &mut ecmd,
                         asset_server.clone(),
@@ -352,44 +348,41 @@ impl<T: StateNext> RoguelikePlugin<T> {
             actor_templates.get(&asset_server.load("actors/human.actor.ron"))
         {
             let team_player = 1;
-            cmd.spawn()
-                .insert(MovingPlayer {})
-                .insert_bundle(Actor::new(
-                    asset_server.clone(),
-                    player_template,
-                    combat_settings,
-                    team_player,
-                    info.player_start,
-                ));
+            cmd.spawn(Actor::new(
+                asset_server.clone(),
+                player_template,
+                combat_settings,
+                team_player,
+                info.player_start,
+            ))
+            .insert(MovingPlayer {});
         } else {
             bevy::log::error!("human actor template not found");
         }
 
         let actor_templates: Vec<_> = actor_templates.iter().map(|(_, it)| it).collect();
         let enemies_id = cmd
-            .spawn()
+            .spawn(SpatialBundle::default())
             .insert(Name::new("Enemies"))
-            .insert_bundle(SpatialBundle::default())
             .with_children(|enms| {
                 for mpt in info.monster_spawns.clone() {
                     let monster_template = actor_templates[rng.gen_range(0..actor_templates.len())];
                     let team_monster = 1 + rng.gen_range(2..4);
-                    enms.spawn()
-                        .insert(MovingFovRandom {})
-                        .insert_bundle(Actor::new(
-                            asset_server.clone(),
-                            monster_template,
-                            combat_settings,
-                            team_monster,
-                            mpt,
-                        ));
+                    enms.spawn(Actor::new(
+                        asset_server.clone(),
+                        monster_template,
+                        combat_settings,
+                        team_monster,
+                        mpt,
+                    ))
+                    .insert(MovingFovRandom {});
                 }
             })
             .id();
 
-        cmd.insert_resource(map);
+        cmd.insert_resource(RogueMap(map));
         cmd.insert_resource(info);
-        cmd.insert_resource(rng);
+        cmd.insert_resource(RogueRng(rng));
 
         cmd.insert_resource(MapEntities {
             map_id,
@@ -402,5 +395,5 @@ impl<T: StateNext> RoguelikePlugin<T> {
 }
 
 fn setup_camera(mut cmd: Commands) {
-    cmd.spawn_bundle(Camera2dBundle::default());
+    cmd.spawn(Camera2dBundle::default());
 }

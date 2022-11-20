@@ -25,7 +25,7 @@ use strum_macros::EnumIter;
     EnumIter,
 )]
 #[reflect(Component)]
-#[reflect_value(PartialEq, Serialize, Deserialize)]
+// #[reflect_value(PartialEq, Serialize, Deserialize)]
 pub enum RogueAttributeType {
     #[default]
     Strength,

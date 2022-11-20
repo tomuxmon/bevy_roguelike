@@ -1,5 +1,6 @@
 use crate::components::*;
 use crate::events::*;
+use crate::rng::RogueRng;
 use bevy::log;
 use bevy::prelude::*;
 use rand::prelude::*;
@@ -62,7 +63,7 @@ pub fn attack<K: DamageKind, A: AttributeType>(
     mut attack_reader: EventReader<AttackEvent>,
     mut ap_spend_writer: EventWriter<SpendAPEvent>,
     mut damage_writer: EventWriter<DamageHitPointsEvent>,
-    mut rng: ResMut<StdRng>,
+    mut rng: ResMut<RogueRng>,
 ) {
     for e in attack_reader.iter() {
         let attacker_stats = if let Ok(attacker) = attackers.get(e.attacker) {

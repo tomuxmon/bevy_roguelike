@@ -10,7 +10,7 @@ pub fn render_body(
 ) {
     for (rendity, pt, info) in renderables.iter() {
         cmd.entity(rendity)
-            .insert_bundle(SpatialBundle {
+            .insert(SpatialBundle {
                 visibility: Visibility { is_visible: true },
                 transform: Transform::from_translation(
                     map_options.to_world_position(**pt).extend(info.z),
@@ -19,9 +19,7 @@ pub fn render_body(
             })
             .with_children(|renderable| {
                 renderable
-                    .spawn()
-                    .insert(Name::new("render"))
-                    .insert_bundle(SpriteBundle {
+                    .spawn(SpriteBundle {
                         sprite: Sprite {
                             color: Color::WHITE,
                             custom_size: Some(Vec2::splat(map_options.tile_size)),
@@ -30,13 +28,12 @@ pub fn render_body(
                         texture: info.texture.clone(),
                         transform: Transform::from_xyz(0., 0., info.z + 0.1),
                         ..Default::default()
-                    });
+                    })
+                    .insert(Name::new("render"));
 
                 for cosmetic_texture in info.cosmetic_textures.iter() {
                     renderable
-                        .spawn()
-                        .insert(Name::new("render cosmetic"))
-                        .insert_bundle(SpriteBundle {
+                        .spawn(SpriteBundle {
                             sprite: Sprite {
                                 color: Color::WHITE,
                                 custom_size: Some(Vec2::splat(map_options.tile_size)),
@@ -45,7 +42,8 @@ pub fn render_body(
                             texture: cosmetic_texture.clone(),
                             transform: Transform::from_xyz(0., 0., info.z + 0.2),
                             ..Default::default()
-                        });
+                        })
+                        .insert(Name::new("render cosmetic"));
                 }
             });
     }
@@ -66,10 +64,7 @@ pub fn render_equiped_item<I: ItemType>(
             let mut some_item_render_entity = None;
             cmd.entity(owner.actor).with_children(|renderable| {
                 let item_render_entity = renderable
-                    .spawn()
-                    .insert(Name::new("item render"))
-                    .insert(EquipedRenderedItem { item: item_entity })
-                    .insert_bundle(SpriteBundle {
+                    .spawn(SpriteBundle {
                         sprite: Sprite {
                             color: Color::WHITE,
                             custom_size: Some(Vec2::splat(map_options.tile_size)),
@@ -79,6 +74,8 @@ pub fn render_equiped_item<I: ItemType>(
                         transform: Transform::from_xyz(0., 0., info.z + 0.1),
                         ..Default::default()
                     })
+                    .insert(Name::new("item render"))
+                    .insert(EquipedRenderedItem { item: item_entity })
                     .id();
                 some_item_render_entity = Some(item_render_entity);
             });
@@ -116,10 +113,7 @@ pub fn render_hud_health_bar(
             .with_children(|renderable| {
                 let height = map_options.tile_size / 16.;
                 renderable
-                    .spawn()
-                    .insert(Name::new("hud"))
-                    .insert(HudHealthBar {})
-                    .insert_bundle(SpriteBundle {
+                    .spawn(SpriteBundle {
                         sprite: Sprite {
                             color: Color::GREEN,
                             custom_size: Some(Vec2::new(map_options.tile_size, height)),
@@ -131,7 +125,9 @@ pub fn render_hud_health_bar(
                             100.,
                         ),
                         ..Default::default()
-                    });
+                    })
+                    .insert(Name::new("hud"))
+                    .insert(HudHealthBar {});
             });
     }
 }

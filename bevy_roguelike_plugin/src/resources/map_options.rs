@@ -3,7 +3,7 @@ use serde::{Deserialize, Serialize};
 
 /// Map generation options. Must be used as a resource
 // We use serde to allow saving option presets and loading them at runtime
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Resource, Debug, Clone, Serialize, Deserialize)]
 pub struct MapOptions {
     /// Tile map size in dimentions or tile
     pub map_size: IVec2,

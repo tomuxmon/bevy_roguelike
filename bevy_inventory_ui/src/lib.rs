@@ -20,7 +20,7 @@ pub(crate) struct UiFixedZ {
 }
 
 /// Inventory display options. Must be used as a resource
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Resource, Debug, Clone, Serialize, Deserialize)]
 pub struct InventoryDisplayOptions {
     /// size of item
     pub tile_size: f32,

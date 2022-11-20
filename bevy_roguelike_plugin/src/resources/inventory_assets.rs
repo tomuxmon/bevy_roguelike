@@ -4,7 +4,7 @@ use bevy::reflect::TypeUuid;
 use bevy_inventory_ui::ItemTypeUiImage;
 use serde::{Deserialize, Serialize};
 
-#[derive(Serialize, Deserialize, TypeUuid)]
+#[derive(Resource, Serialize, Deserialize, TypeUuid)]
 #[uuid = "ea186dbc-8eb4-48c5-b1c3-40b980b5da8a"]
 pub struct InventoryTheme {
     pub slot: String,
@@ -17,7 +17,7 @@ pub struct InventoryTheme {
     pub feet_wear: String,
 }
 
-#[derive(Debug, Clone)]
+#[derive(Resource, Debug, Clone)]
 pub struct InventoryAssets {
     pub slot: Handle<Image>,
     pub head_wear: Handle<Image>,

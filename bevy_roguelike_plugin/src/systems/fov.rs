@@ -1,4 +1,7 @@
-use crate::{components::*, resources::MapOptions};
+use crate::{
+    components::*,
+    resources::{MapOptions, RogueMap},
+};
 use bevy::{prelude::*, utils::HashSet};
 use bevy_roguelike_combat::{ActionPoints, HitPoints};
 use line_drawing::{BresenhamCircle, Supercover};
@@ -55,7 +58,10 @@ pub fn field_of_view_set_visibility(
     }
 }
 
-pub fn field_of_view_recompute(mut actors: Query<(&Vector2D, &mut FieldOfView)>, map: Res<Map>) {
+pub fn field_of_view_recompute(
+    mut actors: Query<(&Vector2D, &mut FieldOfView)>,
+    map: Res<RogueMap>,
+) {
     actors.par_for_each_mut(16, |(pt, mut fov)| {
         if !fov.is_dirty {
             return;

@@ -19,7 +19,7 @@ use std::fmt::Display;
     Deserialize,
 )]
 #[reflect(Component)]
-#[reflect_value(PartialEq, Serialize, Deserialize)]
+// #[reflect_value(PartialEq, Serialize, Deserialize)]
 pub enum RogueDamageKind {
     /// phisical crushing damage
     #[default]

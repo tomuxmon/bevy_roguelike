@@ -1,11 +1,11 @@
-use bevy::math::IVec2;
+use bevy::{math::IVec2, prelude::Resource};
 use map_generator::*;
 use rand::prelude::*;
 
 #[cfg(feature = "debug")]
 use colored::Colorize;
 
-#[derive(Debug, Clone)]
+#[derive(Resource, Debug, Clone)]
 pub struct MapInfo {
     pub player_start: IVec2,
     pub camera_focus: IVec2,

@@ -33,13 +33,15 @@ fn main() {
         .add_state_to_stage(CoreStage::PostUpdate, AppState::Setup)
         .add_state_to_stage(CoreStage::Last, AppState::Setup)
         .insert_resource(ClearColor(Color::BLACK))
-        .insert_resource(WindowDescriptor {
-            title: "rogue bevy".to_string(),
-            width: 1000.,
-            height: 600.,
-            ..Default::default()
-        })
-        .add_plugins(DefaultPlugins {})
+        .add_plugins(DefaultPlugins.set(WindowPlugin {
+            window: WindowDescriptor {
+                title: "rogue bevy".to_string(),
+                width: 1000.,
+                height: 600.,
+                ..Default::default()
+            },
+            ..default()
+        }))
         .add_plugin(RoguelikePlugin {
             state_asset_load: AppState::AssetLoad,
             state_construct: AppState::Construct,

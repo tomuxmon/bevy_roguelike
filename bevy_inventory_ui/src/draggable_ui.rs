@@ -4,7 +4,7 @@ use bevy::prelude::*;
 pub struct DragableUI {
     is_started: bool,
     current_cursor_position: Vec2,
-    last_ui_position: UiRect<Val>,
+    last_ui_position: UiRect,
     last_cursor_position: Vec2,
 }
 

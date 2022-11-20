@@ -10,6 +10,7 @@ pub enum Tile {
     Floor,
 }
 
+// TODO: inject Resource? have a trait for map instead
 /// Flat tile map of tiles
 #[derive(Debug, Clone)]
 pub struct Map {
