@@ -61,7 +61,7 @@ pub fn field_of_view_recompute(mut actors: Query<(&Vector2D, &mut FieldOfView)>,
             return;
         }
         let visible_last = fov.tiles_visible.clone();
-        fov.tiles_visible = compute_fov(**pt, fov.radius, &*map);
+        fov.tiles_visible = compute_fov(**pt, fov.radius, &map);
         let visible_current = fov.tiles_visible.clone();
         fov.tiles_revealed.extend(visible_last);
         fov.tiles_revealed.extend(visible_current);
