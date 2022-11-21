@@ -66,7 +66,6 @@ pub struct Actor {
     name: Name,
     team: Team,
     state: TurnState,
-    #[bundle]
     combat: Combat<RogueDamageKind, RogueAttributeType>,
     fov: FieldOfView,
     position: Vector2D,
