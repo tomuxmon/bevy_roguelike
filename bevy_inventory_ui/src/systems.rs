@@ -567,7 +567,7 @@ pub(crate) fn world_hovertip_interaction(
                         &inventory_ui_assets.font,
                         inventory_display_options.tile_size,
                         x_first_half,
-                        y_first_half,
+                        !y_first_half,
                     );
                 });
             }
@@ -595,12 +595,12 @@ fn insert_tooltip(
             max_size: Size::new(Val::Px(256.), Val::Auto),
             position_type: PositionType::Absolute,
             position: UiRect {
-                top: if !y_first_half {
+                top: if y_first_half {
                     Val::Px(tile_size)
                 } else {
                     Val::Undefined
                 },
-                bottom: if y_first_half {
+                bottom: if !y_first_half {
                     Val::Px(tile_size)
                 } else {
                     Val::Undefined
