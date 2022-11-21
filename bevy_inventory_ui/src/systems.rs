@@ -2,7 +2,7 @@ use crate::{
     assets::InventoryUiAssets, draggable_ui::DragableUI, Equipable, EquipmentDisplay,
     EquipmentDisplayNode, EquipmentDisplaySlot, InventoryDisplayNode, InventoryDisplayOptions,
     InventoryDisplayOwner, InventoryDisplaySlot, InventoryDisplayToggleEvent, ItemTypeUiImage,
-    UiFixedZ, UiHoverTip, UiRenderInfo, UiTextInfo, Unequipable, WorldHoverTip,
+    UiHoverTip, UiRenderInfo, UiTextInfo, Unequipable, WorldHoverTip,
 };
 use bevy::{ecs::system::EntityCommands, prelude::*, render::camera::RenderTarget, ui::*};
 use bevy_inventory::{Equipment, Inventory, ItemDropEvent, ItemType};
@@ -328,18 +328,6 @@ pub(crate) fn equipment_update<I: ItemType, T: ItemTypeUiImage<I>>(
     }
 }
 
-/// system must be executed in the last core stage in order to override bevy_ui z-order calculation
-pub(crate) fn ui_apply_fixed_z(
-    mut node_query: Query<(&mut Transform, &mut GlobalTransform, &UiFixedZ), With<Node>>,
-) {
-    for (mut transform, mut global_transform, fixed) in node_query.iter_mut() {
-        transform.translation.z = fixed.z;
-        let mut tr = global_transform.compute_transform();
-        tr.translation.z = fixed.z;
-        *global_transform = GlobalTransform::from(tr);
-    }
-}
-
 pub(crate) fn ui_hovertip_interaction<I: ItemType>(
     mut cmd: Commands,
     windows: Res<Windows>,
@@ -598,43 +586,41 @@ fn insert_tooltip(
     x_first_half: bool,
     y_first_half: bool,
 ) {
-    ec.insert((
-        UiFixedZ { z: 10. },
-        NodeBundle {
-            style: Style {
-                flex_wrap: FlexWrap::Wrap,
-                flex_direction: FlexDirection::Row,
-                min_size: Size::new(Val::Px(128.), Val::Auto),
-                max_size: Size::new(Val::Px(256.), Val::Auto),
-                position_type: PositionType::Absolute,
-                position: UiRect {
-                    top: if !y_first_half {
-                        Val::Px(tile_size)
-                    } else {
-                        Val::Undefined
-                    },
-                    bottom: if y_first_half {
-                        Val::Px(tile_size)
-                    } else {
-                        Val::Undefined
-                    },
-                    right: if !x_first_half {
-                        Val::Px(tile_size)
-                    } else {
-                        Val::Undefined
-                    },
-                    left: if x_first_half {
-                        Val::Px(tile_size)
-                    } else {
-                        Val::Undefined
-                    },
+    ec.insert(NodeBundle {
+        z_index: ZIndex::Global(100),
+        style: Style {
+            flex_wrap: FlexWrap::Wrap,
+            flex_direction: FlexDirection::Row,
+            min_size: Size::new(Val::Px(128.), Val::Auto),
+            max_size: Size::new(Val::Px(256.), Val::Auto),
+            position_type: PositionType::Absolute,
+            position: UiRect {
+                top: if !y_first_half {
+                    Val::Px(tile_size)
+                } else {
+                    Val::Undefined
                 },
-                ..default()
+                bottom: if y_first_half {
+                    Val::Px(tile_size)
+                } else {
+                    Val::Undefined
+                },
+                right: if !x_first_half {
+                    Val::Px(tile_size)
+                } else {
+                    Val::Undefined
+                },
+                left: if x_first_half {
+                    Val::Px(tile_size)
+                } else {
+                    Val::Undefined
+                },
             },
-            background_color: Color::rgba(0.015, 0.04, 0.025, 0.96).into(),
             ..default()
         },
-    ))
+        background_color: Color::rgba(0.015, 0.04, 0.025, 0.96).into(),
+        ..default()
+    })
     .with_children(|cb| {
         cb.spawn(TextBundle {
             style: Style {
