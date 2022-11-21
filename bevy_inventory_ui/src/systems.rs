@@ -31,10 +31,14 @@ pub(crate) fn toggle_inventory_open<I: ItemType>(
         }
         // TODO: local resource to track inventory position and reopen on the same position.
         cmd.spawn((
+            Name::new("inventory display"),
+            InventoryDisplayOwner { actor: e.actor },
+            DragableUI::default(),
+            Interaction::default(),
             NodeBundle {
                 style: Style {
-                    flex_wrap: FlexWrap::Wrap,
-                    flex_direction: FlexDirection::ColumnReverse,
+                    flex_wrap: FlexWrap::WrapReverse,
+                    flex_direction: FlexDirection::Column,
                     size: Size::new(Val::Px(256.0), Val::Auto),
                     position_type: PositionType::Absolute,
                     position: UiRect {
@@ -44,13 +48,8 @@ pub(crate) fn toggle_inventory_open<I: ItemType>(
                     },
                     ..default()
                 },
-                background_color: Color::rgba(0., 0., 0., 0.).into(),
                 ..default()
             },
-            Name::new("inventory display"),
-            InventoryDisplayOwner { actor: e.actor },
-            DragableUI::default(),
-            Interaction::default(),
         ))
         .with_children(|parent| {
             // NOTE: equipment with slots
@@ -106,7 +105,7 @@ pub(crate) fn toggle_inventory_open<I: ItemType>(
                     InventoryDisplayNode { id: e.actor },
                     NodeBundle {
                         style: Style {
-                            flex_wrap: FlexWrap::WrapReverse,
+                            flex_wrap: FlexWrap::Wrap,
                             flex_direction: FlexDirection::Row,
                             size: Size::new(Val::Px(256.0), Val::Auto),
                             ..default()
@@ -603,7 +602,7 @@ fn insert_tooltip(
         UiFixedZ { z: 10. },
         NodeBundle {
             style: Style {
-                flex_wrap: FlexWrap::WrapReverse,
+                flex_wrap: FlexWrap::Wrap,
                 flex_direction: FlexDirection::Row,
                 min_size: Size::new(Val::Px(128.), Val::Auto),
                 max_size: Size::new(Val::Px(256.), Val::Auto),
