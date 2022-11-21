@@ -7,7 +7,6 @@ use bevy::prelude::*;
 use bevy_inventory_ui::UiRenderInfo;
 use rand::prelude::*;
 
-
 pub fn spawn_item(
     ecmd: &mut EntityCommands,
     asset_server: AssetServer,
@@ -15,6 +14,7 @@ pub fn spawn_item(
     quality: &Quality,
     rng: &mut StdRng,
 ) {
+    // TODO: refactor all insert calls into ergonomic inserts: https://github.com/bevyengine/bevy/pull/6039
     ecmd.insert(quality.clone());
     match template {
         ItemTemplate::Weapon(Weapon { render, damage }) => {
@@ -111,15 +111,17 @@ fn insert_enchantment(
 
 fn insert_render(ecmd: &mut EntityCommands, asset_server: AssetServer, render: &ItemRenderInfo) {
     let texture = asset_server.load(render.texture_path.as_str());
-    ecmd.insert(Name::new(render.name.clone()))
-        .insert(UiRenderInfo {
+    ecmd.insert((
+        Name::new(render.name.clone()),
+        UiRenderInfo {
             image: texture.clone().into(),
-        })
-        .insert(RenderInfo {
+        },
+        RenderInfo {
             texture,
             cosmetic_textures: vec![],
             z: 1.,
-        });
+        },
+    ));
     if let Some(path_equiped) = render.texture_equiped_path.clone() {
         ecmd.insert(RenderInfoEquiped {
             texture: asset_server.load(path_equiped.as_str()),

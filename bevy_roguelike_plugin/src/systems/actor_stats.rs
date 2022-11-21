@@ -123,10 +123,10 @@ pub fn stats_recompute<I: ItemType>(
         }
         stats.damage = damage;
 
-        cmd.entity(id)
-            .remove::<StatsComputedDirty>()
-            .insert(ActionPointsDirty {})
-            .insert(HitPointsDirty {})
-            .insert(FieldOfViewDirty {});
+        cmd.entity(id).remove::<StatsComputedDirty>().insert((
+            ActionPointsDirty {},
+            HitPointsDirty {},
+            FieldOfViewDirty {},
+        ));
     }
 }

@@ -289,8 +289,7 @@ impl<T: StateNext> RoguelikePlugin<T> {
         let map_themes: Vec<_> = map_themes.iter().map(|(_, it)| it).collect();
         let map_theme = map_themes[rng.gen_range(0..map_themes.len())];
         let map_id = cmd
-            .spawn(SpatialBundle::default())
-            .insert(Name::new("RogueMap"))
+            .spawn((SpatialBundle::default(), Name::new("RogueMap")))
             .with_children(|rogue_map| {
                 for (pt, tile) in map.enumerate() {
                     let texture = asset_server.load(
@@ -304,26 +303,26 @@ impl<T: StateNext> RoguelikePlugin<T> {
                         }
                         .as_str(),
                     );
-                    rogue_map
-                        .spawn(Vector2D::from(pt))
-                        .insert(Name::new(format!("Tile {}", pt)))
-                        .insert(match tile {
-                            Tile::Wall => MapTile { is_passable: false },
-                            Tile::Floor => MapTile { is_passable: true },
-                        })
-                        .insert(RenderInfo {
+                    rogue_map.spawn((
+                        Name::new(format!("Tile {}", pt)),
+                        Vector2D::from(pt),
+                        RenderInfo {
                             texture,
                             cosmetic_textures: vec![],
                             z: 0.,
-                        });
+                        },
+                        match tile {
+                            Tile::Wall => MapTile { is_passable: false },
+                            Tile::Floor => MapTile { is_passable: true },
+                        },
+                    ));
                 }
             })
             .id();
 
         let item_templates: Vec<_> = item_templates.iter().map(|(_, it)| it).collect();
         let items_id = cmd
-            .spawn(SpatialBundle::default())
-            .insert(Name::new("Items"))
+            .spawn((SpatialBundle::default(), Name::new("Items")))
             .with_children(|cb| {
                 for ipt in info.item_spawns.clone() {
                     let template = item_templates[rng.gen_range(0..item_templates.len())];
@@ -348,34 +347,37 @@ impl<T: StateNext> RoguelikePlugin<T> {
             actor_templates.get(&asset_server.load("actors/human.actor.ron"))
         {
             let team_player = 1;
-            cmd.spawn(Actor::new(
-                asset_server.clone(),
-                player_template,
-                combat_settings,
-                team_player,
-                info.player_start,
-            ))
-            .insert(MovingPlayer {});
+            cmd.spawn((
+                Actor::new(
+                    asset_server.clone(),
+                    player_template,
+                    combat_settings,
+                    team_player,
+                    info.player_start,
+                ),
+                MovingPlayer {},
+            ));
         } else {
             bevy::log::error!("human actor template not found");
         }
 
         let actor_templates: Vec<_> = actor_templates.iter().map(|(_, it)| it).collect();
         let enemies_id = cmd
-            .spawn(SpatialBundle::default())
-            .insert(Name::new("Enemies"))
+            .spawn((SpatialBundle::default(), Name::new("Enemies")))
             .with_children(|enms| {
                 for mpt in info.monster_spawns.clone() {
                     let monster_template = actor_templates[rng.gen_range(0..actor_templates.len())];
                     let team_monster = 1 + rng.gen_range(2..4);
-                    enms.spawn(Actor::new(
-                        asset_server.clone(),
-                        monster_template,
-                        combat_settings,
-                        team_monster,
-                        mpt,
-                    ))
-                    .insert(MovingFovRandom {});
+                    enms.spawn((
+                        Actor::new(
+                            asset_server.clone(),
+                            monster_template,
+                            combat_settings,
+                            team_monster,
+                            mpt,
+                        ),
+                        MovingFovRandom {},
+                    ));
                 }
             })
             .id();

@@ -18,8 +18,9 @@ pub fn render_body(
                 ..default()
             })
             .with_children(|renderable| {
-                renderable
-                    .spawn(SpriteBundle {
+                renderable.spawn((
+                    Name::new("render"),
+                    SpriteBundle {
                         sprite: Sprite {
                             color: Color::WHITE,
                             custom_size: Some(Vec2::splat(map_options.tile_size)),
@@ -28,12 +29,13 @@ pub fn render_body(
                         texture: info.texture.clone(),
                         transform: Transform::from_xyz(0., 0., info.z + 0.1),
                         ..Default::default()
-                    })
-                    .insert(Name::new("render"));
+                    },
+                ));
 
                 for cosmetic_texture in info.cosmetic_textures.iter() {
-                    renderable
-                        .spawn(SpriteBundle {
+                    renderable.spawn((
+                        Name::new("render cosmetic"),
+                        SpriteBundle {
                             sprite: Sprite {
                                 color: Color::WHITE,
                                 custom_size: Some(Vec2::splat(map_options.tile_size)),
@@ -42,8 +44,8 @@ pub fn render_body(
                             texture: cosmetic_texture.clone(),
                             transform: Transform::from_xyz(0., 0., info.z + 0.2),
                             ..Default::default()
-                        })
-                        .insert(Name::new("render cosmetic"));
+                        },
+                    ));
                 }
             });
     }
@@ -64,18 +66,20 @@ pub fn render_equiped_item<I: ItemType>(
             let mut some_item_render_entity = None;
             cmd.entity(owner.actor).with_children(|renderable| {
                 let item_render_entity = renderable
-                    .spawn(SpriteBundle {
-                        sprite: Sprite {
-                            color: Color::WHITE,
-                            custom_size: Some(Vec2::splat(map_options.tile_size)),
+                    .spawn((
+                        Name::new("item render"),
+                        EquipedRenderedItem { item: item_entity },
+                        SpriteBundle {
+                            sprite: Sprite {
+                                color: Color::WHITE,
+                                custom_size: Some(Vec2::splat(map_options.tile_size)),
+                                ..Default::default()
+                            },
+                            texture: info.texture.clone(),
+                            transform: Transform::from_xyz(0., 0., info.z + 0.1),
                             ..Default::default()
                         },
-                        texture: info.texture.clone(),
-                        transform: Transform::from_xyz(0., 0., info.z + 0.1),
-                        ..Default::default()
-                    })
-                    .insert(Name::new("item render"))
-                    .insert(EquipedRenderedItem { item: item_entity })
+                    ))
                     .id();
                 some_item_render_entity = Some(item_render_entity);
             });
@@ -112,8 +116,10 @@ pub fn render_hud_health_bar(
             .insert(HudHealthBar {})
             .with_children(|renderable| {
                 let height = map_options.tile_size / 16.;
-                renderable
-                    .spawn(SpriteBundle {
+                renderable.spawn((
+                    Name::new("hud"),
+                    HudHealthBar {},
+                    SpriteBundle {
                         sprite: Sprite {
                             color: Color::GREEN,
                             custom_size: Some(Vec2::new(map_options.tile_size, height)),
@@ -125,9 +131,8 @@ pub fn render_hud_health_bar(
                             100.,
                         ),
                         ..Default::default()
-                    })
-                    .insert(Name::new("hud"))
-                    .insert(HudHealthBar {});
+                    },
+                ));
             });
     }
 }

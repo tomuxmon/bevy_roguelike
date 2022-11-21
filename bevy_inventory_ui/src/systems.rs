@@ -30,99 +30,107 @@ pub(crate) fn toggle_inventory_open<I: ItemType>(
             return;
         }
         // TODO: local resource to track inventory position and reopen on the same position.
-        cmd.spawn(NodeBundle {
-            style: Style {
-                flex_wrap: FlexWrap::Wrap,
-                flex_direction: FlexDirection::ColumnReverse,
-                size: Size::new(Val::Px(256.0), Val::Auto),
-                position_type: PositionType::Absolute,
-                position: UiRect {
-                    top: Val::Px(10.0),
-                    right: Val::Px(10.0),
+        cmd.spawn((
+            NodeBundle {
+                style: Style {
+                    flex_wrap: FlexWrap::Wrap,
+                    flex_direction: FlexDirection::ColumnReverse,
+                    size: Size::new(Val::Px(256.0), Val::Auto),
+                    position_type: PositionType::Absolute,
+                    position: UiRect {
+                        top: Val::Px(10.0),
+                        right: Val::Px(10.0),
+                        ..default()
+                    },
                     ..default()
                 },
+                background_color: Color::rgba(0., 0., 0., 0.).into(),
                 ..default()
             },
-            background_color: Color::rgba(0., 0., 0., 0.).into(),
-            ..default()
-        })
-        .insert(Name::new("inventory display"))
-        .insert(InventoryDisplayOwner { actor: e.actor })
-        .insert(DragableUI::default())
-        .insert(Interaction::default())
+            Name::new("inventory display"),
+            InventoryDisplayOwner { actor: e.actor },
+            DragableUI::default(),
+            Interaction::default(),
+        ))
         .with_children(|parent| {
             // NOTE: equipment with slots
             parent
                 // equipment display
-                .spawn(NodeBundle {
-                    focus_policy: FocusPolicy::Pass,
-                    style: Style {
-                        size: Size::new(Val::Px(256.0), Val::Px(128.)),
+                .spawn((
+                    Name::new("equipment"),
+                    EquipmentDisplayNode { actor: e.actor },
+                    NodeBundle {
+                        focus_policy: FocusPolicy::Pass,
+                        style: Style {
+                            size: Size::new(Val::Px(256.0), Val::Px(128.)),
+                            ..default()
+                        },
+                        // TODO: should be an image instead of a color
+                        background_color: Color::rgba(0.015, 0.04, 0.025, 0.96).into(),
                         ..default()
                     },
-                    // TODO: should be an image instead of a color
-                    background_color: Color::rgba(0.015, 0.04, 0.025, 0.96).into(),
-                    ..default()
-                })
-                .insert(Name::new("equipment"))
-                .insert(EquipmentDisplayNode { actor: e.actor })
+                ))
                 .with_children(|cb| {
                     for (&index, position) in equipment_display.iter() {
-                        cb.spawn(ImageBundle {
-                            style: Style {
-                                size: Size::new(
-                                    Val::Px(inventory_options.tile_size),
-                                    Val::Px(inventory_options.tile_size),
-                                ),
-                                position_type: PositionType::Absolute,
-                                position: UiRect {
-                                    left: Val::Px(position.x),
-                                    top: Val::Px(position.y),
-                                    ..default()
-                                },
-                                ..default()
-                            },
-                            image: slot_asset.slot.clone().into(),
-                            ..Default::default()
-                        })
-                        .insert(Name::new(format!("Equipment display slot {:?}", index)))
-                        .insert({
+                        cb.spawn((
+                            Name::new(format!("Equipment display slot {:?}", index)),
                             EquipmentDisplaySlot {
                                 index,
                                 item: None,
                                 is_dummy_rendered: false,
-                            }
-                        });
+                            },
+                            ImageBundle {
+                                style: Style {
+                                    size: Size::new(
+                                        Val::Px(inventory_options.tile_size),
+                                        Val::Px(inventory_options.tile_size),
+                                    ),
+                                    position_type: PositionType::Absolute,
+                                    position: UiRect {
+                                        left: Val::Px(position.x),
+                                        top: Val::Px(position.y),
+                                        ..default()
+                                    },
+                                    ..default()
+                                },
+                                image: slot_asset.slot.clone().into(),
+                                ..Default::default()
+                            },
+                        ));
                     }
                 });
             // NOTE: inventory with slots
             parent
-                .spawn(NodeBundle {
-                    style: Style {
-                        flex_wrap: FlexWrap::WrapReverse,
-                        flex_direction: FlexDirection::Row,
-                        size: Size::new(Val::Px(256.0), Val::Auto),
+                .spawn((
+                    Name::new("inventory"),
+                    InventoryDisplayNode { id: e.actor },
+                    NodeBundle {
+                        style: Style {
+                            flex_wrap: FlexWrap::WrapReverse,
+                            flex_direction: FlexDirection::Row,
+                            size: Size::new(Val::Px(256.0), Val::Auto),
+                            ..default()
+                        },
                         ..default()
                     },
-                    ..default()
-                })
-                .insert(Name::new("inventory"))
-                .insert(InventoryDisplayNode { id: e.actor })
+                ))
                 .with_children(|cb| {
                     for index in 0..inventory.len() {
-                        cb.spawn(ImageBundle {
-                            style: Style {
-                                size: Size::new(
-                                    Val::Px(inventory_options.tile_size),
-                                    Val::Px(inventory_options.tile_size),
-                                ),
-                                ..default()
+                        cb.spawn((
+                            Name::new(format!("Inventory display slot {}", index)),
+                            InventoryDisplaySlot { index, item: None },
+                            ImageBundle {
+                                style: Style {
+                                    size: Size::new(
+                                        Val::Px(inventory_options.tile_size),
+                                        Val::Px(inventory_options.tile_size),
+                                    ),
+                                    ..default()
+                                },
+                                image: slot_asset.slot.clone().into(),
+                                ..Default::default()
                             },
-                            image: slot_asset.slot.clone().into(),
-                            ..Default::default()
-                        })
-                        .insert(Name::new(format!("Inventory display slot {}", index)))
-                        .insert(InventoryDisplaySlot { index, item: None });
+                        ));
                     }
                 });
         });
@@ -170,23 +178,25 @@ pub(crate) fn inventory_update<I: ItemType>(
                 if render {
                     if let Ok(info) = items.get(item_entity) {
                         slot_cmd.with_children(|cb| {
-                            cb.spawn(ImageBundle {
-                                style: Style {
-                                    size: Size::new(
-                                        Val::Px(inventory_options.tile_size),
-                                        Val::Px(inventory_options.tile_size),
-                                    ),
-                                    ..default()
+                            cb.spawn((
+                                Interaction::default(),
+                                UiHoverTip::new(item_entity),
+                                Equipable {
+                                    actor: display_node.id,
+                                    item: item_entity,
                                 },
-                                image: info.image.clone(),
-                                ..Default::default()
-                            })
-                            .insert(Interaction::default())
-                            .insert(Equipable {
-                                actor: display_node.id,
-                                item: item_entity,
-                            })
-                            .insert(UiHoverTip::new(item_entity));
+                                ImageBundle {
+                                    style: Style {
+                                        size: Size::new(
+                                            Val::Px(inventory_options.tile_size),
+                                            Val::Px(inventory_options.tile_size),
+                                        ),
+                                        ..default()
+                                    },
+                                    image: info.image.clone(),
+                                    ..Default::default()
+                                },
+                            ));
                         });
                     } else {
                         bevy::log::error!(
@@ -289,23 +299,25 @@ pub(crate) fn equipment_update<I: ItemType, T: ItemTypeUiImage<I>>(
             } else if render_item {
                 if let Some(image) = ui_image {
                     slot_cmd.with_children(|cb| {
-                        cb.spawn(ImageBundle {
-                            style: Style {
-                                size: Size::new(
-                                    Val::Px(inventory_display_options.tile_size),
-                                    Val::Px(inventory_display_options.tile_size),
-                                ),
-                                ..default()
+                        cb.spawn((
+                            Interaction::default(),
+                            UiHoverTip::new(slot.item.unwrap()),
+                            Unequipable {
+                                actor: display_node.actor,
+                                item: slot.item.unwrap(),
                             },
-                            image,
-                            ..Default::default()
-                        })
-                        .insert(Interaction::default())
-                        .insert(Unequipable {
-                            actor: display_node.actor,
-                            item: slot.item.unwrap(),
-                        })
-                        .insert(UiHoverTip::new(slot.item.unwrap()));
+                            ImageBundle {
+                                style: Style {
+                                    size: Size::new(
+                                        Val::Px(inventory_display_options.tile_size),
+                                        Val::Px(inventory_display_options.tile_size),
+                                    ),
+                                    ..default()
+                                },
+                                image,
+                                ..Default::default()
+                            },
+                        ));
                     });
                 } else {
                     bevy::log::error!(
@@ -587,8 +599,9 @@ fn insert_tooltip(
     x_first_half: bool,
     y_first_half: bool,
 ) {
-    ec.insert(UiFixedZ { z: 10. })
-        .insert(NodeBundle {
+    ec.insert((
+        UiFixedZ { z: 10. },
+        NodeBundle {
             style: Style {
                 flex_wrap: FlexWrap::WrapReverse,
                 flex_direction: FlexDirection::Row,
@@ -621,39 +634,40 @@ fn insert_tooltip(
             },
             background_color: Color::rgba(0.015, 0.04, 0.025, 0.96).into(),
             ..default()
-        })
-        .with_children(|cb| {
+        },
+    ))
+    .with_children(|cb| {
+        cb.spawn(TextBundle {
+            style: Style {
+                margin: UiRect::all(Val::Px(4.0)),
+                ..default()
+            },
+            text: Text::from_section(
+                info.name.as_str(),
+                TextStyle {
+                    font: font.clone(),
+                    font_size: 24.0,
+                    color: Color::WHITE,
+                },
+            ),
+            ..default()
+        });
+        for (title, description) in info.titles_descriptions.iter() {
             cb.spawn(TextBundle {
                 style: Style {
-                    margin: UiRect::all(Val::Px(4.0)),
+                    margin: UiRect::all(Val::Px(2.0)),
                     ..default()
                 },
                 text: Text::from_section(
-                    info.name.as_str(),
+                    format!("{}: {}", title, description),
                     TextStyle {
                         font: font.clone(),
-                        font_size: 24.0,
+                        font_size: 18.0,
                         color: Color::WHITE,
                     },
                 ),
                 ..default()
             });
-            for (title, description) in info.titles_descriptions.iter() {
-                cb.spawn(TextBundle {
-                    style: Style {
-                        margin: UiRect::all(Val::Px(2.0)),
-                        ..default()
-                    },
-                    text: Text::from_section(
-                        format!("{}: {}", title, description),
-                        TextStyle {
-                            font: font.clone(),
-                            font_size: 18.0,
-                            color: Color::WHITE,
-                        },
-                    ),
-                    ..default()
-                });
-            }
-        });
+        }
+    });
 }
