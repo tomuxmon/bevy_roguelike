@@ -4,7 +4,7 @@ use crate::{
     InventoryDisplayOwner, InventoryDisplaySlot, InventoryDisplayToggleEvent, ItemTypeUiImage,
     UiHoverTip, UiRenderInfo, UiTextInfo, Unequipable, WorldHoverTip,
 };
-use bevy::{ecs::system::EntityCommands, prelude::*, render::camera::RenderTarget, ui::*};
+use bevy::{ecs::system::EntityCommands, prelude::*, ui::*, window::PrimaryWindow};
 use bevy_inventory::{Equipment, Inventory, ItemDropEvent, ItemType};
 
 pub(crate) fn toggle_inventory_open<I: ItemType>(
@@ -330,15 +330,13 @@ pub(crate) fn equipment_update<I: ItemType, T: ItemTypeUiImage<I>>(
 
 pub(crate) fn ui_hovertip_interaction<I: ItemType>(
     mut cmd: Commands,
-    windows: Res<Windows>,
+    primary_query: Query<&Window, With<PrimaryWindow>>,
     inventory_display_options: Res<InventoryDisplayOptions>,
     inventory_ui_assets: Res<InventoryUiAssets>,
     mut interactive_hovertip: Query<(Entity, &GlobalTransform, &Interaction, &mut UiHoverTip)>,
     items: Query<&UiTextInfo, With<I>>,
 ) {
-    let window = if let Some(window) = windows.get_primary() {
-        window
-    } else {
+    let Ok(window) = primary_query.get_single() else {
         bevy::log::error!("no window in ui_hovertip_interaction");
         return;
     };
@@ -477,24 +475,19 @@ pub(crate) fn append_world_hovertip(
 
 pub(crate) fn world_hovertip_interaction(
     mut cmd: Commands,
-    windows: Res<Windows>,
+    primary_query: Query<&Window, With<PrimaryWindow>>,
     inventory_display_options: Res<InventoryDisplayOptions>,
     inventory_ui_assets: Res<InventoryUiAssets>,
     cameras_2d: Query<(&Camera, &GlobalTransform), With<Camera2d>>,
     mut no_ui_things: Query<(&GlobalTransform, &UiTextInfo, &mut WorldHoverTip), Without<Node>>,
 ) {
-    let (cam2d, cam2d_transform) = cameras_2d.single();
-    let window = if let RenderTarget::Window(id) = cam2d.target {
-        windows.get(id)
-    } else {
-        windows.get_primary()
-    };
-    let window = if let Some(window) = window {
-        window
-    } else {
-        bevy::log::error!("could not get any window in world_hovertip_interaction");
+    let Ok(window) = primary_query.get_single() else {
+        bevy::log::error!("no window in world_hovertip_interaction");
         return;
     };
+
+    let (cam2d, cam2d_transform) = cameras_2d.single();
+
     let cursor_position = window.cursor_position();
     let window_size = Vec2::new(window.width(), window.height());
 

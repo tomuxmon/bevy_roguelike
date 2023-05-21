@@ -11,7 +11,7 @@ pub fn render_body(
     for (rendity, pt, info) in renderables.iter() {
         cmd.entity(rendity)
             .insert(SpatialBundle {
-                visibility: Visibility { is_visible: true },
+                visibility: Visibility::Visible,
                 transform: Transform::from_translation(
                     map_options.to_world_position(**pt).extend(info.z),
                 ),

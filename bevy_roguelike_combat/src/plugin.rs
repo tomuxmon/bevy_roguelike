@@ -1,32 +1,44 @@
 use crate::{components::*, events::*, systems::*};
-use bevy::{ecs::schedule::StateData, prelude::*};
+use bevy::prelude::*;
+use bevy_roguelike_states::AppState;
 use std::marker::PhantomData;
 
-pub struct RoguelikeCombatPlugin<S, K: DamageKind, A: AttributeType> {
-    pub state_running: S,
-    pub phantom_1: PhantomData<K>,
-    pub phantom_2: PhantomData<A>,
+pub struct RoguelikeCombatPlugin<K: DamageKind, A: AttributeType> {
+    _phantom: PhantomData<(K, A)>,
 }
 
-impl<S: StateData, K: DamageKind, A: AttributeType> Plugin for RoguelikeCombatPlugin<S, K, A> {
+impl<K: DamageKind, A: AttributeType> Default for RoguelikeCombatPlugin<K, A> {
+    fn default() -> Self {
+        Self {
+            _phantom: PhantomData,
+        }
+    }
+}
+
+impl<K: DamageKind, A: AttributeType> Plugin for RoguelikeCombatPlugin<K, A> {
     fn build(&self, app: &mut App) {
-        app.add_system_set_to_stage(
-            CoreStage::PreUpdate,
-            SystemSet::on_update(self.state_running.clone())
-                .with_system(attributes_update_action_points::<K, A>)
-                .with_system(attributes_update_hit_points::<K, A>),
+        app.add_systems(
+            (
+                attributes_update_action_points::<K, A>.run_if(in_state(AppState::InGame)),
+                attributes_update_hit_points::<K, A>.run_if(in_state(AppState::InGame)),
+            )
+                .in_base_set(CoreSet::PreUpdate),
         )
-        .add_system_set_to_stage(
-            CoreStage::Update,
-            SystemSet::on_update(self.state_running.clone())
-                .with_system(attack::<K, A>)
-                .with_system(spend_ap::<A>),
+        .add_systems(
+            (
+                attack::<K, A>.run_if(in_state(AppState::InGame)),
+                spend_ap::<A>.run_if(in_state(AppState::InGame)),
+            )
+                .in_base_set(CoreSet::Update),
         )
-        .add_system_set_to_stage(
-            CoreStage::PostUpdate,
-            SystemSet::on_update(self.state_running.clone())
-                .with_system(damage_hit_points::<A>)
-                .with_system(idle_rest::<A>.after(damage_hit_points::<A>)),
+        .add_systems(
+            (
+                damage_hit_points::<A>.run_if(in_state(AppState::InGame)),
+                idle_rest::<A>
+                    .after(damage_hit_points::<A>)
+                    .run_if(in_state(AppState::InGame)),
+            )
+                .in_base_set(CoreSet::PostUpdate),
         )
         .register_type::<Attributes<A>>()
         .register_type::<A>()

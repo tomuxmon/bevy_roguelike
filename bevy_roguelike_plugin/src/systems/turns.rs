@@ -19,7 +19,7 @@ pub fn action_completed(
 pub fn gather_action_points(
     mut actors: Query<(&mut ActionPoints<RogueAttributeType>, &mut TurnState)>,
 ) {
-    actors.par_for_each_mut(16, |(mut ap, mut ts)| {
+    actors.par_iter_mut().for_each_mut(|(mut ap, mut ts)| {
         if *ts == TurnState::Collect {
             *ts = if ap.current_add() > ap.turn_ready_to_act() {
                 TurnState::Act
@@ -34,7 +34,7 @@ pub fn gather_action_points(
 // TODO: move to bevy_roguelike_turns
 pub fn turn_end_now_gather(mut actors: Query<&mut TurnState>) {
     if actors.iter().all(|ts| *ts == TurnState::End) {
-        actors.par_for_each_mut(16, |mut ts| {
+        actors.par_iter_mut().for_each_mut(|mut ts| {
             *ts = TurnState::Collect;
         });
     }

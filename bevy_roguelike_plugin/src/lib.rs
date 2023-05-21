@@ -5,7 +5,6 @@ pub mod systems;
 
 use crate::components::*;
 use crate::events::*;
-use bevy::ecs::schedule::StateData;
 use bevy::log;
 use bevy::prelude::*;
 use bevy::utils::HashSet;
@@ -13,11 +12,11 @@ use bevy_common_assets::ron::RonAssetPlugin;
 use bevy_inventory_ui::InventoryUiAssets;
 use bevy_inventory_ui::InventoryUiPlugin;
 use bevy_roguelike_combat::*;
+use bevy_roguelike_states::AppState;
 use bevy_tweening::TweeningPlugin;
 use map_generator::*;
 use rand::prelude::*;
 use resources::*;
-use std::marker::PhantomData;
 use std::ops::Range;
 use systems::action::*;
 use systems::actor_stats::*;
@@ -29,38 +28,7 @@ use systems::map::*;
 use systems::render::*;
 use systems::turns::*;
 
-// TODO: review all `as T` casting
-
-pub struct RoguelikePlugin<T> {
-    /// Asset loading happens in this state. When it finishes it transitions to [`RoguelikePlugin::state_construct`]
-    pub state_asset_load: T,
-    pub state_construct: T,
-    pub state_running: T,
-}
-
-pub trait StateNext: StateData {
-    fn next(&self) -> Option<Self>;
-}
-pub trait StateSetNext {
-    fn set_next(&mut self);
-}
-impl<T: StateNext> StateSetNext for State<T> {
-    fn set_next(&mut self) {
-        let current = self.current();
-
-        if let Some(next) = current.next() {
-            bevy::log::info!("transitioning state from {:?} to {:?}", current, next);
-            // TODO: investigate why only transition from Construct to InGame fails:
-            // TODO: change back to self.set()
-            // Attempted to queue a state change, but there was already a state queued.
-            if let Err(error) = self.overwrite_set(next) {
-                bevy::log::error!("Error setting next state. {}", error);
-            }
-        } else {
-            bevy::log::error!("no next state for {:?}.", current);
-        }
-    }
-}
+pub struct RoguelikePlugin {}
 
 #[derive(Resource, Default)]
 pub struct AssetsLoading(pub Vec<HandleUntyped>);
@@ -74,21 +42,11 @@ pub struct MapEntities {
 
 // TODO: instead of after / before  use labels: https://bevy-cheatbook.github.io/programming/system-order.html#labels
 
-impl<T: StateNext> Plugin for RoguelikePlugin<T> {
+impl Plugin for RoguelikePlugin {
     fn build(&self, app: &mut App) {
         app.add_plugin(TweeningPlugin {})
-            .add_plugin(InventoryUiPlugin::<_, RogueItemType, InventoryAssets> {
-                state_running: self.state_running.clone(),
-                phantom_1: PhantomData {},
-                phantom_2: PhantomData {},
-            })
-            .add_plugin(
-                RoguelikeCombatPlugin::<_, RogueDamageKind, RogueAttributeType> {
-                    state_running: self.state_running.clone(),
-                    phantom_1: PhantomData {},
-                    phantom_2: PhantomData {},
-                },
-            )
+            .add_plugin(InventoryUiPlugin::<RogueItemType, InventoryAssets>::default())
+            .add_plugin(RoguelikeCombatPlugin::<RogueDamageKind, RogueAttributeType>::default())
             .add_plugin(RonAssetPlugin::<ItemTemplate>::new(&["item.ron"]))
             .add_plugin(RonAssetPlugin::<ActorTemplate>::new(&["actor.ron"]))
             .add_plugin(RonAssetPlugin::<MapTheme>::new(&["maptheme.ron"]))
@@ -99,58 +57,56 @@ impl<T: StateNext> Plugin for RoguelikePlugin<T> {
             .insert_resource(AssetsLoading::default())
             .add_startup_system(Self::rogue_setup)
             .add_startup_system(setup_camera)
-            .add_system_set(
-                SystemSet::on_update(self.state_asset_load.clone())
-                    .with_system(Self::check_assets_ready),
+            .add_system(Self::check_assets_ready.run_if(in_state(AppState::AssetLoad)))
+            .add_system(Self::create_map.in_schedule(OnEnter(AppState::Construct)))
+            .add_systems(
+                (
+                    apply_position_to_transform.run_if(in_state(AppState::InGame)),
+                    camera_set_focus_player.run_if(in_state(AppState::InGame)),
+                    field_of_view_recompute.run_if(in_state(AppState::InGame)),
+                )
+                    .in_base_set(CoreSet::First),
             )
-            .add_system_set(
-                SystemSet::on_enter(self.state_construct.clone()).with_system(Self::create_map),
+            .add_systems(
+                (
+                    gather_action_points.run_if(in_state(AppState::InGame)),
+                    turn_end_now_gather.run_if(in_state(AppState::InGame)),
+                    stats_recompute::<RogueItemType>.run_if(in_state(AppState::InGame)),
+                    attributes_update_field_of_view.run_if(in_state(AppState::InGame)),
+                    field_of_view_set_visibility.run_if(in_state(AppState::InGame)),
+                    actors_fill_text_info.run_if(in_state(AppState::InGame)),
+                    item_fill_text_info::<RogueItemType>.run_if(in_state(AppState::InGame)),
+                    camera_focus_smooth.run_if(in_state(AppState::InGame)),
+                    equip_owned_add::<RogueItemType>.run_if(in_state(AppState::InGame)),
+                    equip_owned_remove::<RogueItemType>.run_if(in_state(AppState::InGame)),
+                    toggle_inventory_open_event_send::<RogueItemType>
+                        .run_if(in_state(AppState::InGame)),
+                )
+                    .in_base_set(CoreSet::PreUpdate),
             )
-            .add_system_set_to_stage(
-                CoreStage::First,
-                SystemSet::on_update(self.state_running.clone())
-                    .with_system(apply_position_to_transform)
-                    .with_system(camera_set_focus_player)
-                    .with_system(field_of_view_recompute),
+            .add_systems(
+                (
+                    input_player::<RogueItemType>.run_if(in_state(AppState::InGame)),
+                    input_fov_rand.run_if(in_state(AppState::InGame)),
+                    render_body.run_if(in_state(AppState::InGame)),
+                    render_equiped_item::<RogueItemType>.run_if(in_state(AppState::InGame)),
+                    unrender_unequiped_items.run_if(in_state(AppState::InGame)),
+                    render_hud_health_bar.run_if(in_state(AppState::InGame)),
+                    act.run_if(in_state(AppState::InGame)),
+                    action_completed.run_if(in_state(AppState::InGame)),
+                    try_move.after(act).run_if(in_state(AppState::InGame)),
+                )
+                    .in_base_set(CoreSet::Update),
             )
-            .add_system_set_to_stage(
-                CoreStage::PreUpdate,
-                SystemSet::on_update(self.state_running.clone())
-                    .with_system(gather_action_points)
-                    .with_system(turn_end_now_gather)
-                    .with_system(stats_recompute::<RogueItemType>)
-                    .with_system(attributes_update_field_of_view)
-                    .with_system(field_of_view_set_visibility)
-                    .with_system(actors_fill_text_info)
-                    .with_system(item_fill_text_info::<RogueItemType>)
-                    .with_system(camera_focus_smooth)
-                    .with_system(equip_owned_add::<RogueItemType>)
-                    .with_system(equip_owned_remove::<RogueItemType>)
-                    .with_system(toggle_inventory_open_event_send::<RogueItemType>),
+            .add_systems(
+                (
+                    pick_up_items::<RogueItemType>.run_if(in_state(AppState::InGame)),
+                    drop_item::<RogueItemType>.run_if(in_state(AppState::InGame)),
+                    death_read::<RogueItemType>.run_if(in_state(AppState::InGame)),
+                )
+                    .in_base_set(CoreSet::PostUpdate),
             )
-            .add_system_set_to_stage(
-                CoreStage::Update,
-                SystemSet::on_update(self.state_running.clone())
-                    .with_system(input_player::<RogueItemType>)
-                    .with_system(input_fov_rand)
-                    .with_system(render_body)
-                    .with_system(render_equiped_item::<RogueItemType>)
-                    .with_system(unrender_unequiped_items)
-                    .with_system(render_hud_health_bar)
-                    .with_system(act)
-                    .with_system(action_completed)
-                    .with_system(try_move.after(act)),
-            )
-            .add_system_set_to_stage(
-                CoreStage::PostUpdate,
-                SystemSet::on_update(self.state_running.clone())
-                    .with_system(pick_up_items::<RogueItemType>)
-                    .with_system(drop_item::<RogueItemType>)
-                    .with_system(death_read::<RogueItemType>),
-            )
-            .add_system_set(
-                SystemSet::on_exit(self.state_running.clone()).with_system(Self::cleanup_map),
-            )
+            .add_system(Self::cleanup_map.in_schedule(OnExit(AppState::InGame)))
             .register_type::<Vector2D>()
             .register_type::<RenderInfo>()
             .register_type::<RenderInfoEquiped>()
@@ -173,22 +129,23 @@ impl<T: StateNext> Plugin for RoguelikePlugin<T> {
     }
 }
 
-impl<T: StateNext> RoguelikePlugin<T> {
+impl RoguelikePlugin {
     fn check_assets_ready(
         mut commands: Commands,
         server: Res<AssetServer>,
         loading: Res<AssetsLoading>,
-        mut state: ResMut<State<T>>,
+        mut state: ResMut<NextState<AppState>>,
     ) {
         use bevy::asset::LoadState;
 
-        match server.get_group_load_state(loading.0.iter().map(|h| h.id)) {
+        match server.get_group_load_state(loading.0.iter().map(|h| h.id())) {
             LoadState::Failed => {
                 bevy::log::error!("Asset load failed. Check preceding warnings for more info. Transitioning to next state anyway (feeling adventurous).");
-                state.set_next();
+                state.set(AppState::Construct);
             }
             LoadState::Loaded => {
-                state.set_next();
+                bevy::log::info!("Assets loaded.");
+                state.set(AppState::Construct);
                 commands.remove_resource::<AssetsLoading>();
                 // (note: if you don't have any other handles to the assets
                 // elsewhere, they will get unloaded after this)
@@ -209,9 +166,11 @@ impl<T: StateNext> RoguelikePlugin<T> {
 
     fn rogue_setup(
         asset_server: Res<AssetServer>,
-        mut state: ResMut<State<T>>,
+        mut state: ResMut<NextState<AppState>>,
         mut loading: ResMut<AssetsLoading>,
     ) {
+        log::info!("Loading assets...");
+
         #[cfg(not(target_arch = "wasm32"))]
         match asset_server.load_folder("") {
             Ok(handles) => loading.0.extend(handles),
@@ -224,14 +183,13 @@ impl<T: StateNext> RoguelikePlugin<T> {
                 loading.0.push(asset_server.load_untyped(file));
             }
         }
-        // NOTE: transitioning from Setup to AssetLoad
-        state.set_next();
+        state.set(AppState::AssetLoad);
     }
 
     #[allow(clippy::too_many_arguments)]
     pub fn create_map(
         mut cmd: Commands,
-        mut state: ResMut<State<T>>,
+        mut state: ResMut<NextState<AppState>>,
         map_options: Option<Res<MapOptions>>,
         asset_server: Res<AssetServer>,
         map_themes: Res<Assets<MapTheme>>,
@@ -305,7 +263,7 @@ impl<T: StateNext> RoguelikePlugin<T> {
                     );
                     rogue_map.spawn((
                         Name::new(format!("Tile {}", pt)),
-                        Vector2D::from(pt),
+                        // Vector2D::from(pt),
                         RenderInfo {
                             texture,
                             cosmetic_textures: vec![],
@@ -392,7 +350,9 @@ impl<T: StateNext> RoguelikePlugin<T> {
             items_id,
         });
 
-        state.set_next();
+        bevy::log::info!("Construct completed. Entering Game.");
+
+        state.set(AppState::InGame);
     }
 }
 

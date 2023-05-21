@@ -33,8 +33,13 @@ pub fn field_of_view_set_visibility(
             for c in children.iter() {
                 if let Ok((mut s, mut t, mut v, h)) = visible_children.get_mut(*c) {
                     let is_hud_hp = h.is_some();
-                    v.is_visible =
-                        (hp_percent != 1. || !is_hud_hp) && is_visible || is_ambient && is_revealed;
+                    *v = if (hp_percent != 1. || !is_hud_hp) && is_visible
+                        || is_ambient && is_revealed
+                    {
+                        Visibility::Visible
+                    } else {
+                        Visibility::Hidden
+                    };
                     if !is_hud_hp {
                         s.color = if is_visible && is_revealed {
                             Color::WHITE
@@ -62,7 +67,7 @@ pub fn field_of_view_recompute(
     mut actors: Query<(&Vector2D, &mut FieldOfView)>,
     map: Res<RogueMap>,
 ) {
-    actors.par_for_each_mut(16, |(pt, mut fov)| {
+    actors.par_iter_mut().for_each_mut(|(pt, mut fov)| {
         if !fov.is_dirty {
             return;
         }

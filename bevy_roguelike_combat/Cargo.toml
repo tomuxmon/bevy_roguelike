@@ -6,14 +6,15 @@ edition = "2021"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-serde = "~1.0"
-rand = "~0.8"
-strum = "~0.24"
+serde = "1.0"
+rand = "0.8"
+strum = "0.24"
+bevy_roguelike_states = { path = "../bevy_roguelike_states" }
 
 [dependencies.bevy]
-version = "~0.9"
+version = "0.10.1"
 default-features = false
-features = ["render"]
+features = ["bevy_render"]
 
 # Dependencies for WASM only
 [target.'cfg(target_arch = "wasm32")'.dependencies.getrandom]

@@ -13,7 +13,7 @@ pub(crate) fn ui_drag_interaction(
     mut interactive_dragables: Query<(&Interaction, &Style, &mut DragableUI)>,
 ) {
     for mm in cursor_moved_reader.iter() {
-        for (i, s, mut d) in interactive_dragables.iter_mut() {
+        for (i, s,mut d) in interactive_dragables.iter_mut() {
             if d.is_started {
                 if *i != Interaction::Clicked {
                     d.is_started = false;
