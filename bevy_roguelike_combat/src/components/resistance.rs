@@ -1,20 +1,10 @@
 use super::DamageKind;
-use bevy::{prelude::*, reflect::FromReflect};
+use bevy::prelude::*;
 use serde::{Deserialize, Serialize};
 use std::{fmt::Debug, fmt::Display, hash::Hash};
 
 #[derive(
-    Debug,
-    Default,
-    Clone,
-    PartialEq,
-    Eq,
-    Hash,
-    Component,
-    Reflect,
-    FromReflect,
-    Serialize,
-    Deserialize,
+    Debug, Default, Clone, PartialEq, Eq, Hash, Component, Reflect, Serialize, Deserialize,
 )]
 #[reflect(Component)]
 pub struct Resist<K: DamageKind> {
@@ -28,9 +18,7 @@ impl<K: DamageKind> Display for Resist<K> {
     }
 }
 
-#[derive(
-    Debug, Default, Clone, PartialEq, Eq, Component, Reflect, FromReflect, Serialize, Deserialize,
-)]
+#[derive(Debug, Default, Clone, PartialEq, Eq, Component, Reflect, Serialize, Deserialize)]
 #[reflect(Component)]
 pub struct Resistance<K: DamageKind> {
     /// defines resistance in percents per damage kind.

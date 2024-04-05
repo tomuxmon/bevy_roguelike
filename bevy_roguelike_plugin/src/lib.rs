@@ -9,6 +9,8 @@ use bevy::log;
 use bevy::prelude::*;
 use bevy::utils::HashSet;
 use bevy_common_assets::ron::RonAssetPlugin;
+use bevy_inventory::ItemDropEvent;
+use bevy_inventory::ItemPickUpEvent;
 use bevy_inventory_ui::InventoryUiAssets;
 use bevy_inventory_ui::InventoryUiPlugin;
 use bevy_roguelike_combat::*;
@@ -45,7 +47,7 @@ pub struct MapEntities {
 impl Plugin for RoguelikePlugin {
     fn build(&self, app: &mut App) {
         app.add_plugin(TweeningPlugin {})
-            .add_plugin(InventoryUiPlugin::<RogueItemType, InventoryAssets>::default())
+            // .add_plugin(InventoryUiPlugin::<RogueItemType, InventoryAssets>::default())
             .add_plugin(RoguelikeCombatPlugin::<RogueDamageKind, RogueAttributeType>::default())
             .add_plugin(RonAssetPlugin::<ItemTemplate>::new(&["item.ron"]))
             .add_plugin(RonAssetPlugin::<ActorTemplate>::new(&["actor.ron"]))
@@ -73,14 +75,14 @@ impl Plugin for RoguelikePlugin {
                     turn_end_now_gather.run_if(in_state(AppState::InGame)),
                     stats_recompute::<RogueItemType>.run_if(in_state(AppState::InGame)),
                     attributes_update_field_of_view.run_if(in_state(AppState::InGame)),
-                    field_of_view_set_visibility.run_if(in_state(AppState::InGame)),
+                    // field_of_view_set_visibility.run_if(in_state(AppState::InGame)),
                     actors_fill_text_info.run_if(in_state(AppState::InGame)),
                     item_fill_text_info::<RogueItemType>.run_if(in_state(AppState::InGame)),
                     camera_focus_smooth.run_if(in_state(AppState::InGame)),
                     equip_owned_add::<RogueItemType>.run_if(in_state(AppState::InGame)),
                     equip_owned_remove::<RogueItemType>.run_if(in_state(AppState::InGame)),
-                    toggle_inventory_open_event_send::<RogueItemType>
-                        .run_if(in_state(AppState::InGame)),
+                    // toggle_inventory_open_event_send::<RogueItemType>
+                    //     .run_if(in_state(AppState::InGame)),
                 )
                     .in_base_set(CoreSet::PreUpdate),
             )
@@ -123,7 +125,9 @@ impl Plugin for RoguelikePlugin {
             .register_type::<Range<i32>>()
             .add_event::<MoveEvent>()
             .add_event::<ActEvent>()
-            .add_event::<CameraFocusEvent>();
+            .add_event::<CameraFocusEvent>()
+            .add_event::<ItemPickUpEvent>()
+            .add_event::<ItemDropEvent>();
 
         log::info!("Loaded Roguelike Plugin");
     }

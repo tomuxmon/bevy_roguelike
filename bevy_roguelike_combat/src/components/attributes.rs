@@ -21,7 +21,7 @@ pub trait AttributeType:
 {
 }
 
-#[derive(Debug, Clone, Eq, PartialEq, Component, Reflect, FromReflect, Serialize, Deserialize)]
+#[derive(Debug, Clone, Eq, PartialEq, Component, Reflect, Serialize, Deserialize)]
 #[reflect(Component)]
 pub struct Attributes<A: AttributeType> {
     pub list: HashMap<A, u8>,

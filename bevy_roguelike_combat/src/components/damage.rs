@@ -13,18 +13,14 @@ pub trait DamageKind:
 {
 }
 
-#[derive(
-    Debug, Default, Clone, PartialEq, Eq, Component, Reflect, FromReflect, Serialize, Deserialize,
-)]
+#[derive(Debug, Default, Clone, PartialEq, Eq, Component, Reflect, Serialize, Deserialize)]
 #[reflect(Component)]
 pub struct DamageList<K: DamageKind, A: AttributeType> {
     pub list: Vec<Damage<K, A>>,
 }
 
 /// Information about damage that can be calculated based on actor attributes.
-#[derive(
-    Debug, Default, Clone, PartialEq, Eq, Component, Reflect, FromReflect, Serialize, Deserialize,
-)]
+#[derive(Debug, Default, Clone, PartialEq, Eq, Component, Reflect, Serialize, Deserialize)]
 #[reflect(Component)]
 pub struct Damage<K: DamageKind, A: AttributeType> {
     pub kind: K,

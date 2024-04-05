@@ -48,9 +48,7 @@ impl<I: ItemType, T: ItemTypeUiImage<I>> Plugin for InventoryUiPlugin<I, T> {
                 )
                     .in_base_set(CoreSet::Update),
             )
-            .add_event::<InventoryDisplayToggleEvent>()
-            .add_event::<ItemPickUpEvent>()
-            .add_event::<ItemDropEvent>();
+            .add_event::<InventoryDisplayToggleEvent>();
 
         bevy::log::info!("Loaded InventoryUiPlugin Plugin");
     }

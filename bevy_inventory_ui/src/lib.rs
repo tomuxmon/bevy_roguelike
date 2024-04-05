@@ -7,12 +7,12 @@ use bevy_inventory::ItemType;
 use serde::{Deserialize, Serialize};
 
 pub use assets::InventoryUiAssets;
-pub use plugin::InventoryUiPlugin;
+// pub use plugin::InventoryUiPlugin;
 
 mod assets;
-mod draggable_ui;
-mod plugin;
-mod systems;
+// mod draggable_ui;
+// mod plugin;
+// mod systems;
 
 /// Inventory display options. Must be used as a resource
 #[derive(Resource, Debug, Clone, Serialize, Deserialize)]

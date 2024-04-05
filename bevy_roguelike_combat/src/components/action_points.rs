@@ -1,5 +1,5 @@
 use super::{AttributeType, Attributes, LinearFormula};
-use bevy::{prelude::*, reflect::FromReflect};
+use bevy::prelude::*;
 use std::{fmt::Debug, hash::Hash};
 
 pub const AP_MOVE_COST_DEFAULT: i16 = 100;
@@ -11,7 +11,7 @@ pub const AP_INCREMENT_MIN: i16 = 64;
 #[reflect(Component)]
 pub struct ActionPointsDirty;
 
-#[derive(Default, Debug, Clone, Eq, PartialEq, Hash, Component, Reflect, FromReflect)]
+#[derive(Default, Debug, Clone, Eq, PartialEq, Hash, Component, Reflect)]
 #[reflect(Component)]
 pub struct ActionPoints<A: AttributeType> {
     turn_ready: i16,

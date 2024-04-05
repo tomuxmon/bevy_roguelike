@@ -29,7 +29,7 @@ fn main() {
 
 fn set_options(mut cmd: Commands) {
     cmd.insert_resource(MapOptions {
-        map_size: IVec2::new(80, 50),
+        map_size: IVec2::new(40, 25),
         tile_size: 32.0,
     });
     cmd.insert_resource(InventoryDisplayOptions { tile_size: 32.0 })

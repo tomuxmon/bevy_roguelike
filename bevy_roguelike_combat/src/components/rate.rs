@@ -1,11 +1,9 @@
 use super::{AttributeType, Attributes, LinearFormula};
-use bevy::{prelude::*, reflect::FromReflect};
+use bevy::prelude::*;
 use serde::{Deserialize, Serialize};
 use std::fmt::Debug;
 
-#[derive(
-    Debug, Default, Clone, PartialEq, Eq, Component, Reflect, FromReflect, Serialize, Deserialize,
-)]
+#[derive(Debug, Default, Clone, PartialEq, Eq, Component, Reflect, Serialize, Deserialize)]
 #[reflect(Component)]
 pub struct Rate<A: AttributeType> {
     /// A chance to perform action modifier where 100 means a normal chance.

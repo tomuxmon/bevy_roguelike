@@ -18,27 +18,27 @@ impl<K: DamageKind, A: AttributeType> Default for RoguelikeCombatPlugin<K, A> {
 impl<K: DamageKind, A: AttributeType> Plugin for RoguelikeCombatPlugin<K, A> {
     fn build(&self, app: &mut App) {
         app.add_systems(
+            PreUpdate,
             (
                 attributes_update_action_points::<K, A>.run_if(in_state(AppState::InGame)),
                 attributes_update_hit_points::<K, A>.run_if(in_state(AppState::InGame)),
-            )
-                .in_base_set(CoreSet::PreUpdate),
+            ),
         )
         .add_systems(
+            Update,
             (
                 attack::<K, A>.run_if(in_state(AppState::InGame)),
                 spend_ap::<A>.run_if(in_state(AppState::InGame)),
-            )
-                .in_base_set(CoreSet::Update),
+            ),
         )
         .add_systems(
+            PostUpdate,
             (
                 damage_hit_points::<A>.run_if(in_state(AppState::InGame)),
                 idle_rest::<A>
                     .after(damage_hit_points::<A>)
                     .run_if(in_state(AppState::InGame)),
-            )
-                .in_base_set(CoreSet::PostUpdate),
+            ),
         )
         .register_type::<Attributes<A>>()
         .register_type::<A>()

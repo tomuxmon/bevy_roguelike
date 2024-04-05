@@ -1,13 +1,11 @@
 use super::{ActionCost, AttributeType, Attributes, Damage, DamageKind, Rate};
-use bevy::{prelude::*, reflect::FromReflect};
+use bevy::prelude::*;
 use rand::prelude::*;
 use serde::{Deserialize, Serialize};
 use std::fmt::Debug;
 
 /// Block works on specified damage types. Works together with [Rate].
-#[derive(
-    Debug, Default, Clone, PartialEq, Eq, Component, Reflect, FromReflect, Serialize, Deserialize,
-)]
+#[derive(Debug, Default, Clone, PartialEq, Eq, Component, Reflect, Serialize, Deserialize)]
 #[reflect(Component)]
 pub struct Block<K: DamageKind, A: AttributeType> {
     // blocks specific damage type?

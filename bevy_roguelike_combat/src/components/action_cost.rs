@@ -1,12 +1,10 @@
 use super::{AttributeType, Attributes, LinearFormula};
-use bevy::{prelude::*, reflect::FromReflect};
+use bevy::prelude::*;
 use serde::{Deserialize, Serialize};
 use std::fmt::Debug;
 
 /// applies to action being performed
-#[derive(
-    Debug, Default, Clone, PartialEq, Eq, Component, Reflect, FromReflect, Serialize, Deserialize,
-)]
+#[derive(Debug, Default, Clone, PartialEq, Eq, Component, Reflect, Serialize, Deserialize)]
 #[reflect(Component)]
 pub struct ActionCost<A: AttributeType> {
     /// cost in action points, [`super::ActionPoints::TURN_READY_DEFAULT`] being one single turn

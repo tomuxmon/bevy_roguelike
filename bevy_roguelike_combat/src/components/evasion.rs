@@ -1,13 +1,11 @@
 use super::{ActionCost, AttributeType, Attributes, Damage, DamageKind, Rate};
-use bevy::{prelude::*, reflect::FromReflect};
+use bevy::prelude::*;
 use rand::prelude::*;
 use serde::{Deserialize, Serialize};
 use std::fmt::Debug;
 
 /// Evasion works on any damage type.
-#[derive(
-    Debug, Default, Clone, PartialEq, Eq, Component, Reflect, FromReflect, Serialize, Deserialize,
-)]
+#[derive(Debug, Default, Clone, PartialEq, Eq, Component, Reflect, Serialize, Deserialize)]
 #[reflect(Component)]
 pub struct Evasion<A: AttributeType> {
     /// Cost in action points, [`super::ActionPoints::TURN_READY_DEFAULT`] being one single turn.

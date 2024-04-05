@@ -1,20 +1,10 @@
 use super::{AttributeType, Attributes, DamageKind, LinearFormula};
-use bevy::{prelude::*, reflect::FromReflect};
+use bevy::prelude::*;
 use serde::{Deserialize, Serialize};
 use std::{fmt::Debug, fmt::Display, hash::Hash};
 
 #[derive(
-    Debug,
-    Default,
-    Clone,
-    PartialEq,
-    Eq,
-    Hash,
-    Component,
-    Reflect,
-    FromReflect,
-    Serialize,
-    Deserialize,
+    Debug, Default, Clone, PartialEq, Eq, Hash, Component, Reflect, Serialize, Deserialize,
 )]
 pub struct Protect<K: DamageKind, A: AttributeType> {
     pub kind: K,
@@ -36,17 +26,7 @@ impl<K: DamageKind, A: AttributeType> Display for Protect<K, A> {
 
 /// Protective Value (PV) or the amount of direct damage negated
 #[derive(
-    Debug,
-    Default,
-    Clone,
-    PartialEq,
-    Eq,
-    Hash,
-    Component,
-    Reflect,
-    FromReflect,
-    Serialize,
-    Deserialize,
+    Debug, Default, Clone, PartialEq, Eq, Hash, Component, Reflect, Serialize, Deserialize,
 )]
 #[reflect(Component)]
 pub struct Protection<K: DamageKind, A: AttributeType> {

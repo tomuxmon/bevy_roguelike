@@ -1,5 +1,5 @@
 use super::{AttributeType, Attributes, LinearFormula};
-use bevy::{prelude::*, reflect::FromReflect};
+use bevy::prelude::*;
 use std::{fmt::Debug, hash::Hash};
 
 pub const HP_FULL_MIN: i16 = 20;
@@ -10,7 +10,7 @@ pub const HP_REGEN_INCREMENT_MIN: i16 = 16;
 #[reflect(Component)]
 pub struct HitPointsDirty;
 
-#[derive(Default, Debug, Clone, Eq, PartialEq, Hash, Component, Reflect, FromReflect)]
+#[derive(Default, Debug, Clone, Eq, PartialEq, Hash, Component, Reflect)]
 #[reflect(Component)]
 pub struct HitPoints<A: AttributeType> {
     is_alive: bool,

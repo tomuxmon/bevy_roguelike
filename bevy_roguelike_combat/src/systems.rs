@@ -34,7 +34,7 @@ pub fn spend_ap<A: AttributeType>(
     mut ap_reader: EventReader<SpendAPEvent>,
     mut action_completed_writer: EventWriter<ActionCompletedEvent>,
 ) {
-    for e in ap_reader.iter() {
+    for e in ap_reader.read() {
         if let Ok(mut ap) = actors.get_mut(e.id) {
             if ap.current_minus(e.amount) < ap.turn_ready_to_act() {
                 action_completed_writer.send(ActionCompletedEvent { id: e.id });
@@ -48,7 +48,7 @@ pub fn idle_rest<A: AttributeType>(
     mut idle_reader: EventReader<IdleEvent>,
     mut ap_spend_writer: EventWriter<SpendAPEvent>,
 ) {
-    for e in idle_reader.iter() {
+    for e in idle_reader.read() {
         ap_spend_writer.send(SpendAPEvent::new(e.id, AP_IDLE_COST_DEFAULT));
         if let Ok((mut hp, ap)) = actors.get_mut(e.id) {
             let ratio = AP_IDLE_COST_DEFAULT as f32 / ap.turn_ready_to_act() as f32;
@@ -65,7 +65,7 @@ pub fn attack<K: DamageKind, A: AttributeType>(
     mut damage_writer: EventWriter<DamageHitPointsEvent>,
     mut rng: ResMut<RogueRng>,
 ) {
-    for e in attack_reader.iter() {
+    for e in attack_reader.read() {
         let attacker_stats = if let Ok(attacker) = attackers.get(e.attacker) {
             attacker
         } else {
@@ -190,7 +190,7 @@ pub fn damage_hit_points<A: AttributeType>(
     mut damage_reader: EventReader<DamageHitPointsEvent>,
     mut death_writer: EventWriter<DeathEvent>,
 ) {
-    for e in damage_reader.iter() {
+    for e in damage_reader.read() {
         if let Ok(mut hp) = actors.get_mut(e.defender) {
             if hp.is_alive() {
                 hp.apply(-(e.amount as i16));

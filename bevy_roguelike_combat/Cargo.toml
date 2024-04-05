@@ -8,11 +8,11 @@ edition = "2021"
 [dependencies]
 serde = "1.0"
 rand = "0.8"
-strum = "0.24"
+strum = "0.26"
 bevy_roguelike_states = { path = "../bevy_roguelike_states" }
 
 [dependencies.bevy]
-version = "0.10.1"
+version = "0.13.2"
 default-features = false
 features = ["bevy_render"]
 
