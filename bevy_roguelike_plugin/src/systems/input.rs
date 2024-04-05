@@ -79,7 +79,7 @@ pub fn input_fov_rand(
         .iter()
         .filter(|(_, _, _, ts, _, _)| **ts == TurnState::Act)
     {
-        let deltas = vec![
+        let deltas = [
             IVec2::new(0, 1),
             IVec2::new(0, -1),
             IVec2::new(-1, 0),
@@ -88,7 +88,7 @@ pub fn input_fov_rand(
             IVec2::new(0, 0), // stay put - skip turn
             IVec2::new(0, 0), // stay put - skip turn
             IVec2::new(0, 0), // stay put - skip turn
-            IVec2::new(0, 0), // stay put - skip turn
+            IVec2::new(0, 0),
         ];
 
         // NOTE: closest oposing team member search
