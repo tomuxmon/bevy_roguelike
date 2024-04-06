@@ -1,0 +1,26 @@
+[package]
+name = "rogue-tiny"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[features]
+default = []
+debug = ["bevy_roguelike_plugin/debug", "bevy-inspector-egui"]
+
+[dependencies]
+bevy_roguelike_plugin = { path = "../bevy_roguelike_plugin" }
+bevy_inventory_ui = { path = "../bevy_inventory_ui" }
+bevy-inspector-egui = { version = "~0.14", optional = true }
+
+[dependencies.bevy]
+version = "~0.9"
+default-features = false
+features = ["render", "bevy_winit", "png"]
+
+# Dependencies for native only.
+[target.'cfg(not(target_arch = "wasm32"))'.dependencies.bevy]
+version = "~0.9"
+default-features = false
+features = ["x11"]
