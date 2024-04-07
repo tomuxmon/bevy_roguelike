@@ -1,6 +1,6 @@
 [workspace]
 members = [
-    "game",
+    "rogue_tiny",
     "bevy_roguelike_plugin",
     "bevy_roguelike_combat",
     "map_generator",
